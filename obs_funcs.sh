@@ -1,0 +1,170 @@
+# (C) 2014,2015,2015 Oblong
+# Shell functions used in oblong build scripts
+# Shipped along with platform, so can be used in customer-facing samples
+
+# Print an error message and terminate with nonzero status.
+bs_abort() {
+    echo fatal error: $*
+    exit 1
+}
+
+# Print a warning message
+bs_warn() {
+    echo "warning: $*"
+}
+
+# Given a g-speak version number, output the major version of yobuild it uses.
+bs_yovo2yoversion() {
+    case $1 in
+    2*|3.[0-9]|3.[0-9].*|3.1[01]*)
+        # Errors to stderr since callers always redirect stdout to a variable
+        bs_abort "unsupported yovo version $1" >&2
+        ;;
+    3.12*)
+        echo 8
+        ;;
+    3.1[3456]*)
+        echo 9
+        ;;
+    3.*)
+        echo 10
+        ;;
+    esac
+}
+
+# Given a g-speak version number, output the cef suffix common to the
+# oblong-yobuildNN-cef and oblong-webthing packages it is usually bundled with.
+# (You can pick a different CEF if you really want to, though.)
+bs_yovo2cefversion() {
+    case $1 in
+    3.8|3.10|3.12|3.14|3.16|3.18) echo cef;;
+    3.[12][0-9]*) echo cef2272;;
+    *) bs_abort "bs_yovo2cefversion: don't know which CEF goes with g-speak $1" >&2;;
+    esac
+}
+
+# Echo a short code for the operating system / version.
+# e.g. osx107, osx109, ubu1004, ubu1204, ubu1404, or cygwin
+# FIXME: should probably be win7 or win8 rather than cygwin
+
+bs_detect_os() {
+    if test "$BS_FORCE_OS"
+    then
+        echo $BS_FORCE_OS
+        return
+    fi
+    # Detect OS
+    case "`uname -s`" in
+    Linux)
+        if grep -q "Ubuntu 10.04" /etc/issue ; then echo ubu1004
+        elif grep -q "Ubuntu 12.04" /etc/issue ; then echo ubu1204
+        elif grep -q "Ubuntu 14.04" /etc/issue ; then echo ubu1404
+        elif grep -q "Ubuntu 15.10" /etc/issue ; then echo ubu1510
+        else bs_abort "unrecognized linux"
+        fi
+        ;;
+    Darwin)
+        macver=`sw_vers -productVersion`
+        case "$macver" in
+        # we pretend everything 10.7 or later is osx107 for now
+        # Except that OS X 10.9 has a different Ruby ABI,
+        # and we've decided to use XCode 4 on 10.7/10.8 vs.
+        # XCode 5 on 10.9, so osx107 vs. osx109 here implies libstdc++ vs. libc++.
+        10.11|10.11.*) echo osx1011;;
+        10.10|10.10.*) echo osx1010;;
+        10.9|10.9.*) echo osx109;;
+        10.8|10.8.*) echo osx107;;
+        10.7|10.7.*) echo osx107;;
+        10.6|10.6.*) echo osx106;;
+        *) bs_abort "unrecognized mac '$macver'";;
+        esac
+        ;;
+    CYGWIN*WOW64) echo cygwin;;
+    CYGWIN*)      echo cygwin;;
+    *) bs_abort "unrecognized os";;
+    esac
+}
+
+# Usage: bs_install package ...
+# Downloads and unpacks the latest build of the given packages
+# This is not quite ready for external use
+bs_install() {
+  case "${bs_install_host}" in
+  "") bs_abort "bs_install: must specify bs_install_host";;
+  esac
+  for depname
+  do
+    rm -rf bs_install.tmp
+    mkdir bs_install.tmp
+
+    status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
+    case "$status" in
+    present) ;;
+    *) bs_abort "package $depname not yet built for $_os";;
+    esac
+
+    sort=`ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'`
+    case $sort in
+    /*) ;;
+    *) bs_abort "A sort supporting --version-sort was not found.  Please install gnu sort (coreutils) on $bs_install_host."
+    esac
+
+    # Need newest sort for --version-sort.  On Mac, sort is too old and aborts, but gsort exists and is new enough.  gsort does not exist on linux.
+    xy=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os; ls | $sort --version-sort | tail -n 1"`
+    micro=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy; ls | sort -n | tail -n 1"`
+    patch=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1"`
+    scp ${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz bs_install.tmp
+    # And now the scary part.  First, check for file (not directory) overwrites.
+    for tarball in bs_install.tmp/*.tar.gz
+    do
+        case "$_os" in
+        cygwin)
+                # fixme: simplify, unify, allow other drives?
+                case $depname in
+                yobuild*) root=/;;           # yobuild has /cygdrive/c in tgz!
+                *)        root=/cygdrive/c;;
+                esac
+                tar -C $root -xzf $tarball 2>&1 ;;
+        osx1011)  # osx1011 unhappy about setting ownership of /, understandably
+                # FIXME: add a postinstall step to e.g. install things into /etc/oblong (kipple)?
+                $SUDO mkdir -p /opt/oblong
+                $SUDO tar -o --strip-components=2 -C /opt/oblong -xzf $tarball 2>&1 ;;
+        *)      $SUDO tar -C / -xzf $tarball 2>&1 ;;
+        esac
+    done
+    rm -rf bs_install.tmp
+
+    # Remember what's been installed; will be used in bs_deps_hook
+    # Keep it in /opt/oblong because that's the only place that's cleared at start of install_deps
+    # FIXME: /opt/oblong doesn't always exist; caused trouble on win & linux
+    if test -d /opt/oblong
+    then
+        echo $depname | $SUDO tee -a /opt/oblong/install_deps.log
+    fi
+  done
+}
+
+
+# Provide a few variables by default
+_os=`bs_detect_os`
+
+SUDO=sudo
+case $_os in
+cygwin) SUDO= ;;
+esac
+
+# Defaults useful mostly inside Oblong.  Messy.  Only needed by bs_install et al.
+# FIXME: refactor bs_upload / bs_install and clean this up
+bs_repotop=${bs_repotop:-/home/buildbot/var/repobot}
+MASTER=${MASTER:-buildhost4.oblong.com}
+bs_upload_user=${bs_upload_user:-buildbot}
+bs_install_host=$MASTER
+bs_install_root=$bs_repotop/tarballs
+bs_install_user=$bs_upload_user
+# Default to real username unless we're a system user on Windows buildbot.
+case "$USERPROFILE" in
+*systemprofile)
+    bs_install_sshspec=${bs_install_user}@${bs_install_host} ;;
+*)
+    bs_install_sshspec=${bs_install_host} ;;
+esac
