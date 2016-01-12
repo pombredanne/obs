@@ -30,7 +30,7 @@ esac
 
 cmd="$1"
 case "$cmd" in
-"") usage; exit 0;;
+--help|"") usage; exit 0;;
 esac
 shift
 
