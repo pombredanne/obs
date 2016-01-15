@@ -43,6 +43,7 @@ sudo make install
 To uninstall all oblong packages (except oblong-obs):
 ```
 $ ob-remove.sh
+```
 
 To look up the version of cef that a given release of the oblong platform uses:
 ```
@@ -77,6 +78,7 @@ $ BS_FORCE_OS=osx109 obs install yobuild10 g-speak3.21
 To use a different username when accessing the package server:
 ```
 $ bs_install_user=joe obs pkg_list
+```
 
 To access a different package server:
 ```
