@@ -62,9 +62,8 @@ To list packages available for install:
 $ obs pkg_list
 ```
 
-To install g-speak 3.21 on a mac or windows from a local buildbot (mostly only useful inside Oblong):
+To install g-speak 3.21 on a mac or windows (mostly only useful inside Oblong):
 ```
-export MASTER=hostname-of-buildbot  (defaults to buildhost4)
 $ obs install yobuild10 g-speak3.21
 ```
 
@@ -72,4 +71,13 @@ To install some other operating system's build of a package
 (handy e.g. on osx1010 if all that's been built is for osx109):
 ```
 $ BS_FORCE_OS=osx109 obs install yobuild10 g-speak3.21
+```
+
+To use a different username when accessing the package server:
+```
+$ bs_install_user=joe obs pkg_list
+
+To access a different package server:
+```
+$ MASTER=server.example.com obs pkg_list
 ```

@@ -219,11 +219,16 @@ MASTER=${MASTER:-buildhost4.oblong.com}
 bs_upload_user=${bs_upload_user:-buildbot}
 bs_install_host=$MASTER
 bs_install_root=$bs_repotop/tarballs
-bs_install_user=$bs_upload_user
-# Default to real username unless we're a system user on Windows buildbot.
-case "$USERPROFILE" in
-*systemprofile)
-    bs_install_sshspec=${bs_install_user}@${bs_install_host} ;;
-*)
-    bs_install_sshspec=${bs_install_host} ;;
-esac
+
+# Allow user to download as a different user
+if test "$bs_install_user"
+then
+    bs_install_sshspec=${bs_install_user}@${bs_install_host}
+elif test "$USERPROFILE" = systemprofile
+then
+    # Odd case: if running as service on cygwin, don't use name of system user.
+    bs_install_sshspec=${bs_upload_user}@${bs_install_host}
+else
+    # Default: just use your own user id when sshing to MASTER
+    bs_install_sshspec=${bs_install_host}
+fi
