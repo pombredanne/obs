@@ -45,9 +45,15 @@ To uninstall all oblong packages (except oblong-obs):
 $ ob-remove.sh
 ```
 
-To look up the version of cef that a given release of the oblong platform uses:
+To look up the version of yobuild that a given release of the oblong platform uses:
 ```
 $ obs yovo2yoversion 3.20
+10
+```
+
+To look up the version of cef that a given release of the oblong platform uses:
+```
+$ obs yovo2cefversion 3.20
 cef2272
 ```
 
@@ -56,7 +62,8 @@ cef2272
 obs understands a primitive notion of packages, i.e. tarballs to be unpacked, usually into /opt
 This is mostly useful inside Oblong, and mostly on Mac and Windows (though occasionally also on Linux).
 These packages are not yet transitive, so to install e.g. g-speak3.20 for scratch, you also need to specify
-the yobuild10 package it depends on.
+the yobuild10 package it depends on.  (Yobuild contains updated versions of system packages, e.g. gstreamer,
+installed to /opt/oblong/deps-$bits-$yoversion.  And, in case it's not clear, yovo is a nickname for g-speak.)
 
 To list packages available for install:
 ```
