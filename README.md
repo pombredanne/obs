@@ -86,6 +86,11 @@ To use a different username when accessing the package server:
 ```
 $ bs_install_user=joe obs pkg_list
 ```
+Alternately, add something like this to ~/.ssh/config:
+```
+Host buildhost4.oblong.com
+  User joe
+```
 
 To access a different package server:
 ```
