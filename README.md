@@ -26,7 +26,7 @@ brew upgrade obs
 
 ### Ubuntu
 ```bash
-# Once you have access to oblong's repository, just use apt-get
+# Once you have access to oblong's repository or the Oblong g-speak SDK, just install the oblong-obs package, e.g.
 sudo apt-get install oblong-obs
 ```
 
@@ -50,11 +50,24 @@ $ obs yovo2yoversion 3.20
 cef2272
 ```
 
+### Package manipulation
+
+obs understands a primitive notion of packages, i.e. tarballs to be unpacked, usually into /opt
+This is mostly useful inside Oblong, and mostly on Mac and Windows (though occasionally also on Linux).
+These packages are not yet transitive, so to install e.g. g-speak3.20 for scratch, you also need to specify
+the yobuild10 package it depends on.
+
+To list packages available for install:
+```
+$ obs pkg_list
+```
+
 To install g-speak 3.21 on a mac or windows from a local buildbot (mostly only useful inside Oblong):
 ```
 export MASTER=hostname-of-buildbot  (defaults to buildhost4)
 $ obs install yobuild10 g-speak3.21
 ```
+
 To install some other operating system's build of a package
 (handy e.g. on osx1010 if all that's been built is for osx109):
 ```

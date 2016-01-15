@@ -85,6 +85,65 @@ bs_detect_os() {
     esac
 }
 
+# Echo the number of CPU cores
+bs_detect_ncores() {
+    case $_os in
+    ubu*)
+        grep -c processor /proc/cpuinfo || echo 1
+        ;;
+    osx*)
+        system_profiler -detailLevel full SPHardwareDataType | awk '/Total Number .f Cores/ {print $5};'
+        ;;
+    cygwin)
+        echo $NUMBER_OF_PROCESSORS
+        ;;
+    esac
+}
+
+# Echo the version number of this project as given by git
+# Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the first numeric part including dots
+# Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
+bs_get_version_git() {
+    # FIXME: this is overly complex
+    # git describe --long's output looks like
+    # tag-COUNT-CHECKSUM
+    # or, if at a tag,
+    # tag
+    d1=`git describe --long`
+    # Strip off -CHECKSUM suffix, if any
+    case $_os in
+    osx*) xregx=-E;;
+    *) xregx=-r;;
+    esac
+    d2=`echo $d1 | sed $xregx 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]?[a-z0-9]?$//'`
+    # Strip off -COUNT suffix, if any
+    d3=`echo $d2 | sed 's/-[0-9]*$//'`
+    # Remove non-numeric prefix (e.g. rel- or debian/), if any
+    d4=`echo $d3 | sed 's/^[^0-9]*//'`
+    # Remove non-numeric suffix (e.g. -mz-gouda), if any
+    d5=`echo $d4 | sed 's/-[^0-9]*$//'`
+    case "$d5" in
+    "") bs_abort "can't parse version number from git describe --long's output $d1";;
+    esac
+    echo $d5
+}
+
+# Echo the major version number of this project as given by git
+# Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the first numeric part before a dot
+# Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
+bs_get_major_version_git() {
+    # Remove anything after a dot, then remove anything before a dash
+    git describe --long | sed 's/\..*//;s/.*-//'
+}
+
+# List packages that could be installed by bs_install
+bs_pkg_list() {
+  case "${bs_install_host}" in
+  "") bs_abort "bs_pkg_list: must specify bs_install_host";;
+  esac
+  ssh -n ${bs_install_sshspec} "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
+}
+
 # Usage: bs_install package ...
 # Downloads and unpacks the latest build of the given packages
 # This is not quite ready for external use
