@@ -61,6 +61,7 @@ To list packages available for install:
 ```
 $ obs pkg_list
 ```
+(You will quickly discover you want to do 'ssh-copy-id $foo', where $foo is the package server, to avoid multiple prompts.)
 
 To install g-speak 3.21 on a mac or windows (mostly only useful inside Oblong):
 ```
