@@ -38,7 +38,8 @@ bs_yovo2yoversion() {
 bs_yovo2cefversion() {
     case $1 in
     3.8|3.10|3.12|3.14|3.16|3.18) echo cef;;
-    3.[12][0-9]*) echo cef2272;;
+    3.20) echo cef2272;;
+    3.2[1-9]) echo cef2526;;
     *) bs_abort "bs_yovo2cefversion: don't know which CEF goes with g-speak $1" >&2;;
     esac
 }
