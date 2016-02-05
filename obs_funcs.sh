@@ -225,7 +225,7 @@ bs_install_root=$bs_repotop/tarballs
 if test "$bs_install_user"
 then
     bs_install_sshspec=${bs_install_user}@${bs_install_host}
-elif test "$USERPROFILE" = systemprofile
+elif test "$LOGNAME" = SYSTEM
 then
     # Odd case: if running as service on cygwin, don't use name of system user.
     bs_install_sshspec=${bs_upload_user}@${bs_install_host}
