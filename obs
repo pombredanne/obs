@@ -10,6 +10,7 @@ usage() {
     echo "obs get_major_version_git   - get major version number of current project from heavyweight git tags"
     echo "obs get_version_git         - get version number of current project from heavyweight git tags"
     echo "obs install pkg ...         - install tarball packages from $MASTER"
+    echo "obs download pkg ...        - download but do not unpack tarball packages from $MASTER"
     echo "obs pkg_list                - list tarball packages available to install for $_os from $MASTER"
     echo "obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on"
     echo "obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on"
@@ -35,6 +36,7 @@ detect_os)             echo $_os ;; # bs_detect_os already called
 get_major_version_git) bs_get_major_version_git;;
 get_version_git)       bs_get_version_git;;
 install)               bs_install $@;;
+download)              bs_download $@;;
 pkg_list)              bs_pkg_list;;
 yovo2cefversion)       bs_yovo2cefversion $@;;
 yovo2yoversion)        bs_yovo2yoversion $@;;

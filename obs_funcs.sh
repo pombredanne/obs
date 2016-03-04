@@ -149,62 +149,76 @@ bs_pkg_list() {
 }
 
 # Usage: bs_install package ...
+# Downloads the latest build of the given packages
+# This is not quite ready for external use
+bs_download() {
+    bs_download_dest=${bs_download_dest:-.}
+    case "${bs_install_host}" in
+    "") bs_abort "bs_download: must specify bs_install_host";;
+    esac
+    for depname
+    do
+        status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
+        case "$status" in
+        present) ;;
+        *) bs_abort "package $depname not yet built for $_os";;
+        esac
+
+        sort=`ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'`
+        case $sort in
+        /*) ;;
+        *) bs_abort "A sort supporting --version-sort was not found.  Please install gnu sort (coreutils) on $bs_install_host."
+        esac
+
+        # Need newest sort for --version-sort.  On Mac, sort is too old and aborts, but gsort exists and is new enough.  gsort does not exist on linux.
+        xy=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os; ls | $sort --version-sort | tail -n 1"`
+        micro=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy; ls | sort -n | tail -n 1"`
+        patch=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1"`
+        scp ${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz ${bs_download_dest}
+    done
+}
+
+# Usage: bs_install package ...
 # Downloads and unpacks the latest build of the given packages
 # This is not quite ready for external use
 bs_install() {
-  case "${bs_install_host}" in
-  "") bs_abort "bs_install: must specify bs_install_host";;
-  esac
-  for depname
-  do
-    rm -rf bs_install.tmp
-    mkdir bs_install.tmp
-
-    status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
-    case "$status" in
-    present) ;;
-    *) bs_abort "package $depname not yet built for $_os";;
-    esac
-
-    sort=`ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'`
-    case $sort in
-    /*) ;;
-    *) bs_abort "A sort supporting --version-sort was not found.  Please install gnu sort (coreutils) on $bs_install_host."
-    esac
-
-    # Need newest sort for --version-sort.  On Mac, sort is too old and aborts, but gsort exists and is new enough.  gsort does not exist on linux.
-    xy=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os; ls | $sort --version-sort | tail -n 1"`
-    micro=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy; ls | sort -n | tail -n 1"`
-    patch=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1"`
-    scp ${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz bs_install.tmp
-    # And now the scary part.  First, check for file (not directory) overwrites.
-    for tarball in bs_install.tmp/*.tar.gz
-    do
-        case "$_os" in
-        cygwin)
-                # fixme: simplify, unify, allow other drives?
-                case $depname in
-                yobuild*) root=/;;           # yobuild has /cygdrive/c in tgz!
-                *)        root=/cygdrive/c;;
-                esac
-                tar -C $root -xzf $tarball 2>&1 ;;
-        osx1011)  # osx1011 unhappy about setting ownership of /, understandably
-                # FIXME: add a postinstall step to e.g. install things into /etc/oblong (kipple)?
-                $SUDO mkdir -p /opt/oblong
-                $SUDO tar -o --strip-components=2 -C /opt/oblong -xzf $tarball 2>&1 ;;
-        *)      $SUDO tar -C / -xzf $tarball 2>&1 ;;
-        esac
-    done
-    rm -rf bs_install.tmp
+    bs_download_dest=bs_install.tmp
+    rm -rf ${bs_download_dest}
+    mkdir ${bs_download_dest}
+    bs_download $@
 
     # Remember what's been installed; will be used in bs_deps_hook
     # Keep it in /opt/oblong because that's the only place that's cleared at start of install_deps
     # FIXME: /opt/oblong doesn't always exist; caused trouble on win & linux
     if test -d /opt/oblong
     then
-        echo $depname | $SUDO tee -a /opt/oblong/install_deps.log
+        echo $depname | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
     fi
-  done
+
+    # And now the scary part.  First, check for file (not directory) overwrites.
+    for tarball in bs_install.tmp/*.tar.gz
+    do
+        case "$_os" in
+        cygwin)
+            # fixme: simplify, unify, allow other drives?
+            case $depname in
+            yobuild*) root=/;;           # yobuild has /cygdrive/c in tgz!
+            *)        root=/cygdrive/c;;
+            esac
+            tar -C $root -xzf $tarball 2>&1
+            ;;
+        osx1011)  # osx1011 unhappy about setting ownership of /, understandably
+            # FIXME: add a postinstall step to e.g. install things into /etc/oblong (kipple)?
+            $SUDO mkdir -p /opt/oblong
+            $SUDO tar -o --strip-components=2 -C /opt/oblong -xzf $tarball 2>&1
+            ;;
+        *)
+            $SUDO tar -C / -xzf $tarball 2>&1
+            ;;
+        esac
+    done
+
+    rm -rf bs_install.tmp
 }
 
 
