@@ -63,7 +63,8 @@ bs_detect_os() {
         if grep -q "Ubuntu 10.04" /etc/issue ; then echo ubu1004
         elif grep -q "Ubuntu 12.04" /etc/issue ; then echo ubu1204
         elif grep -q "Ubuntu 14.04" /etc/issue ; then echo ubu1404
-        elif grep -q "Ubuntu 15.10" /etc/issue ; then echo ubu1510
+        elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
+        elif grep -q "Ubuntu Xenial Xerus" /etc/issue ; then echo ubu1604
         else bs_abort "unrecognized linux"
         fi
         ;;
