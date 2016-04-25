@@ -163,7 +163,7 @@ bs_download() {
         status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
         case "$status" in
         present) ;;
-        *) bs_abort "package $depname not yet built for $_os";;
+        *) echo "bs_download: warning: package $depname not yet built for $_os"; return 1;;
         esac
 
         sort=`ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'`
