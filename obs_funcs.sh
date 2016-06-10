@@ -1,6 +1,7 @@
-# (C) 2014,2015,2015 Oblong
+# (C) 2014,2015,2015,2016 Oblong
 # Shell functions used in oblong build scripts
 # Shipped along with platform, so can be used in customer-facing samples
+# NOTE: out of date versions of this package can be very confusing indeed to developers
 
 # Print an error message and terminate with nonzero status.
 bs_abort() {
@@ -42,7 +43,14 @@ bs_yovo2cefversion() {
     case $1 in
     3.8|3.10|3.12|3.14|3.16|3.18) echo cef;;
     3.20) echo cef2272;;
-    3.2[1-9]) echo cef2526;;
+    3.2[1-4]) echo cef2526;;
+    3.2[5-9])
+        # bleah.  cef2704 does not build on ubu1204, yet we must still support 1204 for a bit.
+        case $_os in
+        ubu1204) echo cef2526;;
+        *)       echo cef2704;;
+        esac
+        ;;
     *) bs_abort "bs_yovo2cefversion: don't know which CEF goes with g-speak $1" >&2;;
     esac
 }
