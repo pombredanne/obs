@@ -202,7 +202,7 @@ bs_install() {
     # FIXME: /opt/oblong doesn't always exist; caused trouble on win & linux
     if test -d /opt/oblong
     then
-        echo $depname | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
+        echo $@ | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
     fi
 
     # And now the scary part.  First, check for file (not directory) overwrites.
@@ -211,6 +211,7 @@ bs_install() {
         case "$_os" in
         cygwin)
             # fixme: simplify, unify, allow other drives?
+            # FIXME: this is crazy/fragile/broken, fix yobuild to not need this broken special case
             case $depname in
             yobuild*) root=/;;           # yobuild has /cygdrive/c in tgz!
             *)        root=/cygdrive/c;;
