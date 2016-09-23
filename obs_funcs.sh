@@ -74,7 +74,7 @@ bs_detect_os() {
         elif grep -q "Ubuntu 15.10" /etc/issue ; then echo ubu1510
         elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu Xenial Xerus" /etc/issue ; then echo ubu1604
-        else bs_abort "unrecognized linux"
+        else bs_abort "unrecognized linux" >&2
         fi
         ;;
     Darwin)
@@ -84,18 +84,19 @@ bs_detect_os() {
         # Except that OS X 10.9 has a different Ruby ABI,
         # and we've decided to use XCode 4 on 10.7/10.8 vs.
         # XCode 5 on 10.9, so osx107 vs. osx109 here implies libstdc++ vs. libc++.
+        10.12|10.12.*) echo osx1012;;
         10.11|10.11.*) echo osx1011;;
         10.10|10.10.*) echo osx1010;;
         10.9|10.9.*) echo osx109;;
         10.8|10.8.*) echo osx107;;
         10.7|10.7.*) echo osx107;;
         10.6|10.6.*) echo osx106;;
-        *) bs_abort "unrecognized mac '$macver'";;
+        *) bs_abort "unrecognized mac '$macver'" >&2 ;;
         esac
         ;;
     CYGWIN*WOW64) echo cygwin;;
     CYGWIN*)      echo cygwin;;
-    *) bs_abort "unrecognized os";;
+    *) bs_abort "unrecognized os" >&2 ;;
     esac
 }
 
