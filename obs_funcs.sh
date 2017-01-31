@@ -30,7 +30,7 @@ bs_yovo2yoversion() {
     3.1[789]*|3.2[012]*)
         echo 10
         ;;
-    3.*)
+    3.*|4.*)
         echo 11
         ;;
     esac
@@ -51,6 +51,7 @@ bs_yovo2cefversion() {
         *)       echo cef2704;;
         esac
         ;;
+    3.3*|4.*) echo cef2704;;
     *) bs_abort "bs_yovo2cefversion: don't know which CEF goes with g-speak $1" >&2;;
     esac
 }
@@ -71,10 +72,10 @@ bs_detect_os() {
         if grep -q "Ubuntu 10.04" /etc/issue ; then echo ubu1004
         elif grep -q "Ubuntu 12.04" /etc/issue ; then echo ubu1204
         elif grep -q "Ubuntu 14.04" /etc/issue ; then echo ubu1404
-        elif grep -q "Ubuntu 15.10" /etc/issue ; then echo ubu1510
         elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu Core 16" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu Xenial Xerus" /etc/issue ; then echo ubu1604
+        elif grep -q "Ubuntu Zesty Zaurus" /etc/issue ; then echo ubu1704
         else bs_abort "unrecognized linux" >&2
         fi
         ;;
