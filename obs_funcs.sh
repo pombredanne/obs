@@ -161,7 +161,7 @@ bs_pkg_list() {
   ssh -n ${bs_install_sshspec} "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
 }
 
-# Usage: bs_install package ...
+# Usage: bs_download package ...
 # Downloads the latest build of the given packages
 # This is not quite ready for external use
 bs_download() {
@@ -191,9 +191,26 @@ bs_download() {
     done
 }
 
+# Usage: bs_untar_restricted tarballname
+# Simulates the command
+#     $SUDO tar -C / -xzf $tarball 2>&1
+# but disallow installing into anywhere but /usr/local or /opt/oblong
+# This avoids running afoul of Mac OS X 10.11 errors e.g. creating /usr
+bs_untar_restricted() {
+    local dest
+    # Detect destination.  Tarballs always start with the top level directories.
+    # Choose the second entry, that should be /x/y/
+    dest=`tar -tf $1 | head -n2 | tail -n1`
+    case "$dest" in
+    usr/local/|opt/oblong/) ;;
+    *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt/oblong allowed";;
+    esac
+    $SUDO mkdir -p "$dest"
+    $SUDO tar -o --strip-components=2 -C "/$dest" -xzf $1 2>&1
+}
+
 # Usage: bs_install package ...
 # Downloads and unpacks the latest build of the given packages
-# This is not quite ready for external use
 bs_install() {
     bs_download_dest=bs_install.tmp
     rm -rf ${bs_download_dest}
@@ -221,13 +238,9 @@ bs_install() {
             esac
             tar -C $root -xzf $tarball 2>&1
             ;;
-        osx1011)  # osx1011 unhappy about setting ownership of /, understandably
+        *)  # osx1011 unhappy about setting ownership of /, understandably
             # FIXME: add a postinstall step to e.g. install things into /etc/oblong (kipple)?
-            $SUDO mkdir -p /opt/oblong
-            $SUDO tar -o --strip-components=2 -C /opt/oblong -xzf $tarball 2>&1
-            ;;
-        *)
-            $SUDO tar -C / -xzf $tarball 2>&1
+            bs_untar_restricted $tarball
             ;;
         esac
     done
