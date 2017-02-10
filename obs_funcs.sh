@@ -199,10 +199,11 @@ bs_download() {
 bs_untar_restricted() {
     local dest
     # Detect destination.  Tarballs always start with the top level directories.
-    # Choose the second entry, that should be /x/y/
+    # Choose the second entry, that should be /x/y/  (or /x/y/foo, depending on tar version)
     dest="/`tar -tf $1 | head -n2 | tail -n1`"
     case "$dest" in
-    /usr/local/|/opt/oblong/) ;;
+    /usr/local/*) dest="/usr/local";;
+    /opt/oblong/*) dest="/opt/oblong";;
     *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt/oblong allowed";;
     esac
     $SUDO mkdir -p "$dest"
