@@ -194,20 +194,21 @@ bs_download() {
 # Usage: bs_untar_restricted tarballname
 # Simulates the command
 #     $SUDO tar -C / -xzf $tarball 2>&1
-# but disallow installing into anywhere but /usr/local or /opt/oblong
+# but disallow installing into anywhere but /usr/local or /opt
 # This avoids running afoul of Mac OS X 10.11 errors e.g. creating /usr
 bs_untar_restricted() {
     local dest
+    local depth
     # Detect destination.  Tarballs always start with the top level directories.
     # Choose the second entry, that should be /x/y/  (or /x/y/foo, depending on tar version)
     dest="/`tar -tf $1 | head -n2 | tail -n1`"
     case "$dest" in
-    /usr/local/*) dest="/usr/local";;
-    /opt/oblong/*) dest="/opt/oblong";;
-    *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt/oblong allowed";;
+    /usr/local/*) dest="/usr/local"; depth=2;;
+    /opt/*) dest="/opt"; depth=1;;
+    *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt allowed";;
     esac
     $SUDO mkdir -p "$dest"
-    $SUDO tar -o --strip-components=2 -C "$dest" -xzf $1 2>&1
+    $SUDO tar -o --strip-components=$depth -C "$dest" -xzf $1 2>&1
 }
 
 # Usage: bs_install package ...
