@@ -201,10 +201,12 @@ bs_untar_restricted() {
     local depth
     # Detect destination.  Tarballs always start with the top level directories.
     # Choose the second entry, that should be /x/y/  (or /x/y/foo, depending on tar version)
+    # Handle whacky tarball qwt532.tar.gz whose paths start with ./
     dest="/`tar -tf $1 | head -n2 | tail -n1`"
     case "$dest" in
     /usr/local/*) dest="/usr/local"; depth=2;;
     /opt/*) dest="/opt"; depth=1;;
+    /./opt/*) dest="/opt"; depth=2;;
     *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt allowed";;
     esac
     $SUDO mkdir -p "$dest"
