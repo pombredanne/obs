@@ -263,7 +263,8 @@ esac
 
 # Defaults useful mostly inside Oblong.  Messy.  Only needed by bs_install et al.
 # FIXME: refactor bs_upload / bs_install and clean this up
-bs_repotop=${bs_repotop:-/home/buildbot/var/repobot}
+bs_repodir=${bs_repodir:-repobot}
+bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
 MASTER=${MASTER:-buildhost4.oblong.com}
 bs_upload_user=${bs_upload_user:-buildbot}
 bs_install_host=$MASTER
