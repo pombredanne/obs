@@ -9,7 +9,7 @@ echo "Script to uninstall everything oblong-related, along with their config fil
 # Set this to true if you want to remove dependencies (including ruby), too
 opt_autoremove=${opt_autoremove:-false}
 
-OLDPKGS=`dpkg-query -l | egrep -i 'g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps' | awk '{print $2}' | egrep -v "oblong-obs"`
+OLDPKGS=`dpkg-query -l | egrep -i 'g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps' | awk '{print $2}' | egrep -v "oblong-obs|oblong-bau"`
 if test "$opt_rubytoo"
 then
     OLDGEMS=`dpkg-query -l | egrep rubygem- | grep -v integration | awk '{print $2}' || true`
