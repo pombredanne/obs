@@ -251,6 +251,68 @@ bs_install() {
     rm -rf bs_install.tmp
 }
 
+# Generate a fake key; APT_CONFIG and GNUPGHOME are used to avoid
+# contaminating real environment (somewhat)
+bs_apt_key_gen() {
+    if gpg -k | grep -C 1 Kwik-Expiring
+    then
+       bs_abort "Fake key already exists; do '$0 rm-fake-key' to remove."
+    fi
+    if test "$BS_APT_LOCALBUILD" = ""
+    then
+       bs_abort "Please set BS_APT_LOCALBUILD to a global directory to store the artifacts associated with the new key."
+    fi
+
+    mkdir -p "$BS_APT_LOCALBUILD/sources.list.d"
+
+    # Start off trusting everything we trusted before
+    if ! test -d "$GNUPGHOME"
+    then
+       cp -a /etc/apt/trusted.gpg* "$BS_APT_LOCALBUILD"
+       cp -a ~/.gnupg "$GNUPGHOME" || mkdir "$GNUPGHOME"/.gnupg
+    fi
+
+    APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
+    cat > $APT_CONFIG <<_EOF_
+Dir::Etc::sourceparts "$BS_APT_LOCALBUILD/sources.list.d";
+Dir::Etc::Trusted "$BS_APT_LOCALBUILD/trusted.gpg";
+Dir::Etc::TrustedParts "$BS_APT_LOCALBUILD/trusted.gpg.d";
+_EOF_
+
+   # Generating a key that expires in 30 days
+   realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
+   keyname="Oblong Kwik-Expiring Development-Only Key ($realname)"
+   cat > gpg.in.tmp <<_EOF_
+Key-Type: 1
+Key-Length: 2048
+Subkey-Type: 1
+Subkey-Length: 2048
+Name-Real: $keyname
+Name-Email: $LOGNAME-repo@oblong.com
+Expire-Date: 30
+_EOF_
+   local keyfile
+   keyfile=$BS_APT_LOCALBUILD/$LOGNAME-repo.pubkey
+   gpg --batch --gen-key gpg.in.tmp < /dev/null
+   gpg --armor --export $LOGNAME-repo@oblong.com > $keyfile
+   gpg --with-fingerprint $keyfile
+   echo "Your new fake public key is in $keyfile  It will expire in 30 days."
+   # Sigh.  reprepro uses gpg2, and the formats are not compatible.
+   gpg --export | gpg2 --import -
+   gpg --export-secret-keys | gpg2 --import -
+   rm gpg.in.tmp
+}
+
+bs_apt_key_rm() {
+    local keyfile
+    keyfile=$BS_APT_LOCALBUILD/$LOGNAME-repo.pubkey
+
+    for fingerprint in $(gpg --with-fingerprint $keyfile | grep 'fingerprint' | sed 's,.*= ,,;s/ //g')
+    do
+        gpg --batch --delete-secret-and-public-key "$fingerprint"
+    done
+    rm $keyfile
+}
 
 # Provide a few variables by default
 _os=$(bs_detect_os)
@@ -260,9 +322,21 @@ case $_os in
 cygwin) SUDO="" ;;
 esac
 
-# Defaults useful mostly inside Oblong.  Messy.  Only needed by bs_install et al.
-# FIXME: refactor bs_upload / bs_install and clean this up
 bs_repodir=${bs_repodir:-repobot}
+
+# To do local builds, set BS_APT_LOCALBUILD to where to store
+# artifacts, then do e.g. obs apt-key-gen; brepo.sh init
+case "$BS_APT_LOCALBUILD" in
+"") ;;
+*)  MASTER=localhost
+    bs_repotop=$BS_APT_LOCALBUILD/$bs_repodir
+    bs_upload_user=$LOGNAME
+    # Change behavior of apt.  Careful, have to pass it through sudo!
+    export APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
+    # Change behavior of gpg.  Careful, have to pass it through sudo!
+    export GNUPGHOME="$BS_APT_LOCALBUILD/gpg"
+    ;;
+esac
 bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
 MASTER=${MASTER:-buildhost4.oblong.com}
 bs_upload_user=${bs_upload_user:-buildbot}
