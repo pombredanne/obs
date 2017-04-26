@@ -5,7 +5,7 @@
 
 # Print an error message and terminate with nonzero status.
 bs_abort() {
-    echo fatal error: $*
+    echo "fatal error: $*"
     exit 1
 }
 
@@ -63,24 +63,23 @@ bs_yovo2cefversion() {
 bs_detect_os() {
     if test "$BS_FORCE_OS"
     then
-        echo $BS_FORCE_OS
+        printf %s "$BS_FORCE_OS"
         return
     fi
     # Detect OS
-    case "`uname -s`" in
+    case "$(uname -s)" in
     Linux)
         if grep -q "Ubuntu 10.04" /etc/issue ; then echo ubu1004
         elif grep -q "Ubuntu 12.04" /etc/issue ; then echo ubu1204
         elif grep -q "Ubuntu 14.04" /etc/issue ; then echo ubu1404
         elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu Core 16" /etc/issue ; then echo ubu1604
-        elif grep -q "Ubuntu Xenial Xerus" /etc/issue ; then echo ubu1604
-        elif grep -q "Ubuntu Zesty Zaurus" /etc/issue ; then echo ubu1704
+        elif grep -q "Ubuntu Artful Aardvark" /etc/issue ; then echo ubu1710
         else bs_abort "unrecognized linux" >&2
         fi
         ;;
     Darwin)
-        macver=`sw_vers -productVersion`
+        macver=$(sw_vers -productVersion)
         case "$macver" in
         # we pretend everything 10.7 or later is osx107 for now
         # Except that OS X 10.9 has a different Ruby ABI,
@@ -126,19 +125,19 @@ bs_get_version_git() {
     # tag-COUNT-CHECKSUM
     # or, if at a tag,
     # tag
-    d1=`git describe --long`
+    d1=$(git describe --long)
     # Strip off -CHECKSUM suffix, if any
     case $_os in
     osx*) xregx=-E;;
     *) xregx=-r;;
     esac
-    d2=`echo $d1 | sed $xregx 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]?[a-z0-9]?$//'`
+    d2=$(echo $d1 | sed $xregx 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]?[a-z0-9]?$//')
     # Strip off -COUNT suffix, if any
-    d3=`echo $d2 | sed 's/-[0-9]*$//'`
+    d3=$(echo $d2 | sed 's/-[0-9]*$//')
     # Remove non-numeric prefix (e.g. rel- or debian/), if any
-    d4=`echo $d3 | sed 's/^[^0-9]*//'`
+    d4=$(echo $d3 | sed 's/^[^0-9]*//')
     # Remove non-numeric suffix (e.g. -mz-gouda), if any
-    d5=`echo $d4 | sed 's/-[^0-9]*$//'`
+    d5=$(echo $d4 | sed 's/-[^0-9]*$//')
     case "$d5" in
     "") bs_abort "can't parse version number from git describe --long's output $d1";;
     esac
@@ -202,7 +201,7 @@ bs_untar_restricted() {
     # Detect destination.  Tarballs always start with the top level directories.
     # Choose the second entry, that should be /x/y/  (or /x/y/foo, depending on tar version)
     # Handle whacky tarball qwt532.tar.gz whose paths start with ./
-    dest="/`tar -tf $1 | head -n2 | tail -n1`"
+    dest="/$(tar -tf $1 | head -n2 | tail -n1)"
     case "$dest" in
     /usr/local/*) dest="/usr/local"; depth=2;;
     /opt/*) dest="/opt"; depth=1;;
@@ -254,11 +253,11 @@ bs_install() {
 
 
 # Provide a few variables by default
-_os=`bs_detect_os`
+_os=$(bs_detect_os)
 
 SUDO=sudo
 case $_os in
-cygwin) SUDO= ;;
+cygwin) SUDO="" ;;
 esac
 
 # Defaults useful mostly inside Oblong.  Messy.  Only needed by bs_install et al.

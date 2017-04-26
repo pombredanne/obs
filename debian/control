@@ -3,6 +3,8 @@ Section: non-free
 Priority: extra
 Maintainer: Dan Kegel <dank@oblong.com>
 Build-Depends: build-essential,
+# Depend on bats, but only on new enough systems
+   bats | libc6 (< 2.20),
    debhelper (>= 8.0.0),
    devscripts,
 Standards-Version: 3.9.4
