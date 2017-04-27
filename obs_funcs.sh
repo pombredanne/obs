@@ -269,7 +269,7 @@ bs_apt_key_gen() {
     if ! test -d "$GNUPGHOME"
     then
        cp -a /etc/apt/trusted.gpg* "$BS_APT_LOCALBUILD"
-       cp -a ~/.gnupg "$GNUPGHOME" || mkdir "$GNUPGHOME"/.gnupg
+       cp -a ~/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
     fi
 
     APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
@@ -282,25 +282,33 @@ _EOF_
    # Generating a key that expires in 30 days
    realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
    keyname="Kwik-Expiring Development-Only Key ($realname)"
+   keyemail="temp-repo@example.com"
    cat > gpg.in.tmp <<_EOF_
 Key-Type: 1
 Key-Length: 2048
 Subkey-Type: 1
 Subkey-Length: 2048
 Name-Real: $keyname
-Name-Email: temp-repo@example.com
+Name-Email: $keyemail
 Expire-Date: 30
 _EOF_
+   gpg --passphrase "" --batch --gen-key gpg.in.tmp < /dev/null
+   rm gpg.in.tmp
    local keyfile
    keyfile=$BS_APT_LOCALBUILD/repo.pubkey
-   gpg --batch --gen-key gpg.in.tmp < /dev/null
-   gpg --armor --export temp-repo@example.com > $keyfile
+   gpg --armor --export $keyemail > $keyfile
    gpg --with-fingerprint $keyfile
    echo "Your new fake public key is in $keyfile  It will expire in 30 days."
-   # Sigh.  reprepro uses gpg2, and the formats are not compatible.
-   gpg --export | gpg2 --import -
-   gpg --export-secret-keys | gpg2 --import -
-   rm gpg.in.tmp
+
+   # Sigh.  reprepro uses gpg2, and they don't share data by default
+   if ! gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
+      | gpg2 --passphrase "" --batch --import -
+   then
+      # gaaah.  gpg2 requires an agent, and you're probably on a headless bot.
+      # Try it again with a short-lived agent.
+      gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
+      | gpg-agent --daemon gpg2 --passphrase "" --batch --import -
+   fi
 }
 
 bs_apt_key_rm() {
@@ -623,7 +631,15 @@ case "$BS_APT_LOCALBUILD" in
     # Change behavior of apt.  Careful, have to pass it through sudo!
     export APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
     # Change behavior of gpg.  Careful, have to pass it through sudo!
-    export GNUPGHOME="$BS_APT_LOCALBUILD/gpg"
+    if false
+    then
+        export GNUPGHOME="$BS_APT_LOCALBUILD/gpg"
+    else
+        # Alas, GNUPGHOME has to be a short absolute path,
+        # as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
+        # FIXME: this is likely to clash if run in parallel.
+        export GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
+    fi
     ;;
 esac
 bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}

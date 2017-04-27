@@ -12,7 +12,7 @@
   ! ./obs apt-key-gen
   rm -rf foo.tmp
   export BS_APT_LOCALBUILD=`pwd`/foo.tmp
-  ./obs apt-key-gen
+  sh -x ./obs apt-key-gen
   ./obs apt_server_init xyzzy $BS_APT_LOCALBUILD/repo.pubkey
   ./obs apt_server_add localhost $BS_APT_LOCALBUILD/repo.pubkey $BS_APT_LOCALBUILD/repobot/xyzzy/apt
   ./obs apt-pkg-gen foobie 0.1 main
