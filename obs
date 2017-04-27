@@ -20,8 +20,10 @@ obs apt-key-gen             - generate a fake gpg signing key in \$BS_APT_LOCALB
 obs apt-key-rm              - remove a fake gpg signing key
 obs apt-server-add h k d... - tell apt to add access to server h with pubkeyfile k and repos d ...
 obs apt-server-rm h         - tell apt to remove access to server h
-obs apt-server-init X K D...- create local apt server tree at \$BS_APT_LOCALBUILD/X with pubkeyfile K for distro codenames D...
+obs apt-server-init X K D...- create local apt repo at \$BS_APT_LOCALBUILD/X with pubkeyfile K for distro codenames D...
 obs apt-pkg-gen p v s       - create dummy deb package p with version v claiming to be in section s
+obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt repo at \$BS_APT_LOCALBUILD/X
+obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$BS_APT_LOCALBUILD/X
 _EOF_
 }
 
@@ -58,5 +60,7 @@ apt_server_add)        bs_apt_server_add "$@";;
 apt_server_rm)         bs_apt_server_rm "$@";;
 apt_server_init)       bs_apt_server_init "$@";;
 apt_pkg_gen)           bs_apt_pkg_gen "$@";;
+apt_pkg_add)           bs_apt_pkg_add "$@";;
+apt_pkg_rm)            bs_apt_pkg_rm "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac

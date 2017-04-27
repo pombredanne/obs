@@ -484,6 +484,122 @@ _EOF_
     done
 }
 
+# Usage: bs_apt_pkg_add subdir suite pkg...
+# Add given packages to distro $suite in the apt server rooted at $bs_repotop/subdir/apt
+bs_apt_pkg_add() {
+    local apt_subdir="$1"
+    shift
+    local apt_suite="$1"
+    shift
+    local apt_pkgs="$*"
+
+    local apt_archive_root="$bs_repotop/$apt_subdir/apt"
+
+    if ! test -d $apt_archive_root/dists
+    then
+        bs_abort "1st arg $apt_subdir looks wrong; no such directory $apt_archive_root/dists."
+    fi
+    if test -f $apt_suite
+    then
+        bs_abort "2nd arg should not be a .deb, it should be a suite name, like precise or quantal."
+    fi
+    if ! test -d $apt_archive_root/dists/$apt_suite
+    then
+        bs_abort "2nd arg (codename aka suite) $apt_suite does not exist in this apt repository."
+    fi
+
+    case "$apt_pkgs" in
+    "") bs_abort "No packages were given to upload.";;
+    esac
+
+    for arg in $apt_pkgs
+    do
+        test -f $arg || bs_abort "Package $arg is not a file."
+    done
+
+    #set +x
+    local pkgnames
+    pkgarch=`echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//'`
+    for arg in $@
+    do
+        # remove first _ and everything after it, yielding the package name
+        pkgname=${arg%%_*}
+        pkgnames="$pkgnames $pkgname"
+    done
+    set -x
+
+    # Acquire an exclusive lock on this repo
+    # See how fd 9 is set up by redirection at end of this function
+    local LOCKFILE=$apt_archive_root/reprepro.lock
+
+    echo "Acquiring lock $LOCKFILE... time is `date`"
+    (
+    if ! flock 9
+    then
+        bs_abort "Could not aquire lock $LOCKFILE"
+    fi
+    echo "Acquired lock $LOCKFILE... time is `date`"
+
+    # Whew.  All that sanity checking, and the payload is just one line.
+
+    # Site-specific behavior ...
+    case "$apt_subdir" in
+    dev-*)
+        # Remove the previous version of these packages to avoid dreaded
+        # "Already existing files can only be included again, if they are the same, but..."
+        # at least for dev builds, so people can force builds after an iz change.
+        reprepro --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames
+        ;;
+    esac
+
+    # Note: Remove the --ask-passphrase once you've configured a key without one, or configured an agent, or something
+    set +e
+    LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
+    status=$?
+    cat /tmp/reprepro.log.$$
+    set -e
+    if grep "Already existing files can only" /tmp/reprepro.log.$$
+    then
+        rm /tmp/reprepro.log.$$
+        bs_abort "Repeat upload failed.  You can only upload a rel package once.  Maybe you meant to give this package a dev- tag?"
+    fi
+    rm /tmp/reprepro.log.$$
+    if test $status -ne 0
+    then
+        bs_abort "Upload failed, see message above."
+    fi
+
+    ) 9>$LOCKFILE
+    echo "Released lock $LOCKFILE... time is `date`"
+}
+
+# Usage: bs_apt_pkg_rm subdir suite pkg...
+bs_apt_pkg_rm() {
+    local apt_subdir="$1"
+    shift
+    local apt_suite="$1"
+    shift
+    local apt_pkgnames="$*"
+
+    local apt_archive_root="$bs_repotop/$apt_subdir/apt"
+    if ! test -d $apt_archive_root/dists
+    then
+        bs_abort "1st arg $apt_subdir looks wrong; no such directory $apt_archive_root/dists."
+    fi
+    if ! test -d $apt_archive_root/dists/$apt_suite
+    then
+        bs_abort "2nd arg (codename aka suite) $apt_suite does not exist in this apt repository."
+    fi
+
+    local LOCKFILE=$apt_archive_root/reprepro.lock
+
+    echo "Acquiring lock $LOCKFILE... time is `date`"
+    (
+    reprepro -Vb $apt_archive_root remove $apt_suite $@
+    ) 9>$LOCKFILE
+    echo "Released lock $LOCKFILE... time is `date`"
+}
+
 # Provide a few variables by default
 _os=$(bs_detect_os)
 

@@ -9,6 +9,7 @@ Build-Depends: build-essential,
    devscripts,
    gnupg,
    reprepro,
+   util-linux,
 Standards-Version: 3.9.4
 
 Package: oblong-obs
