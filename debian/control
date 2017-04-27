@@ -8,6 +8,7 @@ Build-Depends: build-essential,
    debhelper (>= 8.0.0),
    devscripts,
    gnupg,
+   reprepro,
 Standards-Version: 3.9.4
 
 Package: oblong-obs

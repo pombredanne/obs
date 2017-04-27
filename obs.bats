@@ -13,6 +13,9 @@
   rm -rf foo.tmp
   export BS_APT_LOCALBUILD=`pwd`/foo.tmp
   ./obs apt-key-gen
+  ./obs apt_server_init xyzzy $BS_APT_LOCALBUILD/repo.pubkey
+  ./obs apt_server_add localhost $BS_APT_LOCALBUILD/repo.pubkey $BS_APT_LOCALBUILD/repobot/xyzzy/apt
+  ./obs apt_server_rm localhost $BS_APT_LOCALBUILD/repo.pubkey $BS_APT_LOCALBUILD/repobot/xyzzy/apt
   ./obs apt-key-rm
   rm -rf foo.tmp
 }

@@ -1,10 +1,9 @@
 #!/bin/sh
-# Commands related to building or installing Oblong packages on Linux, Mac, and Windows
-# FIXME: hoist them out of obs_funcs.sh into individual files so we don't need this wrapper?
 set -e
 
 usage() {
     cat <<_EOF_
+Tool for querying system or downloading / installing / serving packages on Linux/mac/windows
 Usage: obs verb [args]
 obs detect-ncores           - get number of CPU cores this computer has
 obs detect-os               - get our os type/version identifier for the current os
@@ -15,8 +14,14 @@ obs download pkg ...        - download but do not unpack tarball packages from $
 obs list                    - list tarball packages available to install for $_os from $MASTER
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
+
+Linux-specific:
 obs apt-key-gen             - generate a fake gpg signing key in \$BS_APT_LOCALBUILD
 obs apt-key-rm              - remove a fake gpg signing key
+obs apt-server-add h k d... - tell apt to add access to server h with pubkeyfile k and repos d ...
+obs apt-server-rm h         - tell apt to remove access to server h
+obs apt-server-init X K D...- create local apt server tree at \$BS_APT_LOCALBUILD/X with pubkeyfile K for distro codenames D...
+obs apt-pkg-gen p v s       - create dummy deb package p with version v claiming to be in section s
 _EOF_
 }
 
@@ -42,12 +47,16 @@ detect_ncores)         bs_detect_ncores;;
 detect_os)             echo $_os ;; # bs_detect_os already called
 get_major_version_git) bs_get_major_version_git;;
 get_version_git)       bs_get_version_git;;
-install)               bs_install $@;;
-download)              bs_download $@;;
+install)               bs_install "$@";;
+download)              bs_download "$@";;
 pkg_list|list)         bs_pkg_list;;
-yovo2cefversion)       bs_yovo2cefversion $@;;
-yovo2yoversion)        bs_yovo2yoversion $@;;
+yovo2cefversion)       bs_yovo2cefversion "$@";;
+yovo2yoversion)        bs_yovo2yoversion "$@";;
 apt_key_gen)           bs_apt_key_gen;;
 apt_key_rm)            bs_apt_key_rm;;
+apt_server_add)        bs_apt_server_add "$@";;
+apt_server_rm)         bs_apt_server_rm "$@";;
+apt_server_init)       bs_apt_server_init "$@";;
+apt_pkg_gen)           bs_apt_pkg_gen "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac

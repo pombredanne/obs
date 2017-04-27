@@ -281,20 +281,20 @@ _EOF_
 
    # Generating a key that expires in 30 days
    realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
-   keyname="Oblong Kwik-Expiring Development-Only Key ($realname)"
+   keyname="Kwik-Expiring Development-Only Key ($realname)"
    cat > gpg.in.tmp <<_EOF_
 Key-Type: 1
 Key-Length: 2048
 Subkey-Type: 1
 Subkey-Length: 2048
 Name-Real: $keyname
-Name-Email: $LOGNAME-repo@oblong.com
+Name-Email: temp-repo@example.com
 Expire-Date: 30
 _EOF_
    local keyfile
-   keyfile=$BS_APT_LOCALBUILD/$LOGNAME-repo.pubkey
+   keyfile=$BS_APT_LOCALBUILD/repo.pubkey
    gpg --batch --gen-key gpg.in.tmp < /dev/null
-   gpg --armor --export $LOGNAME-repo@oblong.com > $keyfile
+   gpg --armor --export temp-repo@example.com > $keyfile
    gpg --with-fingerprint $keyfile
    echo "Your new fake public key is in $keyfile  It will expire in 30 days."
    # Sigh.  reprepro uses gpg2, and the formats are not compatible.
@@ -305,13 +305,183 @@ _EOF_
 
 bs_apt_key_rm() {
     local keyfile
-    keyfile=$BS_APT_LOCALBUILD/$LOGNAME-repo.pubkey
+    keyfile=$BS_APT_LOCALBUILD/repo.pubkey
 
     for fingerprint in $(gpg --with-fingerprint $keyfile | grep 'fingerprint' | sed 's,.*= ,,;s/ //g')
     do
         gpg --batch --delete-secret-and-public-key "$fingerprint"
     done
     rm $keyfile
+}
+
+# Make a signed apt server available to the apt command
+# Usage:
+#   bs_apt_server_add host key dir dir ...
+# Use 'none' for no key.
+# e.g.
+#   bs_apt_server_add localhost dummy.key /var/apt/repo
+#   bs_apt_server_add foo.com none /ubuntu
+# To sneakly download a different OS's packages, set bs_apt_codename first (e.g. to xenial)
+bs_apt_server_add() {
+    local host=$1
+    shift
+    local key=$1
+    shift
+    # remaining args are read by for loop below
+
+    local dpkgarch=$(dpkg --print-architecture)
+    local _apt_codename
+    _apt_codename="$(lsb_release -cs)"
+    local line
+    local sources_list_d=${BS_APT_LOCALBUILD:-/etc/apt}/sources.list.d
+
+    local maybesudo
+    case "$BS_APT_LOCALBUILD" in
+    "") maybesudo=sudo;;
+    *)  maybesudo="";;
+    esac
+
+    $maybesudo rm -f $sources_list_d/repobot-$host-*.list
+    for dir
+    do
+        sdir="$(echo $dir | tr '/' '-')"
+        case "$host" in
+        localhost)
+            line="deb [arch=$dpkgarch] file:$dir $_apt_codename main non-free"
+            ;;
+        *)
+            line="deb [arch=$dpkgarch] http://$host/$dir $_apt_codename main non-free"
+            ;;
+        esac
+        echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list"
+    done
+
+    if test "$key" != "none"
+    then
+        case "$BS_APT_LOCALBUILD" in
+        "") sudo apt-key add $key;;
+        *)  sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key;;
+        esac
+    fi
+
+    case "$BS_APT_LOCALBUILD" in
+    "") sudo apt-get update;;
+    *)  sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update;;
+    esac
+}
+
+# Undo bs_apt_server_add
+# Usage:
+# bs_apt_server_rm host
+bs_apt_server_rm() {
+    local host=$1
+    shift
+    local sources_list_d=${BS_APT_LOCALBUILD:-/etc/apt}/sources.list.d
+    sudo rm -f $sources_list_d/repobot-$host-*.list
+    sudo apt-get clean
+    sudo apt-get update
+}
+
+# Create a package $1 with version $2 claiming to be in section $3
+bs_apt_pkg_gen() {
+    local name=$1
+    local version=$2
+    local section=$3
+
+    rm -rf dummy.$$
+    mkdir -p dummy.$$/debian/usr/local/bin
+    cat > dummy.$$/debian/usr/local/bin/hello <<_EOF_
+#!/bin/sh
+echo 'hello, world!'
+_EOF_
+    chmod +x dummy.$$/debian/usr/local/bin/hello
+    mkdir dummy.$$/debian/DEBIAN
+    cat > dummy.$$/debian/DEBIAN/control <<_EOF_
+Package: $name
+Version: $version
+Section: $section
+Priority: optional
+Architecture: all
+Depends: base-files
+Maintainer: Alfred E. Neuman <what@worry.me>
+Description: Tiny package
+ This package gives reprepro something to chew on.
+_EOF_
+    (cd dummy.$$
+    dpkg-deb --build debian
+    )
+    mv dummy.$$/debian.deb ${name}_${version}_all.deb
+    rm -rf dummy.$$
+}
+
+# Usage: bs_apt_server_init subdir pubkey [distro1 ...]
+# Create an apt server rooted at $bs_repotop/subdir/apt  (FIXME: flip last two dirs someday)
+# Pubkey can be either a short id or a pubkey file.
+# Remaining arguments are which distros this repo should serve.
+bs_apt_server_init() {
+    local apt_subdir="$1"
+    shift
+    local apt_repokey="$1"
+    shift
+    local apt_suites="$*"
+
+    if test "$apt_suites" = ""
+    then
+        apt_suites="`lsb_release -sc`"
+    fi
+
+    if test -f "$apt_repokey"
+    then
+        apt_repokey=$(gpg --with-fingerprint "$apt_repokey" | awk '/^sub/ {print $2}' | sed 's,.*/,,' | head -n 1)
+    fi
+
+    local apt_archive_root="$bs_repotop/$apt_subdir/apt"
+    if test -d "$apt_archive_root"
+    then
+        bs_abort "$apt_archive_root already exists"
+    fi
+
+    local apt_arches="i386 amd64 armhf source"
+    local apt_sections="main non-free"
+
+    local suite
+    for suite in $apt_suites
+    do
+        mkdir -p "$apt_archive_root"/dists/$suite   # just so we can do sanity checks before uploading
+    done
+    local section
+    for section in $apt_sections
+    do
+        mkdir -p "$apt_archive_root"/pool/$section
+    done
+    mkdir -p "$apt_archive_root"/conf
+    > "$apt_archive_root"/conf/distributions
+    for suite in $apt_suites
+    do
+        cat >> "$apt_archive_root"/conf/distributions <<_EOF_
+Origin: obs
+Label: obs
+Codename: $suite
+Architectures: $apt_arches
+Components: $apt_sections
+Description: hello my name is apt repository
+SignWith: $apt_repokey
+
+_EOF_
+    done
+
+    # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
+    for section in $apt_sections
+    do
+        bs_apt_pkg_gen obs-hello-${section} 0.0.1 $section
+        for suite in $apt_suites
+        do
+            if ! reprepro --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb
+            then
+               bs_abort "reprepro includedeb failed"
+            fi
+        done
+    done
 }
 
 # Provide a few variables by default
@@ -321,6 +491,9 @@ SUDO=sudo
 case $_os in
 cygwin) SUDO="" ;;
 esac
+
+# FIXME: provide fewer variables
+# Most of these are from lazy old code
 
 bs_repodir=${bs_repodir:-repobot}
 
