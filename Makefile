@@ -5,7 +5,9 @@ all:
 	echo No build needed.
 
 check:
-	if test "`which bats`" != ""; then bats .; fi
+	#if test "`which bats`" != ""; then bats .; fi
+	egrep -v '{|}' < obs.bats > obs-test.sh
+	sh obs-test.sh
 
 install:
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
