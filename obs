@@ -5,17 +5,29 @@ usage() {
     cat <<_EOF_
 Tool for querying system or downloading / installing / serving packages on Linux/mac/windows
 Usage: obs verb [args]
+
+Commands related to tarball packages (commonly used on Mac):
+obs list                    - list tarball packages available to install on this system
+obs install pkg ...         - install tarball packages
+obs download pkg ...        - download but do not unpack tarball packages
+
+Example - install webthing and its dependencies:
+  obs list | grep yobuild
+  obs install yobuild11 oblong-yobuild11-cef2704
+  obs list | egrep 'g-speak|webthing|greenhouse|staging' | grep 3.28
+  obs install g-speak3.28 oblong-greenhouse-gs3.28x oblong-webthing-cef2704-gs3.28x staging3.28
+Hint: it's often easier to do 'bau install-deps' (which uses obs install
+internally), that way you don't need to hunt down missing dependencies.
+
+Miscelaneous commands:
 obs detect-ncores           - get number of CPU cores this computer has
 obs detect-os               - get our os type/version identifier for the current os
 obs get-major-version-git   - get major version number of current project from heavyweight git tags
 obs get-version-git         - get version number of current project from heavyweight git tags
-obs install pkg ...         - install tarball packages from $MASTER
-obs download pkg ...        - download but do not unpack tarball packages from $MASTER"
-obs list                    - list tarball packages available to install for $_os from $MASTER
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
 
-Linux-specific:
+Obscure internal commands related to Debian packages (for trickledown builds):
 obs apt-key-gen             - generate a fake gpg signing key in \$BS_APT_LOCALBUILD
 obs apt-key-rm              - remove a fake gpg signing key
 obs apt-server-add h k d... - tell apt to add access to server h with pubkeyfile k and repos d ...
