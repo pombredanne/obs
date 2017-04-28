@@ -300,14 +300,17 @@ _EOF_
    gpg --with-fingerprint $keyfile
    echo "Your new fake public key is in $keyfile  It will expire in 30 days."
 
-   # Sigh.  reprepro uses gpg2, and they don't share data by default
-   if ! gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
-      | gpg2 --passphrase "" --batch --import -
+   if test -x /usr/bin/gpg2
    then
+     # Sigh.  apt/reprepro may use gpg2, and they don't share data by default
+     if ! gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
+      | gpg2 --passphrase "" --batch --import -
+     then
       # gaaah.  gpg2 requires an agent, and you're probably on a headless bot.
       # Try it again with a short-lived agent.
       gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
       | gpg-agent --daemon gpg2 --passphrase "" --batch --import -
+     fi
    fi
 }
 
