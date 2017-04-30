@@ -36,6 +36,9 @@ obs apt-server-init X K D...- create local apt repo at \$BS_APT_LOCALBUILD/X wit
 obs apt-pkg-gen p v s       - create dummy deb package p with version v claiming to be in section s
 obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt repo at \$BS_APT_LOCALBUILD/X
 obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$BS_APT_LOCALBUILD/X
+obs sudo-apt-get ...        - run apt-get as root with local repo visible
+obs apt-get ...             - run apt-get with local repo visible
+obs apt-cache ...           - run apt-cache with local repo visible
 _EOF_
 }
 
@@ -74,5 +77,8 @@ apt_server_init)       bs_apt_server_init "$@";;
 apt_pkg_gen)           bs_apt_pkg_gen "$@";;
 apt_pkg_add)           bs_apt_pkg_add "$@";;
 apt_pkg_rm)            bs_apt_pkg_rm "$@";;
+sudo_apt_get)          if test "$BS_APT_LOCALBUILD" != ""; then sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" apt-get "$@"; else sudo apt-get "$@"; fi;;
+apt_get)               apt-get "$@";;
+apt_cache)             apt-cache "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac

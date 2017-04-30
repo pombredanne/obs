@@ -73,6 +73,7 @@ bs_detect_os() {
         elif grep -q "Ubuntu 12.04" /etc/issue ; then echo ubu1204
         elif grep -q "Ubuntu 14.04" /etc/issue ; then echo ubu1404
         elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
+        elif grep -q "Ubuntu 17.04" /etc/issue ; then echo ubu1704
         elif grep -q "Ubuntu Core 16" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu Artful Aardvark" /etc/issue ; then echo ubu1710
         else bs_abort "unrecognized linux" >&2
@@ -251,78 +252,137 @@ bs_install() {
     rm -rf bs_install.tmp
 }
 
+# If $1 isn't in file $2, append it
+bs_append_to_file() {
+   if ! grep -e "$1" "$2"
+   then
+      printf "# Appended by obs\n%s\n" "$1" >> "$2"
+   fi
+}
+
+# Set up $GNUPGHOME for insecure but fast unattended key generation
+bs_gnupg_init_insecure_unattended() {
+    case "$GNUPGHOME" in
+    $HOME|"") bs_abort "bs_gnupg_init_insecure_unattended: GNUPGHOME must be set to a short non-HOME path";;
+    esac
+    local gpgconf="$GNUPGHOME"/gpg.conf
+    # Delete mercilessly now because rm -rf $BS_APT_LOCALBUILD doesn't delete $GNUPGHOME
+    gpgconf --kill gpg-agent || true
+    rm -rf "$GNUPGHOME"
+    cp -a "$HOME"/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
+    bs_append_to_file no-tty "$gpgconf"
+    bs_append_to_file batch  "$gpgconf"
+    # Select quick but insecure RNG (for gpg2, select on commandline)
+    #if gpg --quick-random --version >/dev/null 2>&1 ; then
+    #    bs_append_to_file quick-random       "$gpgconf"
+    #fi
+}
+
 # Generate a fake key; APT_CONFIG and GNUPGHOME are used to avoid
 # contaminating real environment (somewhat)
 bs_apt_key_gen() {
     if gpg -k | grep -C 1 Kwik-Expiring
     then
-       bs_abort "Fake key already exists; do '$0 rm-fake-key' to remove."
+       bs_abort "Fake key already exists; do 'obs apt-key-rm' to remove."
     fi
     if test "$BS_APT_LOCALBUILD" = ""
     then
        bs_abort "Please set BS_APT_LOCALBUILD to a global directory to store the artifacts associated with the new key."
     fi
+    test "$APT_CONFIG" = "$BS_APT_LOCALBUILD/apt.conf" || bs_abort "assertion failed"
 
-    mkdir -p "$BS_APT_LOCALBUILD/sources.list.d"
-
-    # Start off trusting everything we trusted before
-    if ! test -d "$GNUPGHOME"
+    # If this is first call, configure private gpg and apt environments
+    # (Generally, caller will do rm -rf $BS_APT_LOCALBUILD at start of the big build.)
+    if ! test -f "$APT_CONFIG"
     then
+       # Init apt environment
+       mkdir -p "$BS_APT_LOCALBUILD/sources.list.d"
+       # Start off trusting everything we trusted before
        cp -a /etc/apt/trusted.gpg* "$BS_APT_LOCALBUILD"
-       cp -a ~/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
-    fi
-
-    APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
-    cat > $APT_CONFIG <<_EOF_
+       cat > $APT_CONFIG <<_EOF_
 Dir::Etc::sourceparts "$BS_APT_LOCALBUILD/sources.list.d";
 Dir::Etc::Trusted "$BS_APT_LOCALBUILD/trusted.gpg";
 Dir::Etc::TrustedParts "$BS_APT_LOCALBUILD/trusted.gpg.d";
 _EOF_
+       # Init gpg environment
+       bs_gnupg_init_insecure_unattended
+    fi
 
-   # Generating a key that expires in 30 days
-   realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
-   keyname="Kwik-Expiring Development-Only Key ($realname)"
-   keyemail="temp-repo@example.com"
-   cat > gpg.in.tmp <<_EOF_
+    # Generate a repo key that lasts long enough for one build
+    local days=30
+    local realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
+    local keyname="Kwik-Expiring Development-Only Key ($realname)"
+    local keyemail="temp-repo@example.com"
+    cat > gpg.in.tmp <<_EOF_
 Key-Type: 1
 Key-Length: 2048
 Subkey-Type: 1
 Subkey-Length: 2048
 Name-Real: $keyname
 Name-Email: $keyemail
-Expire-Date: 30
+Expire-Date: $days
 _EOF_
-   gpg --passphrase "" --batch --gen-key gpg.in.tmp < /dev/null
-   rm gpg.in.tmp
-   local keyfile
-   keyfile=$BS_APT_LOCALBUILD/repo.pubkey
-   gpg --armor --export $keyemail > $keyfile
-   gpg --with-fingerprint $keyfile
-   echo "Your new fake public key is in $keyfile  It will expire in 30 days."
 
-   if test -x /usr/bin/gpg2
-   then
-     # Sigh.  apt/reprepro may use gpg2, and they don't share data by default
-     if ! gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
-      | gpg2 --passphrase "" --batch --import -
-     then
-      # gaaah.  gpg2 requires an agent, and you're probably on a headless bot.
-      # Try it again with a short-lived agent.
-      gpg --passphrase "" --batch --armor --export-secret-keys $keyemail \
-      | gpg-agent --daemon gpg2 --passphrase "" --batch --import -
-     fi
-   fi
+    if gpg --version | head -n 1 | grep ' 2\.'
+    then
+        # gpg 2 needs agent, and we don't want to use the desktop's
+        gpg-agent --debug-quick-random --daemon -- \
+        gpg --pinentry-mode loopback --passphrase '' --gen-key gpg.in.tmp
+    else
+        # Older gpg that does not need agent
+        gpg --passphrase '' --gen-key --quick-random gpg.in.tmp < /dev/null
+
+        # Extra step only needed for ubuntu 16.04 (which has both gpg and gpg2)
+        if test -x /usr/bin/gpg2
+        then
+            gpg --passphrase '' --armor --export-secret-keys $keyemail \
+            | gpg-agent --daemon gpg2 --passphrase '' --import -
+        fi
+    fi
+
+    local keyfile
+    keyfile=$BS_APT_LOCALBUILD/repo.pubkey
+    gpg --armor --export $keyemail > $keyfile
+
+    echo "Generated local repo's fake key $keyfile, contents:"
+    gpg --with-fingerprint $keyfile
+    echo "We only need it for one build, so it expires in $days days."
 }
 
 bs_apt_key_rm() {
+    if test "$BS_APT_LOCALBUILD" = ""
+    then
+       bs_abort "Please set BS_APT_LOCALBUILD to the same value when you created the key."
+    fi
+
     local keyfile
     keyfile=$BS_APT_LOCALBUILD/repo.pubkey
 
-    for fingerprint in $(gpg --with-fingerprint $keyfile | grep 'fingerprint' | sed 's,.*= ,,;s/ //g')
-    do
-        gpg --batch --delete-secret-and-public-key "$fingerprint"
-    done
-    rm $keyfile
+    if true
+    then
+        # guess what?  Easiest way to go to nuke it from orbit.
+        bs_gnupg_init_insecure_unattended
+    else
+        # The gentle way.  Bit fragile though.
+        local keyemail="temp-repo@example.com"
+        local fingerprint
+        fingerprint=$(gpg -k --with-colons $keyemail | awk -F: '/^fpr:/ {print $10}' | head -n 1)
+        if gpg --version | head -n 1 | grep ' 2\.'
+        then
+            # gpg 2 needs agent, and we don't want to use the desktop's
+            gpg-agent --daemon -- \
+            gpg --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
+        else
+            gpg --passphrase '' --delete-secret-and-public-key "$fingerprint"
+            if test -x /usr/bin/gpg2
+            then
+                gpg-agent --daemon -- \
+                gpg2 --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
+            fi
+        fi
+    fi
+
+    rm -f $keyfile
 }
 
 # Make a signed apt server available to the apt command
@@ -443,7 +503,7 @@ bs_apt_server_init() {
 
     if test -f "$apt_repokey"
     then
-        apt_repokey=$(gpg --with-fingerprint "$apt_repokey" | awk '/^sub/ {print $2}' | sed 's,.*/,,' | head -n 1)
+        apt_repokey=$(gpg --with-colons "$apt_repokey" | awk -F: '/^pub:/ {print $5}' | head -n 1)
     fi
 
     local apt_archive_root="$bs_repotop/$apt_subdir/apt"
