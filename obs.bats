@@ -39,7 +39,7 @@
 
   # Remove it from the repo, remove the repo from apt, remove the key, remove the repo.
   ./obs apt-pkg-rm dev-or-rel $DISTRO obs-foobie
-  ./obs apt_server_rm localhost $BS_APT_LOCALBUILD/repo.pubkey $BS_APT_LOCALBUILD/repobot/main/apt
+  ./obs apt_server_rm localhost
   ./obs apt-key-rm
   rm -rf foo.tmp
   unset BS_APT_LOCALBUILD

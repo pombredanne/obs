@@ -339,6 +339,7 @@ _EOF_
             | gpg-agent --daemon gpg2 --passphrase '' --import -
         fi
     fi
+    rm gpg.in.tmp
 
     local keyfile
     keyfile=$BS_APT_LOCALBUILD/repo.pubkey
