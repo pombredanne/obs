@@ -553,6 +553,7 @@ _EOF_
                bs_abort "reprepro includedeb failed"
             fi
         done
+        rm obs-hello-${section}_0.0.1_*.deb
     done
 }
 

@@ -13,6 +13,7 @@
 
   # Verify that we can download a standard package from the linux distro
   ./obs apt-get download hello
+  rm hello*.deb
 
   # Generate a local repo key, create a local repo, get access to it
   export BS_APT_LOCALBUILD=`pwd`/foo.tmp
@@ -36,6 +37,7 @@
   ./obs apt-cache policy obs-foobie
   ./obs apt-get download obs-foobie
   test -f obs-foobie_0.1_all.deb
+  rm obs-foobie_0.1_all.deb
 
   # Remove it from the repo, remove the repo from apt, remove the key, remove the repo.
   ./obs apt-pkg-rm dev-or-rel $DISTRO obs-foobie
