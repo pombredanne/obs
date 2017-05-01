@@ -266,7 +266,7 @@ bs_gnupg_init_insecure_unattended() {
     $HOME|"") bs_abort "bs_gnupg_init_insecure_unattended: GNUPGHOME must be set to a short non-HOME path";;
     esac
     local gpgconf="$GNUPGHOME"/gpg.conf
-    # Delete mercilessly now because rm -rf $BS_APT_LOCALBUILD doesn't delete $GNUPGHOME
+    # Delete mercilessly now because rm -rf $bs_repotop doesn't delete $GNUPGHOME
     gpgconf --kill gpg-agent || true
     rm -rf "$GNUPGHOME"
     cp -a "$HOME"/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
@@ -285,24 +285,20 @@ bs_apt_key_gen() {
     then
        bs_abort "Fake key already exists; do 'obs apt-key-rm' to remove."
     fi
-    if test "$BS_APT_LOCALBUILD" = ""
-    then
-       bs_abort "Please set BS_APT_LOCALBUILD to a global directory to store the artifacts associated with the new key."
-    fi
-    test "$APT_CONFIG" = "$BS_APT_LOCALBUILD/apt.conf" || bs_abort "assertion failed"
+    test "$APT_CONFIG" = "$bs_repotop/etc/apt.conf" || bs_abort "assertion failed"
 
     # If this is first call, configure private gpg and apt environments
-    # (Generally, caller will do rm -rf $BS_APT_LOCALBUILD at start of the big build.)
+    # (Generally, caller will do rm -rf $bs_repotop at start of the big build.)
     if ! test -f "$APT_CONFIG"
     then
        # Init apt environment
-       mkdir -p "$BS_APT_LOCALBUILD/sources.list.d"
+       mkdir -p "$bs_repotop/etc/sources.list.d"
        # Start off trusting everything we trusted before
-       cp -a /etc/apt/trusted.gpg* "$BS_APT_LOCALBUILD"
+       cp -a /etc/apt/trusted.gpg* "$bs_repotop/etc"
        cat > $APT_CONFIG <<_EOF_
-Dir::Etc::sourceparts "$BS_APT_LOCALBUILD/sources.list.d";
-Dir::Etc::Trusted "$BS_APT_LOCALBUILD/trusted.gpg";
-Dir::Etc::TrustedParts "$BS_APT_LOCALBUILD/trusted.gpg.d";
+Dir::Etc::sourceparts "$bs_repotop/etc/sources.list.d";
+Dir::Etc::Trusted "$bs_repotop/etc/trusted.gpg";
+Dir::Etc::TrustedParts "$bs_repotop/etc/trusted.gpg.d";
 _EOF_
        # Init gpg environment
        bs_gnupg_init_insecure_unattended
@@ -342,7 +338,7 @@ _EOF_
     rm gpg.in.tmp
 
     local keyfile
-    keyfile=$BS_APT_LOCALBUILD/repo.pubkey
+    keyfile=$bs_repotop/repo.pubkey
     gpg --armor --export $keyemail > $keyfile
 
     echo "Generated local repo's fake key $keyfile, contents:"
@@ -351,13 +347,8 @@ _EOF_
 }
 
 bs_apt_key_rm() {
-    if test "$BS_APT_LOCALBUILD" = ""
-    then
-       bs_abort "Please set BS_APT_LOCALBUILD to the same value when you created the key."
-    fi
-
     local keyfile
-    keyfile=$BS_APT_LOCALBUILD/repo.pubkey
+    keyfile=$bs_repotop/repo.pubkey
 
     if true
     then
@@ -401,19 +392,26 @@ bs_apt_server_add() {
     shift
     # remaining args are read by for loop below
 
-    local dpkgarch=$(dpkg --print-architecture)
-    local _apt_codename
-    _apt_codename="$(lsb_release -cs)"
-    local line
-    local sources_list_d=${BS_APT_LOCALBUILD:-/etc/apt}/sources.list.d
-
+    local sources_list_d
     local maybesudo
-    case "$BS_APT_LOCALBUILD" in
-    "") maybesudo=sudo;;
-    *)  maybesudo="";;
+    case $MASTER in
+    localhost)
+        maybesudo=""
+        sources_list_d=${bs_repotop}/etc/sources.list.d
+        ;;
+    *)
+        maybesudo=sudo
+        sources_list_d=/etc/apt/sources.list.d
+        ;;
     esac
 
     $maybesudo rm -f $sources_list_d/repobot-$host-*.list
+    local _apt_codename
+    _apt_codename=${bs_apt_codename:-"$(lsb_release -cs)"}
+    local dpkgarch=$(dpkg --print-architecture)
+    local dir
+    local line
+    local sdir
     for dir
     do
         sdir="$(echo $dir | tr '/' '-')"
@@ -430,16 +428,10 @@ bs_apt_server_add() {
 
     if test "$key" != "none"
     then
-        case "$BS_APT_LOCALBUILD" in
-        "") sudo apt-key add $key;;
-        *)  sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key;;
-        esac
+        sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key
     fi
 
-    case "$BS_APT_LOCALBUILD" in
-    "") sudo apt-get update;;
-    *)  sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update;;
-    esac
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update
 }
 
 # Undo bs_apt_server_add
@@ -448,8 +440,17 @@ bs_apt_server_add() {
 bs_apt_server_rm() {
     local host=$1
     shift
-    local sources_list_d=${BS_APT_LOCALBUILD:-/etc/apt}/sources.list.d
-    sudo rm -f $sources_list_d/repobot-$host-*.list
+    local sources_list_d
+    case $MASTER in
+    localhost)
+        sources_list_d=${bs_repotop}/etc/sources.list.d
+        rm -f $sources_list_d/repobot-$host-*.list
+        ;;
+    *)
+        sources_list_d=/etc/apt/sources.list.d
+        sudo rm -f $sources_list_d/repobot-$host-*.list
+        ;;
+    esac
     sudo apt-get clean
     sudo apt-get update
 }
@@ -686,25 +687,19 @@ esac
 
 bs_repodir=${bs_repodir:-repobot}
 
-# To do local builds, set BS_APT_LOCALBUILD to where to store
+# To do local builds, set MASTER to localhost, and bs_repotop to where to store
 # artifacts, then do e.g. obs apt-key-gen; brepo.sh init
-case "$BS_APT_LOCALBUILD" in
+case "$MASTER" in
 "") ;;
-*)  MASTER=localhost
-    bs_repotop=$BS_APT_LOCALBUILD/$bs_repodir
+localhost)
     bs_upload_user=$LOGNAME
     # Change behavior of apt.  Careful, have to pass it through sudo!
-    export APT_CONFIG="$BS_APT_LOCALBUILD/apt.conf"
+    export APT_CONFIG="$bs_repotop/etc/apt.conf"
     # Change behavior of gpg.  Careful, have to pass it through sudo!
-    if false
-    then
-        export GNUPGHOME="$BS_APT_LOCALBUILD/gpg"
-    else
-        # Alas, GNUPGHOME has to be a short absolute path,
-        # as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
-        # FIXME: this is likely to clash if run in parallel.
-        export GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
-    fi
+    # Alas, GNUPGHOME has to be a short absolute path,
+    # as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
+    # FIXME: this is likely to clash if run in parallel.
+    export GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
     ;;
 esac
 bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}

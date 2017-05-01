@@ -4,7 +4,10 @@ set -e
 usage() {
     cat <<_EOF_
 Tool for querying system or downloading / installing / serving packages on Linux/mac/windows
-Usage: obs verb [args]
+Usage: obs [-v] verb [args]
+
+Options:
+-v                          - verbose
 
 Commands related to tarball packages (commonly used on Mac):
 obs list                    - list tarball packages available to install on this system
@@ -28,14 +31,14 @@ obs yovo2cefversion VERSION - look up which version of cef the given version of 
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
 
 Obscure internal commands related to Debian packages (for trickledown builds):
-obs apt-key-gen             - generate a fake gpg signing key in \$BS_APT_LOCALBUILD
+obs apt-key-gen             - generate a fake gpg signing key in \$ob_repotop
 obs apt-key-rm              - remove a fake gpg signing key
 obs apt-server-add h k d... - tell apt to add access to server h with pubkeyfile k and repos d ...
 obs apt-server-rm h         - tell apt to remove access to server h
-obs apt-server-init X K D...- create local apt repo at \$BS_APT_LOCALBUILD/X with pubkeyfile K for distro codenames D...
+obs apt-server-init X K D...- create local apt repo at \$ob_repotop/X with pubkeyfile K for distro codenames D...
 obs apt-pkg-gen p v s       - create dummy deb package p with version v claiming to be in section s
-obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt repo at \$BS_APT_LOCALBUILD/X
-obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$BS_APT_LOCALBUILD/X
+obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt repo at \$ob_repotop/X
+obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$ob_repotop/X
 obs sudo-apt-get ...        - run apt-get as root with local repo visible
 obs apt-get ...             - run apt-get with local repo visible
 obs apt-cache ...           - run apt-cache with local repo visible
@@ -50,11 +53,17 @@ case "$SRCFILE" in
 *)     . obs_funcs.sh;;
 esac
 
-cmd="$1"
-case "$cmd" in
---help|"") usage; exit 0;;
-esac
-shift
+while true
+do
+    cmd="$1"
+    shift
+    case "$cmd" in
+    -v)        set -x;;
+    --help|"") usage; exit 0;;
+    -*)        usage; exit 1;;
+    *)         break;;
+    esac
+done
 
 # Allow - as synonym for _ in command names
 cmd="$(printf %s "$cmd" | tr - _)"
@@ -77,7 +86,7 @@ apt_server_init)       bs_apt_server_init "$@";;
 apt_pkg_gen)           bs_apt_pkg_gen "$@";;
 apt_pkg_add)           bs_apt_pkg_add "$@";;
 apt_pkg_rm)            bs_apt_pkg_rm "$@";;
-sudo_apt_get)          if test "$BS_APT_LOCALBUILD" != ""; then sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" apt-get "$@"; else sudo apt-get "$@"; fi;;
+sudo_apt_get)          if test "$MASTER" = localhost; then sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" apt-get "$@"; else sudo apt-get "$@"; fi;;
 apt_get)               apt-get "$@";;
 apt_cache)             apt-cache "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;

@@ -16,13 +16,14 @@
   rm hello*.deb
 
   # Generate a local repo key, create a local repo, get access to it
-  export BS_APT_LOCALBUILD=`pwd`/foo.tmp
-  rm -rf $BS_APT_LOCALBUILD
+  export MASTER=localhost
+  export bs_repotop=`pwd`/foo.tmp
+  rm -rf $bs_repotop
   ./obs apt-key-rm || true
   ./obs apt-key-gen
   DISTRO=`lsb_release -cs`
-  ./obs apt_server_init dev-or-rel $BS_APT_LOCALBUILD/repo.pubkey
-  ./obs apt_server_add localhost $BS_APT_LOCALBUILD/repo.pubkey $BS_APT_LOCALBUILD/repobot/dev-or-rel/apt
+  ./obs apt_server_init dev-or-rel $bs_repotop/repo.pubkey
+  ./obs apt_server_add localhost $bs_repotop/repo.pubkey $bs_repotop/dev-or-rel/apt
 
   # Verify that we cannot download our private package yet
   ! ./obs apt-get download obs-foobie
@@ -44,5 +45,5 @@
   ./obs apt_server_rm localhost
   ./obs apt-key-rm
   rm -rf foo.tmp
-  unset BS_APT_LOCALBUILD
+  unset bs_repotop
 }
