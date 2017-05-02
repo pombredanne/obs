@@ -332,7 +332,8 @@ _EOF_
         if test -x /usr/bin/gpg2
         then
             gpg --passphrase '' --armor --export-secret-keys $keyemail \
-            | gpg-agent --daemon gpg2 --passphrase '' --import -
+            | gpg-agent --daemon -- \
+              gpg2 --passphrase '' --import -
         fi
     fi
     rm gpg.in.tmp
@@ -451,8 +452,8 @@ bs_apt_server_rm() {
         sudo rm -f $sources_list_d/repobot-$host-*.list
         ;;
     esac
-    sudo apt-get clean
-    sudo apt-get update
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get clean
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update
 }
 
 # Create a package $1 with version $2 claiming to be in section $3
@@ -505,6 +506,7 @@ bs_apt_server_init() {
 
     if test -f "$apt_repokey"
     then
+        # Extract first public key fingerprint from a public key file
         apt_repokey=$(gpg --with-colons "$apt_repokey" | awk -F: '/^pub:/ {print $5}' | head -n 1)
     fi
 
@@ -638,6 +640,7 @@ bs_apt_pkg_add() {
         bs_abort "Repeat upload failed.  You can only upload a rel package once.  Maybe you meant to give this package a dev- tag?"
     fi
     rm /tmp/reprepro.log.$$
+    echo $status > subshell.status.tmp
     if test $status -ne 0
     then
         bs_abort "Upload failed, see message above."
@@ -645,6 +648,13 @@ bs_apt_pkg_add() {
 
     ) 9>$LOCKFILE
     echo "Released lock $LOCKFILE... time is `date`"
+    local status
+    status=$(cat subshell.status.tmp)
+    rm -rf subshell.status.tmp
+    if test $status -ne 0
+    then
+        bs_abort "Upload failed, see message above."
+    fi
 }
 
 # Usage: bs_apt_pkg_rm subdir suite pkg...
