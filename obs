@@ -8,6 +8,7 @@ Usage: obs [-v] verb [args]
 
 Options:
 -v                          - verbose
+--version                   - show obs version
 
 Commands related to tarball packages (commonly used on Mac):
 obs list                    - list tarball packages available to install on this system
@@ -39,38 +40,45 @@ obs apt-server-init X K D...- create local apt repo at \$ob_repotop/X with pubke
 obs apt-pkg-gen p v s       - create dummy deb package p with version v claiming to be in section s
 obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt repo at \$ob_repotop/X
 obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$ob_repotop/X
-obs sudo-apt-get ...        - run apt-get as root with local repo visible
-obs apt-get ...             - run apt-get with local repo visible
-obs apt-cache ...           - run apt-cache with local repo visible
+obs sudo cmd ...            - run cmd as root with local repo visible
+obs run cmd ...             - run cmd with local repo visible
 _EOF_
 }
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
-SRCFILE="`readlink $0 2>/dev/null || echo $0`"
+SRCFILE="$(readlink "$0" 2>/dev/null || echo "$0")"
 case "$SRCFILE" in
 ./obs) . ./obs_funcs.sh;;
 *)     . obs_funcs.sh;;
 esac
 
+# Running without any arguments may be a typo in a script, so show usage and abort.
+case "$1" in
+"")    usage; exit 1;;
+esac
+
+# Handle options
 while true
 do
     cmd="$1"
     shift
     case "$cmd" in
     -v)        set -x;;
-    --help|"") usage; exit 0;;
+    --version) echo "obs versionoid 1"; exit 0;;  # increment manually if clients need to check for new feature/fix
+    -h|--help) usage; exit 0;;
     -*)        usage; exit 1;;
     *)         break;;
     esac
 done
 
-# Allow - as synonym for _ in command names
+# Handle commands, allow - as synonym for _ in command names
 cmd="$(printf %s "$cmd" | tr - _)"
 
 case "$cmd" in
 detect_ncores)         bs_detect_ncores;;
-detect_os)             echo $_os ;; # bs_detect_os already called
+detect_os)             # shellcheck disable=SC2154
+                       echo "$_os" ;; # bs_detect_os already called in ". obs_funcs.sh"
 get_major_version_git) bs_get_major_version_git;;
 get_version_git)       bs_get_version_git;;
 install)               bs_install "$@";;
@@ -86,8 +94,7 @@ apt_server_init)       bs_apt_server_init "$@";;
 apt_pkg_gen)           bs_apt_pkg_gen "$@";;
 apt_pkg_add)           bs_apt_pkg_add "$@";;
 apt_pkg_rm)            bs_apt_pkg_rm "$@";;
-sudo_apt_get)          if test "$MASTER" = localhost; then sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" apt-get "$@"; else sudo apt-get "$@"; fi;;
-apt_get)               apt-get "$@";;
-apt_cache)             apt-cache "$@";;
+sudo)                  sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" "$@";;
+run)                   "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac

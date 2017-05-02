@@ -2,6 +2,8 @@
 
 @test "obs-smoke" {
   # Smoke test the simple commands.
+  ./obs | grep Usage
+  test "$(./obs --version)" = "obs versionoid 1"
   ./obs detect_ncores
   ./obs detect_os
   ./obs get_major_version_git
@@ -12,7 +14,7 @@
   ./obs --help
 
   # Verify that we can download a standard package from the linux distro
-  ./obs apt-get download hello
+  ./obs run apt-get download hello
   rm hello*.deb
 
   # Generate a local repo key, create a local repo, get access to it
@@ -26,7 +28,7 @@
   ./obs apt_server_add localhost $bs_repotop/repo.pubkey $bs_repotop/dev-or-rel/apt
 
   # Verify that we cannot download our private package yet
-  ! ./obs apt-get download obs-foobie
+  ! ./obs run apt-get download obs-foobie
 
   # Generate and upload a private package
   ./obs apt-pkg-gen obs-foobie 0.1 main
@@ -34,9 +36,9 @@
   rm obs-foobie_0.1_all.deb
 
   # Verify that we can see it in the repo and download it
-  ./obs sudo-apt-get update
-  ./obs apt-cache policy obs-foobie
-  ./obs apt-get download obs-foobie
+  ./obs sudo apt-get update
+  ./obs run apt-cache policy obs-foobie
+  ./obs run apt-get download obs-foobie
   test -f obs-foobie_0.1_all.deb
   rm obs-foobie_0.1_all.deb
 
