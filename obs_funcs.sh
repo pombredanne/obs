@@ -408,7 +408,7 @@ bs_apt_server_add() {
 
     $maybesudo rm -f $sources_list_d/repobot-$host-*.list
     local _apt_codename
-    _apt_codename=${bs_apt_codename:-"$(lsb_release -cs)"}
+    _apt_codename=${bs_apt_codename:-"$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)"}
     local dpkgarch=$(dpkg --print-architecture)
     local dir
     local line
@@ -501,7 +501,7 @@ bs_apt_server_init() {
 
     if test "$apt_suites" = ""
     then
-        apt_suites="`lsb_release -sc`"
+        apt_suites="$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)"
     fi
 
     if test -f "$apt_repokey"
@@ -545,6 +545,11 @@ SignWith: $apt_repokey
 _EOF_
     done
 
+    # We don't usually like installing these on the fly, but it makes bootstrapping easier
+    if ! reprepro --version
+    then
+        sudo apt-get install -y reprepro
+    fi
     # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
     for section in $apt_sections
     do

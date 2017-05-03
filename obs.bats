@@ -23,7 +23,7 @@
   rm -rf $bs_repotop
   ./obs apt-key-rm || true
   ./obs apt-key-gen
-  DISTRO=`lsb_release -cs`
+  DISTRO=$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)
   ./obs apt_server_init dev-or-rel $bs_repotop/repo.pubkey
   ./obs apt_server_add localhost $bs_repotop/repo.pubkey $bs_repotop/dev-or-rel/apt
 

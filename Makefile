@@ -6,7 +6,7 @@ all:
 
 check:
 	#if test "`which bats`" != ""; then bats .; fi
-	egrep -v '{|}' < obs.bats > obs-test.sh
+	egrep -v '@test|^}$$' < obs.bats > obs-test.sh
 	sh -xe obs-test.sh
 	rm obs-test.sh
 
