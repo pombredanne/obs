@@ -319,6 +319,17 @@ Name-Email: $keyemail
 Expire-Date: $days
 _EOF_
 
+    # We don't usually like installing these on the fly, but it makes bootstrapping easier.
+    # Guess what?  On bare ubuntu 16.04, gpg2 is not installed until you install reprepro.
+    # "make check" will fail without this here, even though reprepro itself isn't
+    # used until later.
+    # We could add a runtime dependency on reprepro in debian/control, but then
+    # the bootstrap check in bs_funcs.sh would need to do apt-get install -f.
+    if ! reprepro --version
+    then
+        sudo apt-get install -y reprepro
+    fi
+
     if gpg --version | head -n 1 | grep ' 2\.'
     then
         # gpg 2 needs agent, and we don't want to use the desktop's

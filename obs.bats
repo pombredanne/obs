@@ -3,7 +3,7 @@
 @test "obs-smoke" {
   # Smoke test the simple commands.
   ./obs | grep Usage
-  test "$(./obs --version)" = "obs versionoid 2"
+  test "$(./obs --version)" = "obs versionoid 3"
   ./obs detect_ncores
   ./obs detect_os
   ./obs get_major_version_git
