@@ -117,6 +117,23 @@ bs_detect_ncores() {
     esac
 }
 
+# Only used on Windows
+bs_detect_toolchain()
+{
+    if test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0"
+    then
+        echo msvc2015
+    elif test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 12.0"
+    then
+        echo msvc2013
+    elif test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 10.0"
+    then
+        echo msvc2010
+    else
+        bs_abort "None of Visual Studio 2015, 2013, nor 2010 detected" >&2
+    fi
+}
+
 # Echo the version number of this project as given by git
 # Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the first numeric part including dots
 # Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m

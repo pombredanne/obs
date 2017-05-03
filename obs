@@ -65,7 +65,7 @@ do
     shift
     case "$cmd" in
     -v)        set -x;;
-    --version) echo "obs versionoid 3"; exit 0;;  # increment manually if clients need to check for new feature/fix
+    --version) echo "obs versionoid 4"; exit 0;;  # increment manually if clients need to check for new feature/fix
     -h|--help) usage; exit 0;;
     -*)        usage; exit 1;;
     *)         break;;
