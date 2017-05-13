@@ -742,7 +742,15 @@ localhost)
     # Alas, GNUPGHOME has to be a short absolute path,
     # as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
     # FIXME: this is likely to clash if run in parallel.
-    export GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
+    if test "$BS_GNUPGHOME"
+    then
+        # Workaround to avoid clash during 'localbuild.sh build nobuild'
+        echo "obs_funcs: Setting GNUPGHOME from BS_GNUPGHOME, only used by debian/rules as of this writing" >&2
+        GNUPGHOME="$BS_GNUPGHOME"
+    else
+        GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
+    fi
+    export GNUPGHOME
     ;;
 esac
 bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
