@@ -134,6 +134,23 @@ bs_detect_toolchain()
     fi
 }
 
+# Look at source tree to see what version of g-speak this project builds against currently
+bs_get_gspeak_version() {
+    # Allow -gh suffix after g-speak or gs (it means "greenhouse free")
+    # sed's regular expressions are a bit ugly
+    #  egrep: (abc)?
+    #  sed:   \(abc\)\{0,1\}
+    if egrep -q 'g-speak(-gh)?[0-9]' debian/control
+    then
+        egrep 'g-speak(-gh)?[0-9]' debian/control | head -n 1 | sed 's/.*g-speak\(-gh\)\{0,1\}//;s/[^0-9.].*//'
+    elif egrep -q 'gs(-gh)?[0-9.]+x' debian/control
+    then
+        egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
+    fi
+
+    # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
+}
+
 # Echo the version number of this project as given by git
 # Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the first numeric part including dots
 # Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
