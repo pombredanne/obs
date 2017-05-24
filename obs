@@ -26,6 +26,7 @@ internally), that way you don't need to hunt down missing dependencies.
 Miscelaneous commands:
 obs detect-ncores           - get number of CPU cores this computer has
 obs detect-os               - get our os type/version identifier for the current os
+obs get-gspeak-version      - show version of g-speak the current project expects
 obs get-major-version-git   - get major version number of current project from heavyweight git tags
 obs get-version-git         - get version number of current project from heavyweight git tags
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
@@ -44,6 +45,14 @@ obs sudo cmd ...            - run cmd as root with local repo visible
 obs run cmd ...             - run cmd with local repo visible
 _EOF_
 }
+
+# Yovo, greenhouse, and possibly other projects have a script baugen.sh
+# that installs a new version of obs if `obs --version` outputs a number
+# that is too low for its taste.
+# So increment OBS_VERSIONOID when there's a fix in obs or obs_funcs.sh
+# that might interest them.
+# Must be integer
+OBS_VERSIONOID=47
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
@@ -65,7 +74,7 @@ do
     shift
     case "$cmd" in
     -v)        set -x;;
-    --version) echo "obs versionoid 4"; exit 0;;  # increment manually if clients need to check for new feature/fix
+    --version) echo "obs versionoid $OBS_VERSIONOID"; exit 0;;
     -h|--help) usage; exit 0;;
     -*)        usage; exit 1;;
     *)         break;;
@@ -79,6 +88,7 @@ case "$cmd" in
 detect_ncores)         bs_detect_ncores;;
 detect_os)             # shellcheck disable=SC2154
                        echo "$_os" ;; # bs_detect_os already called in ". obs_funcs.sh"
+get_gspeak_version)    bs_get_gspeak_version;;
 get_major_version_git) bs_get_major_version_git;;
 get_version_git)       bs_get_version_git;;
 install)               bs_install "$@";;

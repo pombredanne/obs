@@ -1,0 +1,301 @@
+#!/bin/sh
+# Sets persistant source options in debian directory.
+#
+# Run to select a different version of g-speak or change cmake options.
+# NOTE: use --hard if you want to change default g-speak version in git!
+#
+# Generic, should work for most projects that depend on g-speak.
+# However, if your project needs different behavior, you have two choices:
+# 1) Override this script entirely by creating the file set-gspeak.sh
+# at the top of your project and putting your private version there.
+# 2) Tweak defaults by defining the file ci/ob-set-defaults.conf
+# containing lines like
+#    PREFIX=/opt/oblong/my-funky-dir
+# (see Tweakable Defaults below)
+
+usage() {
+    cat <<_EOF_
+Usage: ob-set-defaults [options]
+Sets default generic build parameters for this project.
+Options:
+  -v             - verbose
+  --g-speak VER  - which version of g-speak to build against
+  --hard         - use 'git mv' instead of 'mv' when renaming debian files
+  --asan         - alias for -DASAN=on
+  --cef branch   - if this package needs cef, use this branch instead of default
+  --coverage     - alias for -DCOVERAGE=on
+  --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
+  --greenhouse   - -DUSE_STATIC_G_SPEAK=on, installs to /opt/oblong/greenhouse, hobbled plasma, -gh package suffix
+  --make         - generate Makefiles and build with make
+  --ninja        - generate build.ninja and build with ninja
+  --no-tests     - alias for -DBUILD_TESTS=off
+  --prefix DIR   - where to install
+  --tsan         - alias for -DTSAN=on
+  --xcode        - generate XCode project and build with XCode
+  --no-major     - don't append major version number to package name
+  -Dfoo=bar      - passed through to cmake with doublequotes
+_EOF_
+}
+
+# Project defined a set-gspeak.sh, so call that instead.
+# Restriction: -v and/or --g-speak must come first.
+fallback_to_classic() {
+    echo "Found local set-gspeak.sh, running that instead"
+
+    # Adjust args to match old interface
+    local verbose
+    local gspeak_version
+    while true
+    do
+       case "$1" in
+       -v)         verbose=-x;;
+       --g-speak)  shift; gspeak_version=$1;;
+       --hard)
+           # makes --g-speak more emphatic and check-in-able
+           # Let caller specify it via 'GITCMD=git' for backward compatibility
+           export GITCMD=git
+           ;;
+       *) break;;
+       esac
+    done
+    exec sh $verbose set-gspeak.sh $gspeak_version "$@"
+}
+
+# Let project override by defining set-gspeak.sh (as in days of yore)
+if test -f set-gspeak.sh
+then
+    fallback_to_classic "$@"
+fi
+
+# Give help before doing anything that might fail
+case "$1" in
+""|-h|--help|help) usage; exit 0;;
+esac
+
+# This is part of oblong's obs package
+# See https://github.com/Oblong/obs
+. obs_funcs.sh
+
+set -e
+
+# Tweakable Defaults
+# The defaults that can be overridden by ob-set-defaults.conf
+gspeak_version=$(bs_get_gspeak_version || true)
+G_SPEAK_HOME=""
+PREFIX=""
+cefbranch=""
+extra_cmake_options=""
+opt_generator="Ninja"
+opt_no_major=false
+suffix=""
+
+# Load project-specific defaults, if any
+if test -f ci/ob-set-defaults.conf
+then
+    echo "Loading ci/ob-set-defaults.conf"
+    . ci/ob-set-defaults.conf
+fi
+
+while test "$1" != ""
+do
+    case "$1" in
+    -v) set -x
+        ;;
+    "--greenhouse")
+        suffix="-gh"
+        G_SPEAK_HOME=/opt/oblong/greenhouse
+        extra_cmake_options="$extra_cmake_options -DUSE_STATIC_G_SPEAK=on"
+        ;;
+    --g-speak)
+        shift
+        gspeak_version=$1
+        ;;
+    --hard)
+        # makes --g-speak more emphatic and check-in-able
+        # Let caller specify it via 'GITCMD=git' for backward compatibility
+        GITCMD=git
+        ;;
+    -D*!*)
+        echo "Sorry, exclamation marks and embedded single quotes are not supported here in cmake options"
+        exit 1
+        ;;
+    -D*)
+        extra_cmake_options="$extra_cmake_options '$1'"
+        ;;
+    --asan)
+        extra_cmake_options="$extra_cmake_options -DASAN=on"
+        ;;
+    --cef)
+        shift
+        cefbranch=cef$1
+        ;;
+    --coverage)
+        extra_cmake_options="$extra_cmake_options -DCOVERAGE=on"
+        ;;
+    --debug)
+        extra_cmake_options="$extra_cmake_options -DCMAKE_BUILD_TYPE=Debug"
+        ;;
+    --make)
+        opt_generator="Unix Makefiles"
+        ;;
+    --ninja)
+        opt_generator="Ninja"
+        ;;
+    --no-major)
+        opt_no_major=true
+        ;;
+    --prefix)
+        shift
+        PREFIX="$1"
+        ;;
+    --vs)
+        opt_toolchain=$(bs_detect_toolchain)
+        case $opt_toolchain in
+        msvc2010) opt_generator="Visual Studio 10 2010";;
+        msvc2013) opt_generator="Visual Studio 12 2013";;
+        msvc2015) opt_generator="Visual Studio 14 2015";;
+        *) bs_abort "ob-set-defaults: unknown compiler $opt_toolchain";;
+        esac
+        ;;
+    --xcode)
+        opt_generator="Xcode"
+        ;;
+    --no-tests)
+        extra_cmake_options="$extra_cmake_options -DBUILD_TESTS=off"
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+    esac
+    shift
+done
+
+BITS=$(getconf LONG_BIT)
+if test "$gspeak_version" = ""
+then
+    bs_abort "ob-set-defaults: gspeak_version is empty?"
+fi
+YOVERSION=$(bs_yovo2yoversion $gspeak_version)
+YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
+if test "$YOVERSION" = ""
+then
+    bs_abort "ob-set-defaults: YOVERSION is empty?"
+fi
+if test "$G_SPEAK_HOME" = ""
+then
+    G_SPEAK_HOME=/opt/oblong/g-speak$gspeak_version
+fi
+if test "$PREFIX" = ""
+then
+    echo "ob-set-defaults: Defaulting PREFIX to $G_SPEAK_HOME"
+    PREFIX=$G_SPEAK_HOME
+fi
+if test "$cefbranch" = ""
+then
+    cefbranch=$(bs_yovo2cefversion $gspeak_version || true)
+fi
+
+pkgname=$(awk '/Source:/ {print $2};' < debian/control)
+projname=$(echo $pkgname | sed 's/-gs.*//')
+
+if $opt_no_major
+then
+    version_major=""
+else
+    # Allow multiple major versions of this package to coexist in repo by using major version number as suffix on package name
+    version_major=$(bs_get_major_version_git)
+fi
+
+# Set g-speak version number, and major version number for this project, in debian/* files.
+# This sed should catch all Oblong projects.
+# New projects must use the gsX.Yx convention in their package names to make this easy
+# Legacy packages are listed here explicitly, e.g. one for each Package: line in yovo/debian/control.in
+# g-speak version number parsing:
+# \(-gh\)\{0,1\} means 'match zero or one occurrances of the string -gh'
+# [1-9]\.[1-9][0-9]* means 'match version numbers with a nonzero digit, a period, a nonzero digit, and maybe more digits'
+# yobuild and cef version number parsing:
+# [1-9][0-9]* means 'match version numbers which are whole numbers greater than zero'
+sed -i.bak \
+    -e "s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
+    -e "s/gs\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
+    -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
+    -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
+    -e "s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
+    -e "s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
+    -e "s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
+    -e "s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
+    -e "s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
+    -e "s/oblong-media\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
+    -e "s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
+    -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
+    -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
+    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+    -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
+    -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
+    -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
+    -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
+    -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
+    debian/rules \
+    debian/control \
+    $(ls debian/*.install debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
+    #
+
+# Only want to change 1st line of changelog, and only non-yovo package name fragments.
+sed -i.bak \
+    -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[1-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
+    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+    -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
+    debian/changelog \
+    #
+
+# Update the version number in all instances of the above filenames in the debian directory
+moved=false
+for from in \
+    debian/oblong-*-gs*[1-9].[0-9]*.install \
+    debian/oblong-*-gs*[1-9].[0-9]*.postinst \
+    debian/oblong-*-gs*[1-9].[0-9]*.prerm \
+    debian/oblong-*-gs*[1-9].[0-9]*.upstart \
+    debian/oblong-*-gs*[1-9].[0-9]*.service \
+    #
+do
+    if test -f "$from"
+    then
+        to="$(echo $from | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/-gs$suffix$gspeak_version/")"
+        if test "$from" != "$to"
+        then
+            # Leave GITCMD empty when just building, set it to git when renaming in anger
+            $GITCMD mv "$from" "$to"
+            moved=true
+            movedcmd="mv $from $to"
+        fi
+    fi
+done
+
+if $moved && test "$GITCMD" = ""
+then
+    bs_warn "ob-set-defaults: Files renamed (e.g. $movedcmd), but --hard not given, so 'git mv' not used."
+    bs_warn "ob-set-defaults: Undo, then rerun with --hard if you want to check changes in to git."
+fi
+
+echo "ob-set-defaults done."

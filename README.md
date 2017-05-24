@@ -140,3 +140,21 @@ To access a different package server:
 ```
 $ MASTER=server.example.com obs pkg_list
 ```
+
+## ob-set-defaults
+
+ob-set-defaults modifies a project's source tree slightly to set defaults
+for e.g. which version of g-speak to install when building the project.
+
+Individual projects can override this by putting their own version
+in an executable sh script named set-gspeak.sh.
+
+More simply, they can override some defaults by creating a file
+ci/ob-set-defaults.conf containing variable settings like
+```
+PREFIX=/opt/oblong/my-funky-dir
+opt_generator="Unix Makefiles"
+```
+Read the top of ob-set-defaults to see which variables can be set.
+
+See ob-set-defaults --help for more info.

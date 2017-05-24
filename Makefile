@@ -13,5 +13,6 @@ check:
 install:
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 644 obs_funcs.sh $(DESTDIR)$(PREFIX)/bin
+	install -m 755 ob-set-defaults $(DESTDIR)$(PREFIX)/bin
 	install -m 755 $(COMMANDS) $(DESTDIR)$(PREFIX)/bin
 
