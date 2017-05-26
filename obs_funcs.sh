@@ -134,6 +134,12 @@ bs_detect_toolchain()
     fi
 }
 
+# Look at source tree to see what version of cef this project builds against currently
+# Returns same kinds of values as bs_yovo2cefversion
+bs_get_cef_version() {
+    egrep 'webthing-cef' debian/control | sed 's/.*webthing-cef/cef/;s/-.*//' | head -n1
+}
+
 # Look at source tree to see what version of g-speak this project builds against currently
 bs_get_gspeak_version() {
     # Allow -gh suffix after g-speak or gs (it means "greenhouse free")

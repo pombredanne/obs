@@ -26,6 +26,7 @@ internally), that way you don't need to hunt down missing dependencies.
 Miscelaneous commands:
 obs detect-ncores           - get number of CPU cores this computer has
 obs detect-os               - get our os type/version identifier for the current os
+obs get-cef-version         - show version of cef the current project expects
 obs get-gspeak-version      - show version of g-speak the current project expects
 obs get-major-version-git   - get major version number of current project from heavyweight git tags
 obs get-version-git         - get version number of current project from heavyweight git tags
@@ -88,6 +89,7 @@ case "$cmd" in
 detect_ncores)         bs_detect_ncores;;
 detect_os)             # shellcheck disable=SC2154
                        echo "$_os" ;; # bs_detect_os already called in ". obs_funcs.sh"
+get_cef_version)       bs_get_cef_version;;
 get_gspeak_version)    bs_get_gspeak_version;;
 get_major_version_git) bs_get_major_version_git;;
 get_version_git)       bs_get_version_git;;
