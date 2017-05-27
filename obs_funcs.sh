@@ -654,8 +654,9 @@ bs_apt_pkg_add() {
     pkgarch=`echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//'`
     for arg in $@
     do
-        # remove first _ and everything after it, yielding the package name
+        # remove first _ and everything after it, and first / and everything before it, yielding the package name
         pkgname=${arg%%_*}
+        pkgname=${pkgname##*/}
         pkgnames="$pkgnames $pkgname"
     done
     set -x
@@ -707,7 +708,7 @@ bs_apt_pkg_add() {
     local status
     status=$(cat subshell.status.tmp)
     rm -rf subshell.status.tmp
-    if test $status -ne 0
+    if test "$status" != "0"
     then
         bs_abort "Upload failed, see message above."
     fi
