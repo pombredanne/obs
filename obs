@@ -53,7 +53,7 @@ _EOF_
 # So increment OBS_VERSIONOID when there's a fix in obs or obs_funcs.sh
 # that might interest them.
 # Must be integer
-OBS_VERSIONOID=50
+OBS_VERSIONOID=51
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
