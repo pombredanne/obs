@@ -157,6 +157,11 @@ bs_get_gspeak_version() {
     # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
 }
 
+# Get the package name (for use with bs_upload)
+bs_get_pkgname() {
+    awk 'BEGIN { status=1; }; /Source:/ {print $2; status=0;}; END {exit(status);}' < debian/control
+}
+
 # Echo the version number of this project as given by git
 # Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the first numeric part including dots
 # Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
@@ -203,7 +208,6 @@ bs_pkg_list() {
 
 # Usage: bs_download package ...
 # Downloads the latest build of the given packages
-# This is not quite ready for external use
 bs_download() {
     bs_download_dest=${bs_download_dest:-.}
     case "${bs_install_host}" in
@@ -211,6 +215,19 @@ bs_download() {
     esac
     for depname
     do
+        # KLUDGE: during transition to uploading as $(bs_get_pkgname), add in some special cases
+        # Once all buildshims updated, remove kludge
+        local oldname=$depname
+        case $depname in
+        staging4.0)    depname=oblong-staging4.0;;
+        staging-gh4.0) depname=oblong-staging-gh4.0;;
+        esac
+
+        if test "$depname" != "$oldname"
+        then
+            bs_warn "bs_download: name $oldname deprecated, please use $depname"
+        fi
+
         status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
         case "$status" in
         present) ;;

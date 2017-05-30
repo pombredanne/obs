@@ -92,6 +92,7 @@ detect_os)             # shellcheck disable=SC2154
 get_cef_version)       bs_get_cef_version;;
 get_gspeak_version)    bs_get_gspeak_version;;
 get_major_version_git) bs_get_major_version_git;;
+get_pkgname)           bs_get_pkgname;;
 get_version_git)       bs_get_version_git;;
 install)               bs_install "$@";;
 download)              bs_download "$@";;
