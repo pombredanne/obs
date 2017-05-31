@@ -222,7 +222,7 @@ bs_download() {
         # BEGIN KLUDGE: during transition to uploading as $(bs_get_pkgname), add in some special cases
         # Once all buildshims updated, remove kludge
         local newname=$depname
-        case $depname-$status in
+        case "$depname-$status" in
           oblong-*)    ;;
           *-present)   ;;
           *)
@@ -230,7 +230,7 @@ bs_download() {
             newname=oblong-$depname
             status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$newname/$_os; then echo present ; else echo absent; fi"`
             ;;
-        done
+        esac
         if test "$status" = "present" && test "$depname" != "$newname"
         then
             bs_warn "bs_download: name $depname deprecated, please use $newname"
