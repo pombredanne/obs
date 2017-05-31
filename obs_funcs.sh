@@ -219,8 +219,7 @@ bs_download() {
         # Once all buildshims updated, remove kludge
         local oldname=$depname
         case $depname in
-        staging4.0)    depname=oblong-staging4.0;;
-        staging-gh4.0) depname=oblong-staging-gh4.0;;
+        staging*)    depname=oblong-$oldname;;
         esac
 
         if test "$depname" != "$oldname"
