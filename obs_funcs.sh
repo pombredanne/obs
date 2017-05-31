@@ -209,25 +209,35 @@ bs_pkg_list() {
 # Usage: bs_download package ...
 # Downloads the latest build of the given packages
 bs_download() {
+    # FIXME: if bs_install_host is localhost, don't use ssh/scp
+
     bs_download_dest=${bs_download_dest:-.}
     case "${bs_install_host}" in
     "") bs_abort "bs_download: must specify bs_install_host";;
     esac
     for depname
     do
-        # KLUDGE: during transition to uploading as $(bs_get_pkgname), add in some special cases
-        # Once all buildshims updated, remove kludge
-        local oldname=$depname
-        case $depname in
-        staging*)    depname=oblong-$oldname;;
-        esac
-
-        if test "$depname" != "$oldname"
-        then
-            bs_warn "bs_download: name $oldname deprecated, please use $depname"
-        fi
-
         status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
+
+        # BEGIN KLUDGE: during transition to uploading as $(bs_get_pkgname), add in some special cases
+        # Once all buildshims updated, remove kludge
+        local newname=$depname
+        case $depname-$status in
+          oblong-*)    ;;
+          *-present)   ;;
+          *)
+            # Try prefixing dependency name with oblong- (hey, it works with staging...)
+            newname=oblong-$depname
+            status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$newname/$_os; then echo present ; else echo absent; fi"`
+            ;;
+        done
+        if test "$status" = "present" && test "$depname" != "$newname"
+        then
+            bs_warn "bs_download: name $depname deprecated, please use $newname"
+            depname=$newname
+        fi
+        # END KLUDGE
+
         case "$status" in
         present) ;;
         *) echo "bs_download: warning: package $depname not yet built for $_os"; return 1;;
