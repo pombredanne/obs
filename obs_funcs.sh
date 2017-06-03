@@ -265,16 +265,24 @@ bs_download() {
 bs_untar_restricted() {
     local dest
     local depth
-    # Detect destination.  Tarballs always start with the top level directories.
-    # Choose the second entry, that should be /x/y/  (or /x/y/foo, depending on tar version)
+    # Detect destination.  Tarballs often start with the top level directories.
+    # Choose the third entry, that should be /x/y/z/  (or /x/y/z/foo, depending on tar version)
     # Handle whacky tarball qwt532.tar.gz whose paths start with ./
     dest="/$(tar -tf $1 | head -n2 | tail -n1)"
     case "$dest" in
     /usr/local/*) dest="/usr/local"; depth=2;;
     /opt/*) dest="/opt"; depth=1;;
     /./opt/*) dest="/opt"; depth=2;;
+    /cygdrive/c/opt/*) dest="/cygdrive/c/opt"; depth=3;;
     *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt allowed";;
     esac
+
+    # Prepend c: if missing on windows
+    if test "$_os" = cygwin && test "$dest" != "/cygdrive/c/opt"
+    then
+        dest="/cygdrive/c$dest"
+    fi
+
     $SUDO mkdir -p "$dest"
     $SUDO tar -o --strip-components=$depth -C "$dest" -xzf $1 2>&1
 }
@@ -298,21 +306,8 @@ bs_install() {
     # And now the scary part.  First, check for file (not directory) overwrites.
     for tarball in bs_install.tmp/*.tar.gz
     do
-        case "$_os" in
-        cygwin)
-            # fixme: simplify, unify, allow other drives?
-            # FIXME: this is crazy/fragile/broken, fix yobuild to not need this broken special case
-            case $depname in
-            yobuild*) root=/;;           # yobuild has /cygdrive/c in tgz!
-            *)        root=/cygdrive/c;;
-            esac
-            tar -C $root -xzf $tarball 2>&1
-            ;;
-        *)  # osx1011 unhappy about setting ownership of /, understandably
-            # FIXME: add a postinstall step to e.g. install things into /etc/oblong (kipple)?
-            bs_untar_restricted $tarball
-            ;;
-        esac
+        # FIXME: add a postinstall step to e.g. install things into /etc/oblong, like old yobuild had?
+        bs_untar_restricted $tarball
     done
 
     rm -rf bs_install.tmp
