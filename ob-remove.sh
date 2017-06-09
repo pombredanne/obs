@@ -3,13 +3,29 @@ set -e
 set -x
 
 echo "Script to uninstall everything oblong-related, along with their config files.  Caution: may remove more than you expect."
+if ! test -w /
+then
+    echo "This script must be run as root."
+    exit 1
+fi
+if ! grep -i ubuntu /etc/issue
+then
+    echo "This script is only for Ubuntu at the moment, sorry."
+    exit 1
+fi
 
 # set $opt_rubytoo to anything if you want to remove all ruby gems
 
 # Set this to true if you want to remove dependencies (including ruby), too
 opt_autoremove=${opt_autoremove:-false}
 
-OLDPKGS=`dpkg-query -l | egrep -i 'g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps' | awk '{print $2}' | egrep -v "oblong-obs|oblong-bau"`
+# Regular expression for packages to remove
+blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps"
+
+# Regular expression for packages to not remove, even though they are may be from oblong
+whitelist_re="oblong-obs|oblong-bau"
+
+OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -v "$whitelist_re")
 if test "$opt_rubytoo"
 then
     OLDGEMS=`dpkg-query -l | egrep rubygem- | grep -v integration | awk '{print $2}' || true`
@@ -26,20 +42,6 @@ then
     dpkg -r $OLDPKGS || true
     apt-get remove -y $OLDPKGS || true
 fi
-pkgs="\
-    'mezzanine*' \
-    'whiteboard*' \
-    'corkboard*' \
-    'ob-http-ctl' \
-    'g-speak3.*' \
-    'g-speak-*' \
-    'oblong-*' \
-    'libopencv-*' \
-    libpdl-opencv-perl \
-    libsub-exporter-progressive-perl \
-    ultrasonic-calibration-oblong"
-
-apt-get remove -y $pkgs || true
 
 if test "$OLDPKGS"
 then
@@ -54,7 +56,7 @@ fi
 # Sanity check: make sure nothing in /opt/oblong
 if dpkg-query -S /opt/oblong
 then
-    echo fail, /opt/oblong not empty
+    echo fail, dpkg says /opt/oblong is not empty
     exit 1
 fi
 
@@ -65,7 +67,7 @@ then
 fi
 
 checkfiles() {
-    if ls "$@"
+    if ls "$@" 2>/dev/null
     then
         echo FIXME: $@ was not removed.  See https://bugs.oblong.com/show_bug.cgi?id=7687
         rm -rf "$@"
@@ -82,15 +84,14 @@ checkfiles /etc/oblong/xinitrc
 
 for dir in /var/ob /etc/oblong /mnt/poolsramdisk
 do
-    if lsof $dir
+    if ls $dir 2> /dev/null
     then
-        echo WARNING: processes still using $dir
-        echo Please kill them, then re-run
-        exit 1
-    fi
-
-    if ls $dir
-    then
+        if lsof $dir
+        then
+            echo WARNING: processes still using $dir
+            echo Please kill them, then re-run
+            exit 1
+        fi
         echo warning, removing leftover files
         rm -rf $dir
     fi
