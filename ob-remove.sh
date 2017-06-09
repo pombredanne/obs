@@ -23,9 +23,10 @@ opt_autoremove=${opt_autoremove:-false}
 blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps"
 
 # Regular expression for packages to not remove, even though they are may be from oblong
-whitelist_re="oblong-obs|oblong-bau"
+# The mesa/libgbm1/libxatracker2 entries are to avoid removing build products of oblong-mesa
+whitelist_re="oblong-obs|oblong-bau|-mesa|mesa-|libgbm1|libxatracker2"
 
-OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -v "$whitelist_re")
+OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -v "$whitelist_re" || true)
 if test "$opt_rubytoo"
 then
     OLDGEMS=`dpkg-query -l | egrep rubygem- | grep -v integration | awk '{print $2}' || true`
@@ -60,7 +61,7 @@ then
     exit 1
 fi
 
-if ls /opt/oblong
+if ls /opt/oblong 2>/dev/null
 then
     echo warning, removing non-packaged files from /opt/oblong
     rm -rf /opt/oblong
