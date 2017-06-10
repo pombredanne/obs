@@ -297,13 +297,13 @@ sed -i.bak \
 # (to the tune of http://www.nytimes.com/2010/10/04/arts/television/04lesser.html )
 moved=false
 for from in \
-    debian/oblong-*-gs*[1-9].[0-9]*.install \
-    debian/oblong-*-gs*[1-9].[0-9]*.postinst \
-    debian/oblong-*-gs*[1-9].[0-9]*.prerm \
-    debian/oblong-*-gs*[1-9].[0-9]*.upstart \
-    debian/oblong-*-gs*[1-9].[0-9]*.service \
-    debian/oblong-staging[1-9].[0-9]*.install \
-    debian/oblong-staging-gh*[1-9].[0-9]*.install \
+    debian/*oblong-*-gs*[1-9].[0-9]*.install \
+    debian/*oblong-*-gs*[1-9].[0-9]*.postinst \
+    debian/*oblong-*-gs*[1-9].[0-9]*.prerm \
+    debian/*oblong-*-gs*[1-9].[0-9]*.upstart \
+    debian/*oblong-*-gs*[1-9].[0-9]*.service \
+    debian/*oblong-staging[1-9].[0-9]*.install \
+    debian/*oblong-staging-gh*[1-9].[0-9]*.install \
     #
 do
     if test -f "$from"
