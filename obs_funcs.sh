@@ -206,59 +206,100 @@ bs_get_major_version_git() {
 # List packages that could be installed by bs_install
 bs_pkg_list() {
   case "${bs_install_host}" in
-  "") bs_abort "bs_pkg_list: must specify bs_install_host";;
+  "")
+      bs_abort "bs_pkg_list: must specify bs_install_host"
+      ;;
+  localhost)
+      (cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,')
+      ;;
+  *)
+      ssh -n ${bs_install_sshspec} "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
+      ;;
   esac
-  ssh -n ${bs_install_sshspec} "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
+}
+
+# return highest-versioned entry in given subdirectory of repo, if any
+bs_pkg_latest_() {
+  case "${bs_install_host}" in
+  localhost)
+      (cd "${bs_install_root}/$1" && ls | $sort --version-sort | tail -n 1)
+      ;;
+  *)
+      ssh -n ${bs_install_sshspec} "cd '${bs_install_root}/$1' && ls | $sort --version-sort | tail -n 1"
+      ;;
+  esac
+}
+
+# Return absolute path to a sort that supports --version-sort on the master
+bs_download_get_sort() {
+    # Need newest sort for --version-sort.  On Mac, sort is too old and aborts, but gsort exists and is new enough.
+    case "${bs_install_host}" in
+    localhost)
+        if sort --version-sort /dev/null 2>/dev/null
+        then
+            which sort
+        elif gsort --version-sort /dev/null 2>/dev/null
+        then
+            which gsort
+        else
+            echo fail
+        fi
+        ;;
+    *)
+        # Same thing remotely; add brew's bin since ssh doesn't have it by default.
+        ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'
+    esac
 }
 
 # Usage: bs_download package ...
 # Downloads the latest build of the given packages
 bs_download() {
-    # FIXME: if bs_install_host is localhost, don't use ssh/scp
-
     bs_download_dest=${bs_download_dest:-.}
     case "${bs_install_host}" in
     "") bs_abort "bs_download: must specify bs_install_host";;
     esac
+
+    sort=$(bs_download_get_sort)
+    case $sort in
+    /*) ;;
+    *) bs_abort "A sort supporting --version-sort was not found.  Please install gnu sort (coreutils) on $bs_install_host."
+    esac
+
     for depname
     do
-        status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$depname/$_os; then echo present ; else echo absent; fi"`
+        local xy=$(bs_pkg_latest_ $depname/$_os)
 
         # BEGIN KLUDGE: during transition to uploading as $(bs_get_pkgname), add in some special cases
         # Once all buildshims updated, remove kludge
-        local newname=$depname
-        case "$depname-$status" in
+        case "$depname" in
           oblong-*)    ;;
-          *-present)   ;;
           *)
-            # Try prefixing dependency name with oblong- (hey, it works with staging...)
-            newname=oblong-$depname
-            status=`ssh -n ${bs_install_sshspec} "if test -d ${bs_install_root}/$newname/$_os; then echo present ; else echo absent; fi"`
+            if test "$xy" = ""
+            then
+              # Try prefixing dependency name with oblong- (hey, it works with staging...)
+              local newname=oblong-$depname
+              if xy=$(bs_pkg_latest_ $newname/$_os) && test "$xy" != ""
+              then
+                bs_warn "bs_download: name $depname deprecated, please use $newname"
+                depname=$newname
+              fi
+            fi
             ;;
         esac
-        if test "$status" = "present" && test "$depname" != "$newname"
-        then
-            bs_warn "bs_download: name $depname deprecated, please use $newname"
-            depname=$newname
-        fi
         # END KLUDGE
 
-        case "$status" in
-        present) ;;
-        *) echo "bs_download: warning: package $depname not yet built for $_os"; return 1;;
+        case "$xy" in
+        "") echo "bs_download: warning: package $depname not yet built for $_os"; return 1;;
         esac
 
-        sort=`ssh -n ${bs_install_sshspec} 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'`
-        case $sort in
-        /*) ;;
-        *) bs_abort "A sort supporting --version-sort was not found.  Please install gnu sort (coreutils) on $bs_install_host."
+        local micro=$(bs_pkg_latest_ "$depname/$_os/$xy")
+        local patch=$(bs_pkg_latest_ "$depname/$_os/$xy/$micro")
+        case "${bs_install_host}" in
+        localhost)
+             cp "${bs_install_root}/$depname/$_os/$xy/$micro/$patch"/*.tar.gz "${bs_download_dest}";;
+        *)
+             scp "${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz" "${bs_download_dest}";;
         esac
-
-        # Need newest sort for --version-sort.  On Mac, sort is too old and aborts, but gsort exists and is new enough.  gsort does not exist on linux.
-        xy=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os; ls | $sort --version-sort | tail -n 1"`
-        micro=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy; ls | sort -n | tail -n 1"`
-        patch=`ssh -n ${bs_install_sshspec} "cd ${bs_install_root}/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1"`
-        scp ${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz ${bs_download_dest}
     done
 }
 
@@ -810,14 +851,18 @@ bs_install_host=$MASTER
 bs_install_root=$bs_repotop/tarballs
 
 # Allow user to download as a different user
-if test "$bs_install_user"
-then
-    bs_install_sshspec=${bs_install_user}@${bs_install_host}
-elif test "$LOGNAME" = SYSTEM
-then
-    # Odd case: if running as service on cygwin, don't use name of system user.
-    bs_install_sshspec=${bs_upload_user}@${bs_install_host}
-else
-    # Default: just use your own user id when sshing to MASTER
-    bs_install_sshspec=${bs_install_host}
-fi
+bs_get_install_sshspec() {
+    if test "$bs_install_user"
+    then
+        echo ${bs_install_user}@${bs_install_host}
+    elif test "$LOGNAME" = SYSTEM
+    then
+        # Odd case: if running as service on cygwin, don't use name of system user.
+        echo ${bs_upload_user}@${bs_install_host}
+    else
+        # Default: just use your own user id when sshing to MASTER
+        echo ${bs_install_host}
+    fi
+}
+bs_install_sshspec=$(bs_get_install_sshspec)
+
