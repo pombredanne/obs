@@ -68,7 +68,7 @@ fallback_to_classic() {
        esac
        shift
     done
-    exec sh $verbose set-gspeak.sh $gspeak_version "$@"
+    exec sh $verbose set-gspeak.sh "$gspeak_version" "$@"
 }
 
 # Let project override by defining set-gspeak.sh (as in days of yore)
@@ -196,7 +196,7 @@ then
     # Keep old version, if any, as this is a sticky option
     gspeak_version=$(bs_get_gspeak_version)
 fi
-YOVERSION=$(bs_yovo2yoversion $gspeak_version)
+YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
 YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
 if test "$YOVERSION" = ""
 then
@@ -215,12 +215,12 @@ then
     # Keep old version, if any, as this is a sticky option
     if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = ""
     then
-        cefbranch=$(bs_yovo2cefversion $gspeak_version || true)
+        cefbranch=$(bs_yovo2cefversion "$gspeak_version" || true)
     fi
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
-projname=$(echo $pkgname | sed 's/-gs.*//')
+projname=$(echo "$pkgname" | sed 's/-gs.*//')
 
 if $opt_no_major
 then
@@ -308,7 +308,7 @@ for from in \
 do
     if test -f "$from"
     then
-        to="$(echo $from | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/-gs$suffix$gspeak_version/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
+        to="$(echo "$from" | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/-gs$suffix$gspeak_version/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
         if test "$from" != "$to"
         then
             # Leave GITCMD empty when just building, set it to git when renaming in anger
