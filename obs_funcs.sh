@@ -142,11 +142,6 @@ bs_get_cef_version() {
 
 # Look at source tree to see what version of g-speak this project builds against currently
 bs_get_gspeak_version() {
-    if ! test -f debian/control
-    then
-        # This project does not build against gspeak.  Should we return nonzero status?
-        return
-    fi
     # Allow -gh suffix after g-speak or gs (it means "greenhouse free")
     # sed's regular expressions are a bit ugly
     #  egrep: (abc)?
@@ -157,6 +152,12 @@ bs_get_gspeak_version() {
     elif egrep -q 'gs(-gh)?[0-9.]+x' debian/control
     then
         egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
+    elif grep -q g-speak bs-options.dat
+    then
+        # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
+        grep g-speak bs-options.dat | sed 's/.*--g-speak //;s/ .*//'
+    else
+        bs_abort "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
 
     # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
