@@ -157,7 +157,7 @@ bs_get_gspeak_version() {
         # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
         grep g-speak bs-options.dat | sed 's/.*--g-speak //;s/ .*//'
     else
-        bs_abort "bs_get_gspeak_version: cannot find g-speak version" >&2
+        bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
 
     # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
@@ -669,6 +669,7 @@ _EOF_
     then
         sudo apt-get install -y reprepro
     fi
+    gpg -k || true
     # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
     for section in $apt_sections
     do
@@ -754,6 +755,7 @@ bs_apt_pkg_add() {
     esac
 
     # Note: Remove the --ask-passphrase once you've configured a key without one, or configured an agent, or something
+    gpg -k || true
     set +e
     LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
     status=$?
