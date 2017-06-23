@@ -323,7 +323,7 @@ for from in \
 do
     if test -f "$from"
     then
-        to="$(echo "$from" | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/-gs$suffix$gspeak_version/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
+        to="$(echo "$from" | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs$suffix${gspeak_version}x${version_major}/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
         if test "$from" != "$to"
         then
             # Leave GITCMD empty when just building, set it to git when renaming in anger
