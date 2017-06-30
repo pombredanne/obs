@@ -297,16 +297,16 @@ bs_download() {
         local patch=$(bs_pkg_latest_ "$depname/$_os/$xy/$micro")
         case "${bs_install_host}" in
         localhost)
-             cp "${bs_install_root}/$depname/$_os/$xy/$micro/$patch"/*.tar.gz "${bs_download_dest}";;
+             cp "${bs_install_root}/$depname/$_os/$xy/$micro/$patch"/*.tar.*z* "${bs_download_dest}";;
         *)
-             scp "${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.gz" "${bs_download_dest}";;
+             scp "${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.*z*" "${bs_download_dest}";;
         esac
     done
 }
 
 # Usage: bs_untar_restricted tarballname
 # Simulates the command
-#     $SUDO tar -C / -xzf $tarball 2>&1
+#     $SUDO tar -C / -xf $tarball 2>&1
 # but disallow installing into anywhere but /usr/local or /opt
 # This avoids running afoul of Mac OS X 10.11 errors e.g. creating /usr
 bs_untar_restricted() {
@@ -331,7 +331,7 @@ bs_untar_restricted() {
     fi
 
     $SUDO mkdir -p "$dest"
-    $SUDO tar -o --strip-components=$depth -C "$dest" -xzf $1 2>&1
+    $SUDO tar -o --strip-components=$depth -C "$dest" -xf $1 2>&1
 }
 
 # Usage: bs_install package ...
@@ -351,7 +351,7 @@ bs_install() {
     fi
 
     # And now the scary part.  First, check for file (not directory) overwrites.
-    for tarball in bs_install.tmp/*.tar.gz
+    for tarball in bs_install.tmp/*.tar.*z*
     do
         # FIXME: add a postinstall step to e.g. install things into /etc/oblong, like old yobuild had?
         bs_untar_restricted $tarball
@@ -810,6 +810,342 @@ bs_apt_pkg_rm() {
     ) 9>$LOCKFILE
     echo "Released lock $LOCKFILE... time is `date`"
 }
+
+#----------- begin upload support ---------------------------------------------------
+# Not pretty.  Needs cleaning up.
+
+# True if environment says this is a try build
+bs_is_try_build() {
+    case "$PWD" in
+	*-trybuilder*) return 0;;  # true
+	*) return 1;;  # false
+    esac
+}
+
+# True if environment says not to publish the artifacts
+bs_no_publish()
+{
+    if test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" != ""
+    then
+        echo "Allowing upload even in a trybuilder, since it seems to be a nice safe uberbau build"
+    else
+        if bs_is_try_build
+        then
+            bs_warn "this is a try build, so not fully publishing artifacts"
+            return 0
+        fi
+    fi
+    if test "$BS_NO_PUBLISH"
+    then
+        bs_warn "BS_NO_PUBLISH set, so not fully publishing artifacts"
+        return 0
+    fi
+    if test "$BS_NO_APT_UPLOAD"
+    then
+        bs_warn "BS_NO_APT_UPLOAD set, so not fully publishing artifacts.  (Deprecated; please set BS_NO_PUBLISH instead.)"
+        return 0
+    fi
+    false
+}
+
+bs_create_empty_dir_on_master() {
+    local dir=$1
+    if echo "$dir" | egrep '^$|^/$|^/home/[a-z0-9]*$|^~[a-z0-9]*$|/$'
+    then
+        bs_abort "bs_create_empty_dir_on_master: directory $dir too dangerous to nuke" >&2
+    fi
+    if ! test "$BS_NO_CLEAN_UPLOAD"
+    then
+        local max_safe_size=3000000  # 3GB (qt 5.9 is 2.5GB on windows)
+        case "$MASTER" in
+        localhost)
+            if test -d "$dir" && test "$(du -s "$dir" | cut -f1)" -gt $max_safe_size
+            then
+                bs_abort "directory $dir too big, aborting"
+            else
+                rm -rf "$dir"
+            fi
+            ;;
+        *) ssh -n -o StrictHostKeyChecking=no "$bs_upload_user@$MASTER" "if test -d '$dir' && test \$(du -s '$dir' | cut -f1) -gt $max_safe_size; then echo 'directory $dir too big, aborting'; exit 1; else rm -rf '$dir'; fi";;
+        esac
+    fi
+    case "$MASTER" in
+    localhost) mkdir -p "$dir";;
+    *) ssh -n -o StrictHostKeyChecking=no "$bs_upload_user@$MASTER" "mkdir -p '$dir'";;
+    esac
+}
+
+# If not running on a buildbot, return false
+# If running on a buildbot, output its name and return true
+# If not running on a buildbot, return false.  FIXME: return git repo name for local source build use case?
+bs_get_builder_name() {
+    case "$BS_FORCE_BUILDER_NAME" in
+    "") ;;
+    *) echo "$BS_FORCE_BUILDER_NAME"; return 0;;
+    esac
+
+    dir="$(pwd)"
+    case "$dir" in
+    *slave-state*) ;;
+    *) return 1;;   # false
+    esac
+
+    # Strip '/build' suffix and remove dirname
+    echo "$dir" | sed 's,/build/.*,,;s,/build$,,;s,.*/,,'
+    return 0
+}
+
+# Retrieve source package name from debian directory
+bs_get_package_name() {
+    awk '/Source:/ {print $2};' < debian/control
+}
+
+# List the packages installed by the last run of bs_apt_install_deps
+bs_apt_list_installed_deps() {
+    awk '/^Unpacking/ {print $2}' < ../install_deps.log || true
+}
+
+bs_apt_uninstall_deps() {
+    $SUDO apt-get autoremove --purge -y $(bs_apt_list_installed_deps) 'build-deps*' || true
+    rm -f ../install_deps.log || true
+}
+
+bs_deps_clear() {
+   # fixme: unify these
+   # mac
+   if test -f /opt/oblong/install_deps.log
+   then
+      $SUDO rm -f /opt/oblong/install_deps.log
+   fi
+   # linux
+   if test -f ../install_deps.log
+   then
+      rm -f ../install_deps.log
+   fi
+}
+
+# At build time, each builder will create two text files:
+#  $platform / $buildername.in, containing the input files it downloads
+#  $platform / $buildername.out, containing the output files it uploads
+# These will later be used by common/SimpleConfig.py to set up dependencies
+
+bs_deps_hook() {
+    rm -rf bs_deps.tmp
+    mkdir bs_deps.tmp
+    if ! buildername=$(bs_get_builder_name)
+    then
+        echo "bs_deps_hook: not running on buildbot, so not saving dependency info"
+        return 0
+    fi
+    echo "bs_deps_hook: builder $buildername reporting it uploads following artifacts: '$*'"
+
+    case $_os in
+    ubu*)
+        # One file per line, remove directory and version number
+        echo $* | tr ' ' '\012' | sed 's,.*/,,;s,_.*,,' > bs_deps.tmp/$buildername.out
+        # Avoid circular dependencies caused by test install of output?
+        bs_apt_list_installed_deps | fgrep -v  --line-regexp -f bs_deps.tmp/$buildername.out > bs_deps.tmp/$buildername.in || true
+        ;;
+    osx*)
+        if test -f /opt/oblong/install_deps.log
+        then
+            cp /opt/oblong/install_deps.log bs_deps.tmp/$buildername.in
+            bs_deps_clear
+        fi
+        # One file per line, remove directory and version number
+        echo $* | tr ' ' '\012' | sed 's,.*/,,;s/-[0-9].*//;s/\.tar\..*z.*//' > bs_deps.tmp/$buildername.out
+        ;;
+    esac
+    # Sanity check: make sure .in doesn't contain anything that was in .out
+    # If output is empty, skip check (since otherwise it would match everything, whoops)
+    ls -l bs_deps.tmp/$buildername.* || true
+    if test "$*" != "" && fgrep --line-regexp -f bs_deps.tmp/$buildername.out bs_deps.tmp/$buildername.in
+    then
+        bs_abort "bs_deps_hook: bug: circular dependency"
+    fi
+
+    if ! echo bs_deps.tmp/* | fgrep '/*' > /dev/null
+    then
+        ls -l bs_deps.tmp
+
+        deps_dest=$bs_repotop/bs_deps/$_os
+        case ${MASTER} in
+        localhost)
+            mkdir -p $deps_dest
+            cp bs_deps.tmp/* $deps_dest
+            ;;
+        *)
+            ssh -o StrictHostKeyChecking=no -n $bs_upload_user@${MASTER} mkdir -p $deps_dest
+            scp bs_deps.tmp/* $bs_upload_user@${MASTER}:$deps_dest/
+            ;;
+        esac
+    fi
+    rm -rf bs_deps.tmp
+}
+
+bs_version_is_dev()
+{
+    # Odd Y means dev version
+    if echo "$1" | egrep -q '^[0-9]+\.[0-9]*[13579]$|^[0-9]+\.[0-9]*[13579]\.[0-9]*$'
+    then
+        echo version $1 was dev >&2
+        return 0
+    else
+        echo version $1 was rel >&2
+        return 1
+    fi
+}
+
+bs_get_project_buildtype_override() {
+    # FIXME: project's buildshim should just set BS_FORCE_BUILDTYPE ?
+    if bs_get_package_name | egrep -q 'oblong-admin-web|oblong-appup|mezz|mz'
+    then
+        bs_warn "Always using dev for mezz, even on rel branches." >&2
+        echo dev
+        return 0
+    fi
+    false
+}
+
+# Return which kind of repositories this build needs access to (dev or rel).
+# Rule is:
+#   If it's on a branch named rel*, and it depends on a rel version of g-speak, it should only have access to rel repos.
+#   Otherwise it needs access to dev (and rel).
+bs_intuit_buildtype_deps() {
+    if test "$BS_FORCE_BUILDTYPE"
+    then
+        echo $BS_FORCE_BUILDTYPE
+        return
+    fi
+
+    # Output project override, if any
+    if bs_get_project_buildtype_override
+    then
+        return
+    fi
+
+    # If it is itself on a dev branch, it needs access to dev repos.
+    case $(git describe) in
+    rel*) ;;
+    *)    echo "dev"; return;;
+    esac
+
+    # If it depends on a dev version of g-speak, it needs access to dev repos.
+    if test "$gspeak" = ""
+    then
+        gspeak=$(bs_get_gspeak_version)
+    fi
+    if bs_version_is_dev "$gspeak"
+    then
+        echo "dev"; return
+    fi
+
+    echo "rel"
+}
+
+# Return which kind of repository to upload the result of this build to (dev or rel).
+# If you're uploading a file, pass the name of the file being uploaded.
+# Rule is:
+#   If it was built with rel dependencies, is on a branch named rel*, and is tagged, it should be uploaded to a rel repo.
+#   Otherwise it should be uploaded to a dev repo.
+bs_intuit_buildtype() {
+    if test "$BS_FORCE_BUILDTYPE"
+    then
+        echo $BS_FORCE_BUILDTYPE
+        return
+    fi
+
+    case "$version_patchnum" in
+    ""|0) ;;
+    *)
+        bs_warn "Not tagged, so marking this as a dev build." >&2
+        echo "dev"; return;;
+    esac
+
+    # Otherwise upload to same kind of repo we get dependencies from.
+    local ret=$(bs_intuit_buildtype_deps)
+
+    # Sanity check -- if we're uploading files that refer to a dev
+    # g-speak, make sure bs_intuit_buildtype_deps gave us access to dev repo.
+    # FIXME: remove this, along with the argument?
+    case $1 in
+    *gs[0-9]*\.[0-9][13579]x*|*gs-gh[0-9]*\.[0-9][13579]x*)
+        if test $ret != dev
+        then
+            bs_abort "BUG: bs_intuit_buildtype_deps should have already noticed you're using dev g-speak"
+        fi
+    esac
+
+    echo $ret
+}
+
+# FIXME: old, awkward
+# FIXME: this is the pair to bs_install
+# FIXME: this should be part of bs_upload, or vice versa
+bs_upload2()
+{
+    local project os abi micro changenumber
+
+    project=$1;      shift
+    os=$1;           shift
+    abi=$1;          shift
+    micro=$1;        shift
+    changenumber=$1; shift
+
+    case $os in
+    osx*|cygwin|ubu*) ;;
+    *) bs_abort "unrecognized os $os";;
+    esac
+    test $project || bs_abort "expected project"
+    test $abi || bs_abort "expected abi"
+    test $micro || bs_abort "expected micro"
+    test -f $micro && bs_abort "micro should not be a file"
+    test $changenumber || bs_abort "expected changenumber"
+    test -f $changenumber && bs_abort "changenumber should not be a file"
+
+    # Publish artifacts to the bs_install repo if appropriate
+    if ! bs_no_publish
+    then
+        builds_dest=$bs_install_root/$project/$os/$abi/$micro/$changenumber
+        bs_create_empty_dir_on_master $builds_dest
+        case $MASTER in
+        localhost)
+          cp -a $* $builds_dest
+          ;;
+        *)
+          scp -o StrictHostKeyChecking=no -p $* ${bs_install_sshspec}:$builds_dest
+          ;;
+        esac
+        # Only fire the dependency hook if we actually publish (else try builders will sneak into the list of things to trigger)
+        bs_deps_hook $*
+    fi
+
+    # Aaaand upload it again to the place buildbot's 'artifacts' link goes
+    # Identical to the top of bs_upload
+    if test "$bs_artifacts_subdir" = ""
+    then
+        bs_warn "Not running on buildbot, so not copying to bs_artifacts_subdir"
+    else
+        kind=$(bs_intuit_buildtype $*)
+        shasum $* | sed 's, .*/, ,' | tee sha1sums.txt
+        builds_dest=$bs_repotop/$kind/builds/$bs_artifactsubdir
+
+        bs_create_empty_dir_on_master $builds_dest
+        case $MASTER in
+        localhost)
+          cp -a $* sha1sums.txt $builds_dest
+          ;;
+        *)
+          scp -o StrictHostKeyChecking=no -p $* sha1sums.txt $bs_upload_user@${MASTER}:$builds_dest
+          ;;
+        esac
+    fi
+
+    # Clear list of dependencies even if bs_no_publish, else next call to bs_deps_hook might get extra dependencies
+    bs_deps_clear
+}
+
+#----------- end upload support ---------------------------------------------------
 
 # Provide a few variables by default
 _os=$(bs_detect_os)

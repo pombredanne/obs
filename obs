@@ -2,6 +2,7 @@
 set -e
 
 usage() {
+    # shellcheck disable=SC2154
     cat <<_EOF_
 Tool for querying system or downloading / installing / serving packages on Linux/mac/windows
 Usage: obs [-v] verb [args]
@@ -14,6 +15,7 @@ Commands related to tarball packages (commonly used on Mac):
 obs list                    - list tarball packages available to install on this system
 obs install pkg ...         - install tarball packages
 obs download pkg ...        - download but do not unpack tarball packages
+obs upload project X Y Z foo.tar.gz ... - upload tarball for $_os (.tar.gz or .tar.bz2; .tgz forbidden; multiple ok)
 
 Example - install webthing and its dependencies:
   obs list | grep yobuild
@@ -53,7 +55,7 @@ _EOF_
 # So increment OBS_VERSIONOID when there's a fix in obs or obs_funcs.sh
 # that might interest them.
 # Must be integer
-OBS_VERSIONOID=64
+OBS_VERSIONOID=65
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
@@ -96,6 +98,7 @@ get_pkgname)           bs_get_pkgname;;
 get_version_git)       bs_get_version_git;;
 install)               bs_install "$@";;
 download)              bs_download "$@";;
+upload)                proj=$1; shift; bs_upload2 "$proj" "$_os" "$@";;
 pkg_list|list)         bs_pkg_list;;
 yovo2cefversion)       bs_yovo2cefversion "$@";;
 yovo2yoversion)        bs_yovo2yoversion "$@";;
