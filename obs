@@ -54,8 +54,9 @@ _EOF_
 # that is too low for its taste.
 # So increment OBS_VERSIONOID when there's a fix in obs or obs_funcs.sh
 # that might interest them.
+# FIXME: consider generating this automatically from 'git describe'
 # Must be integer
-OBS_VERSIONOID=65
+OBS_VERSIONOID=66
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one

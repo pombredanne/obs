@@ -1,8 +1,30 @@
 #!/usr/bin/env bats
 
-@test "obs-upload" {
+@test "obs-upload-local" {
   # Verify that obs upload works in the local case
+  # FIXME: rename option for forcing upload during try builds to BS_IS_TRY_BUILD_FORCE=false or something
+  export BUILDSHIM_LOCAL_ALREADY_RUNNING=1
   export MASTER=localhost
+  export bs_repotop=/tmp/obs-upload-test.dir
+  echo "hello" > snort.dat
+  tar -czf snort.tar.gz snort.dat
+  ./obs -v upload obs-upload-test 1 0 0 snort.tar.gz
+  mv snort.dat snort.dat.orig
+  rm snort.tar.gz
+  ./obs -v download obs-upload-test
+  tar -xzvf snort.tar.gz
+  if ! cmp snort.dat snort.dat.orig
+  then
+    echo "snort.dat not the same after round trip"
+  fi
+  rm -f snort.dat* snort.tar.gz
+}
+
+@test "obs-upload-remote" {
+  # Verify that obs upload works in the remote case
+  # FIXME: rename option for forcing upload during try builds to BS_IS_TRY_BUILD_FORCE=false or something
+  export BUILDSHIM_LOCAL_ALREADY_RUNNING=1
+  export MASTER=$(hostname)
   export bs_repotop=/tmp/obs-upload-test.dir
   echo "hello" > snort.dat
   tar -czf snort.tar.gz snort.dat
