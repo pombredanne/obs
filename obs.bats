@@ -42,6 +42,40 @@
   rm -f snort.dat* snort.tar.gz
 }
 
+@test "obs-upload-local-artifacts" {
+  # Verify that obs upload puts build artifacts where we expect.
+  # Background:
+  # ob-repobot maintains three parallel trees of build results:
+  # 1) a 'tarballs' repository used by 'obs install', organized by version number, mostly used on mac and windows
+  # 2) an 'apt' repository used by 'apt install', only used for .deb packages for linux
+  # 3) a repository used by the 'artifacts' link on the web interface, organized by build number
+  # obs-upload-local tested 1).  Now let's test 3).
+
+  # bs_uploads2 saves the "3)" artifacts in $bs_repotop/$(bs_intuit_buildtype)/builds/$(bs_get_artifact_subdir),
+  # so let's force that path by setting the build type and artifact subdirectory here:
+  # To avoid interfering with real buildbot's bs-artifactsubdir file, do this test in a subdirectory!
+  export BUILDSHIM_LOCAL_ALREADY_RUNNING=1    # needed for this test to work inside a try build
+  export MASTER=localhost
+  export bs_repotop=/tmp/obs-upload-test.dir
+  export BS_FORCE_BUILDTYPE=rel
+  expected_subdir=blort/1
+  echo $expected_subdir > bs-artifactsubdir
+
+  mkdir -p tmp.tmp
+  cd tmp.tmp
+    date > snortifact.dat
+    tar -czf snortifact.tar.gz snortifact.dat
+    ../obs -v upload obs-upload-test 1 0 0 snortifact.tar.gz
+    if ! cmp snortifact.tar.gz $bs_repotop/$BS_FORCE_BUILDTYPE/builds/$expected_subdir/snortifact.tar.gz
+    then
+      echo "snortifact.tar.gz not uploaded where we expected it"
+      exit 1
+    fi
+  cd ..
+
+  rm -rf tmp.tmp bs-artifactsubdir
+}
+
 @test "obs-smoke" {
   # Smoke test the simple commands.
   ./obs | grep Usage

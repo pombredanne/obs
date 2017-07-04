@@ -875,7 +875,19 @@ bs_create_empty_dir_on_master() {
     esac
 }
 
-# If not running on a buildbot, return false
+# Output the name of the artifact directory, usually $(bs_get_builder_name)/$buildnum
+# If bs_artifactsubdir has been set, returns that.
+# If not running on a buildbot, or not run from top of build directory, returns the empty string.
+# Otherwise gets value from the magic file ob-repobot left in the parent directory.
+bs_get_artifact_subdir() {
+    # Note: bs_pkg_init should call this function and cache its result in variable $bs_artifactsubdir
+
+    # ob-repobot/common/SimpleConfig.py creates ../bs-artifactsubdir like this:
+    #   f.addStep(ShellCommand(command=[ '/bin/sh', '-c', Interpolate('echo %(prop:buildername)s/%(prop:buildnum)s > ../bs-artifactsubdir') ]))
+
+    echo "${bs_artifactsubdir:-$(cat ../bs-artifactsubdir)}"
+}
+
 # If running on a buildbot, output its name and return true
 # If not running on a buildbot, return false.  FIXME: return git repo name for local source build use case?
 bs_get_builder_name() {
@@ -1121,14 +1133,17 @@ bs_upload2()
     fi
 
     # Aaaand upload it again to the place buildbot's 'artifacts' link goes
-    # Identical to the top of bs_upload
-    if test "$bs_artifactsubdir" = ""
-    then
-        bs_warn "Not running on buildbot, so not copying to bs_artifactsubdir"
-    else
+    # bs_upload() has similar logic
+    local artifactdir
+    artifactdir="$(bs_get_artifact_subdir)"
+    case "$artifactdir" in
+    ""|"default")
+        bs_warn "No build number from buildbot, so not archiving build artifacts"
+        ;;
+    *)
         kind=$(bs_intuit_buildtype $*)
         shasum $* | sed 's, .*/, ,' | tee sha1sums.txt
-        builds_dest=$bs_repotop/$kind/builds/$bs_artifactsubdir
+        builds_dest=$bs_repotop/$kind/builds/$artifactdir
 
         bs_create_empty_dir_on_master $builds_dest
         case $MASTER in
@@ -1139,7 +1154,8 @@ bs_upload2()
           scp -o StrictHostKeyChecking=no -p "$@" sha1sums.txt "${bs_install_sshspec}:$builds_dest/"
           ;;
         esac
-    fi
+        ;;
+    esac
 
     # Clear list of dependencies even if bs_no_publish, else next call to bs_deps_hook might get extra dependencies
     bs_deps_clear
