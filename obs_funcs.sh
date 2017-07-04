@@ -1122,9 +1122,9 @@ bs_upload2()
 
     # Aaaand upload it again to the place buildbot's 'artifacts' link goes
     # Identical to the top of bs_upload
-    if test "$bs_artifacts_subdir" = ""
+    if test "$bs_artifactsubdir" = ""
     then
-        bs_warn "Not running on buildbot, so not copying to bs_artifacts_subdir"
+        bs_warn "Not running on buildbot, so not copying to bs_artifactsubdir"
     else
         kind=$(bs_intuit_buildtype $*)
         shasum $* | sed 's, .*/, ,' | tee sha1sums.txt
