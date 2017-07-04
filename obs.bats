@@ -53,8 +53,12 @@
   ./obs yovo2yoversion 4.0
   ! ./obs blart
   ./obs --help
+}
 
-  # Verify that we can download a standard package from the linux distro
+@test "obs-apt" {
+ # Verify that we can download a standard package from the linux distro
+ if test $(uname) = Linux
+ then
   ./obs run apt-get download hello
   rm hello*.deb
 
@@ -89,4 +93,5 @@
   ./obs apt-key-rm
   rm -rf foo.tmp
   unset bs_repotop
+ fi
 }
