@@ -16,6 +16,7 @@
   if ! cmp snort.dat snort.dat.orig
   then
     echo "snort.dat not the same after round trip"
+    exit 1
   fi
   rm -f snort.dat* snort.tar.gz
 }
@@ -36,6 +37,7 @@
   if ! cmp snort.dat snort.dat.orig
   then
     echo "snort.dat not the same after round trip"
+    exit 1
   fi
   rm -f snort.dat* snort.tar.gz
 }
