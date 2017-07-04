@@ -61,10 +61,7 @@ OBS_VERSIONOID=66
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
 SRCFILE="$(readlink "$0" 2>/dev/null || echo "$0")"
-case "$SRCFILE" in
-./obs) . ./obs_funcs.sh;;
-*)     . obs_funcs.sh;;
-esac
+. ${SRCFILE}_funcs.sh
 
 # Running without any arguments may be a typo in a script, so show usage and abort.
 case "$1" in
