@@ -56,12 +56,16 @@ _EOF_
 # that might interest them.
 # FIXME: consider generating this automatically from 'git describe'
 # Must be integer
-OBS_VERSIONOID=67
+OBS_VERSIONOID=68
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
 SRCFILE="$(readlink "$0" 2>/dev/null || echo "$0")"
-. ${SRCFILE}_funcs.sh
+case "$SRCFILE" in
+../obs) . ../obs_funcs.sh;;
+./obs) . ./obs_funcs.sh;;
+*)     . obs_funcs.sh;;
+esac
 
 # Running without any arguments may be a typo in a script, so show usage and abort.
 case "$1" in
