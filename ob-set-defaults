@@ -35,6 +35,7 @@ Options:
   --tsan         - alias for -DTSAN=on
   --xcode        - generate XCode project and build with XCode
   --no-major     - don't append major version number to package name
+  --major N      - append given major version number to package name
   -Dfoo=bar      - passed through to cmake with doublequotes
 
 --g-speak and --cef are 'sticky', and keep their value on next run
@@ -154,6 +155,10 @@ do
     --reldeb)
         extra_cmake_options="$extra_cmake_options -DCMAKE_BUILD_TYPE=ReleaseWithDebInfo"
         ;;
+    --major)
+        shift
+        opt_major="$1"
+        ;;
     --make)
         opt_generator="Unix Makefiles"
         ;;
@@ -222,7 +227,10 @@ fi
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
 projname=$(echo "$pkgname" | sed 's/-gs.*//')
 
-if $opt_no_major
+if test "$opt_major" != ""
+then
+    version_major="$opt_major"
+elif $opt_no_major
 then
     version_major=""
 else
