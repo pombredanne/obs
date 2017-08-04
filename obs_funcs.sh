@@ -875,17 +875,25 @@ bs_create_empty_dir_on_master() {
     esac
 }
 
-# Output the name of the artifact directory, usually $(bs_get_builder_name)/$buildnum
-# If bs_artifactsubdir has been set, returns that.
-# If not running on a buildbot, or not run from top of build directory, returns the empty string.
-# Otherwise gets value from the magic file ob-repobot left in the parent directory.
+# Output the name of the artifact directory
+# Should be of the form $(bs_get_builder_name)/$buildnum
+# If bs_artifactsubdir has been set (say, by bs_pkg_init), returns that.
+# If on buildbot, reads magic file ob-repobot left in the parent directory.
+# If on gitlab-ci, reads magic environment variable.
+# Else returns the string "default" (an old convention).
 bs_get_artifact_subdir() {
-    # Note: bs_pkg_init should call this function and cache its result in variable $bs_artifactsubdir
-
-    # ob-repobot/common/SimpleConfig.py creates ../bs-artifactsubdir like this:
-    #   f.addStep(ShellCommand(command=[ '/bin/sh', '-c', Interpolate('echo %(prop:buildername)s/%(prop:buildnum)s > ../bs-artifactsubdir') ]))
-
-    echo "${bs_artifactsubdir:-$(cat ../bs-artifactsubdir)}"
+    if test -f ../bs-artifactsubdir
+    then
+        # See ob-repobot/common/SimpleConfig.py
+        echo "${bs_artifactsubdir:-$(cat ../bs-artifactsubdir)}"
+    elif test "$CI_PROJECT_PATH_SLUG" != ""
+    then
+        # See https://docs.gitlab.com/ee/ci/variables/
+        # Requires gitlab >= 9.3
+        echo "$CI_PROJECT_PATH_SLUG/$CI_PIPELINE_ID"
+    else
+        echo "default"
+    fi
 }
 
 # If running on a buildbot, output its name and return true

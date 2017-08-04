@@ -1,5 +1,38 @@
 #!/usr/bin/env bats
 
+@test "obs-artifact" {
+  rm -rf obs-artifact.tmp
+  mkdir obs-artifact.tmp
+  cd obs-artifact.tmp
+  # No info case
+  want="default"
+  got="$(../obs get-artifact-subdir)"
+  if test "$got" != "$want"
+  then
+    echo "bs-artifact-subdir did not default correctly ($got != $want)"
+    exit 1
+  fi
+  # Buildbot case
+  want="foo/7"
+  echo "$want" > ../bs-artifactsubdir
+  got="$(../obs get-artifact-subdir; rm -f ../bs-artifactsubdir)"
+  if test "$got" != "$want"
+  then
+    echo "bs-artifact-subdir did not sense buildbot metadata ($got != $want)"
+    exit 1
+  fi
+  # gitlab-ci case
+  want="bletch/42"
+  got="$( (CI_PROJECT_PATH_SLUG=bletch CI_PIPELINE_ID=42 ../obs get-artifact-subdir) )"
+  if test "$got" != "$want"
+  then
+    echo "bs-artifact-subdir did not sense gitlab-ci metadata ($got != $want)"
+    exit 1
+  fi
+  cd ..
+  rm -rf obs-artifact.tmp
+}
+
 @test "obs-upload-local" {
   # Verify that obs upload works in the local case
   # FIXME: rename option for forcing upload during try builds to BS_IS_TRY_BUILD_FORCE=false or something
