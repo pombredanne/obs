@@ -17,12 +17,14 @@ usage() {
     cat <<_EOF_
 Usage: ob-set-defaults [options]
 Sets default generic build parameters for this project.
+Sticky options:
+  --cef branch   - which version of cef to build against (sticky)
+  --g-speak VER  - which version of g-speak to build against (sticky)
+  --mezz VER     - which version of mezzanine to build against (sticky)
 Options:
   -v             - verbose
-  --g-speak VER  - which version of g-speak to build against (sticky)
   --hard         - use 'git mv' instead of 'mv' when renaming debian files
   --asan         - alias for -DASAN=on
-  --cef branch   - which version of cef to build against (sticky)
   --coverage     - alias for -DCOVERAGE=on
   --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
   --greenhouse   - alias for -DUSE_STATIC_G_SPEAK=on -DG_SPEAK_HOME=/opt/oblong/greenhouse, hobbles plasma, adds -gh package suffixes
@@ -38,13 +40,37 @@ Options:
   --major N      - append given major version number to package name
   -Dfoo=bar      - passed through to cmake with doublequotes
 
---g-speak and --cef are 'sticky', and keep their value on next run
+--cef, --g-speak, and --mezz are 'sticky', and keep their value on next run
 even if you don't specify them again.
 
 If this command renames files in the debian directory, it will
 tell you, and remind you about the --hard option (which can save
 you trouble when committing).
 _EOF_
+}
+
+# Project defined a set-mezzanine.sh, so call that instead.
+fallback_to_classic_mezzanine() {
+    echo "Found local set-mezzanine.sh, running that instead"
+
+    # Adjust args to match old interface
+    local verbose
+    local mezz_version
+    while true
+    do
+       case "$1" in
+       -v)         verbose=-x;;
+       --mezz)  shift; mezz_version=$1;;
+       --hard)
+           # makes --g-speak more emphatic and check-in-able
+           # Let caller specify it via 'GITCMD=git' for backward compatibility
+           export GITCMD=git
+           ;;
+       *) break;;
+       esac
+       shift
+    done
+    exec sh $verbose set-mezanine.sh "$mezzanine_version" "$@"
 }
 
 # Project defined a set-gspeak.sh, so call that instead.
@@ -73,10 +99,20 @@ fallback_to_classic() {
 }
 
 # Let project override by defining set-gspeak.sh (as in days of yore)
-if test -f set-gspeak.sh
-then
+case "$*" in
+*--g-speak*)
+  if test -f set-gspeak.sh
+  then
     fallback_to_classic "$@"
-fi
+  fi
+  ;;
+*--mezz*)
+  if test -f set-mezzanine.sh
+  then
+    fallback_to_classic_mezzanine "$@"
+  fi
+  ;;
+esac
 
 # Give help before doing anything that might fail
 case "$1" in
@@ -92,6 +128,7 @@ set -e
 # Tweakable Defaults
 # The defaults that can be overridden by ob-set-defaults.conf
 gspeak_version=""
+mezz_version=""
 G_SPEAK_HOME=""
 PREFIX=""
 cefbranch=""
@@ -123,6 +160,10 @@ do
     --g-speak)
         shift
         gspeak_version=$1
+        ;;
+    --mezz)
+        shift
+        mezz_version=$1
         ;;
     --hard)
         # makes --g-speak more emphatic and check-in-able
@@ -248,6 +289,13 @@ fi
 # yobuild and cef version number parsing:
 # [1-9][0-9]* means 'match version numbers which are whole numbers greater than zero'
 #
+# About STOP-SUBSTITUTION:
+# The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
+# so that it will uninstall the old mezzanine before a new one is installed.
+# set-gspeak.sh and set-mezzanine.sh should not replace those version numbers.
+# There is a special line in mezzanine/debian/control with the string
+# STOP-SUBSTITUTION which tells sed below to stop there.
+#
 # About ${SKIP-SUBSTITUTION}:
 # We want to be able to substitute g-speak versions
 # across many places but we also want to leave it alone
@@ -258,50 +306,56 @@ fi
 # Breaks: liboblong-sidereal-dev,
 #         liboblong-sidereal-gs3.27x0-dev, ${SKIP-SUBSTITUTION},
 # forces ob-set-defaults to not change the g-speak reference on that line.
+#
+# Handling both STOP-SUBSTITUTION and SKIP-SUBSTITUTION with sed
+# requires the {} feature of gnu sed, whee!
 
 # Tell shellcheck to not complain about possible spaces in output of $(ls debian...)
 # shellcheck disable=2046
 
 sed -i.bak \
-    -e "/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
-    -e "/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
-    -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
-    -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
-    -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
-    -e "s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
-    -e "s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
-    -e "s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
-    -e "s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
-    -e "s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
-    -e "s/oblong-media\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
-    -e "s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
-    -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
-    -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
-    -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
-    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
-    -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
-    -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
-    -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
-    -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
-    -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
+    -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g}" \
+    -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g}" \
+    -e "1,/STOP-SUBSTITUTION/ s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/g-speak-gst-plugins[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-media\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
+    -e "1,/STOP-SUBSTITUTION/ s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
+    -e "1,/STOP-SUBSTITUTION/ s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
+    -e "1,/STOP-SUBSTITUTION/ s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
+    -e "1,/STOP-SUBSTITUTION/ s,^PREFIX=.*,PREFIX=$PREFIX," \
+    -e "1,/STOP-SUBSTITUTION/ s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
+    -e "1,/STOP-SUBSTITUTION/ s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
     debian/control \
     $(ls debian/*.install debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
@@ -341,6 +395,92 @@ do
         fi
     fi
 done
+
+# Don't do (most) mezzanine version processing unless explicitly called for
+if test "$mezz_version" != ""
+then
+  # This should be a complete list of all packages (minus -dbg) on the mezzanine train, in alphabetical order,
+  # except perhaps for those with -mzX.Y in the package name.
+  packages="
+    mezzanine2.7
+    ob-http-ctl2.7
+    oblong-ir-inertial-admin-applications2.7
+    oblong-mezzanine2.7
+    oblong-mezzanine-admin-web2.7
+    oblong-mezzanine-appliance2.7
+    oblong-mezzanine-deps2.7
+    oblong-mezzanine-extras2.7
+    oblong-mezzanine-full2.7
+    oblong-mezzanine-full-amd2.7
+    oblong-mezzanine-init2.7
+    oblong-mezzanine-kipple2.7
+    oblong-mezzanine-lightbox2.7
+    oblong-mezzanine-ob-http-ctl2.7
+    oblong-mezzanine-plymouth2.7
+    oblong-mezzanine-screencast-payload-mac2.7
+    oblong-mezzanine-screencast-payload-win2.7
+    oblong-mezzanine-screencast-provisioner2.7
+    oblong-mezzanine-updater2.7
+    oblong-mezzanine-user-docs-videos2.7
+    oblong-mezzanine-user-docs-www2.7
+    oblong-mezzanine-web2.7
+    oblong-mip2.7
+    oblong-mzreach-www2.7
+    oblong-whiteboard2.7
+  "
+
+  # Full list of all suffixes of files in debian subdirectory that might need renaming
+  debsuffices="install preinst prerm postinst postrm lintian-overrides service upstart"
+
+  # About STOP-SUBSTITUTION:
+  # The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
+  # so that it will uninstall the old mezzanine before a new one is installed.
+  # set-gspeak.sh and set-mezzanine.sh should not replace those version numbers.
+  # There is a special line in debian/control with the string STOP-SUBSTITUTION
+  # which tells sed below to stop there.
+
+  # Update the version number in all instances of the above packages
+  # in file bodies in the debian directory
+
+  for package in $packages
+  do
+      from=$(echo $package | sed 's/2.7/[1-9].[0-9][0-9]*/')
+      to=$(echo $package | sed "s/2.7/$mezz_version/")
+      sed -i \
+          -e "0, /STOP-SUBSTITUTION/ s/$from/$to/" \
+          debian/control debian/rules debian/changelog debian/.gitignore
+
+      # Update the version number in all instances of the above filenames in the debian directory
+      for debsuffix in $debsuffices
+      do
+        file=$package.$debsuffix
+	from=$(echo $file | sed 's/2.7/[1-9].[0-9]*/')
+	to=$(echo $file | sed "s/2.7/$mezz_version/")
+        if test $(echo debian/$from | wc -w) -gt 1
+        then
+            echo "Alas, there are more than one file matching debian/$from.  There can be only one.  Try git clean?"
+            exit 1
+        fi
+	if test debian/$from != debian/$to && test -f debian/$from
+	then
+	    $GITCMD mv debian/$from debian/$to
+	    moved=true
+	    movedcmd="mv $from $to"
+	fi
+    done
+  done
+
+  # FIXME: we should stop modifying files outside of debian here
+  for file in projects/mezzanine/MezzanineVersion.h debian/rules
+  do
+    if test -f $file
+    then
+      sed -i \
+        -e 's/MEZZANINE_VERSION *= *"[1-9].[0-9]*"/MEZZANINE_VERSION = "'$mezz_version'"/' \
+        $file
+    fi
+  done
+fi
 
 if $moved && test "$GITCMD" = ""
 then
