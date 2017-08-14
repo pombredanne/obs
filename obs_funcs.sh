@@ -152,6 +152,9 @@ bs_get_gspeak_version() {
     elif egrep -q 'gs(-gh)?[0-9.]+x' debian/control
     then
         egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
+    elif egrep -q 'oblong-plasma-ruby' debian/control
+    then
+        egrep 'oblong-plasma-ruby' debian/control | sed 's/.*ruby//;s/,.*//'
     elif grep -q g-speak bs-options.dat
     then
         # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
