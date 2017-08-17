@@ -443,15 +443,15 @@ then
   # There is a special line in debian/control with the string STOP-SUBSTITUTION
   # which tells sed below to stop there.
 
-  # Update the version number in all instances of the above packages
-  # in file bodies in the debian directory
-
+  # Assume we don't need to handle -dbg packages separately, they 'never' have control files
   for package in $packages
   do
+      # Update the version number in all instances of the above packages
+      # in file bodies in the debian directory
       from=$(echo $package | sed 's/2.7/[1-9].[0-9][0-9]*/')
       to=$(echo $package | sed "s/2.7/$mezz_version/")
       sed -i \
-          -e "0, /STOP-SUBSTITUTION/ s/$from/$to/" \
+          -e "1,/STOP-SUBSTITUTION/ s/$from/$to/g" \
           debian/control debian/rules debian/changelog debian/.gitignore \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
           #
@@ -460,20 +460,20 @@ then
       for debsuffix in $debsuffices
       do
         file=$package.$debsuffix
-	from=$(echo $file | sed 's/2.7/[1-9].[0-9]*/')
-	to=$(echo $file | sed "s/2.7/$mezz_version/")
+        from=$(echo $file | sed 's/2.7/[1-9].[0-9]*/')
+        to=$(echo $file | sed "s/2.7/$mezz_version/")
         if test $(echo debian/$from | wc -w) -gt 1
         then
             echo "Alas, there are more than one file matching debian/$from.  There can be only one.  Try git clean?"
             exit 1
         fi
-	if test debian/$from != debian/$to && test -f debian/$from
-	then
-	    $GITCMD mv debian/$from debian/$to
-	    moved=true
-	    movedcmd="mv $from $to"
-	fi
-    done
+        if test debian/$from != debian/$to && test -f debian/$from
+        then
+            $GITCMD mv debian/$from debian/$to
+            moved=true
+            movedcmd="mv $from $to"
+        fi
+      done
   done
 
   # FIXME: we should stop modifying files outside of debian here
