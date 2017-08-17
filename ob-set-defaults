@@ -70,7 +70,7 @@ fallback_to_classic_mezzanine() {
        esac
        shift
     done
-    exec sh $verbose set-mezanine.sh "$mezzanine_version" "$@"
+    exec sh $verbose set-mezanine.sh "$mezz_version" "$@"
 }
 
 # Project defined a set-gspeak.sh, so call that instead.
@@ -358,7 +358,7 @@ sed -i.bak \
     -e "1,/STOP-SUBSTITUTION/ s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
     debian/control \
-    $(ls debian/*.install debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
+    $(ls debian/*.install debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
     #
 
 # Only want to change 1st line of changelog, and only non-yovo package name fragments.
@@ -375,6 +375,7 @@ sed -i.bak \
 moved=false
 for from in \
     debian/*oblong-*-gs*[1-9].[0-9]*.install \
+    debian/*oblong-*-gs*[1-9].[0-9]*.lintian-overrides \
     debian/*oblong-*-gs*[1-9].[0-9]*.postinst \
     debian/*oblong-*-gs*[1-9].[0-9]*.prerm \
     debian/*oblong-*-gs*[1-9].[0-9]*.upstart \
@@ -399,8 +400,10 @@ done
 # Don't do (most) mezzanine version processing unless explicitly called for
 if test "$mezz_version" != ""
 then
-  # This should be a complete list of all packages (minus -dbg) on the mezzanine train, in alphabetical order,
-  # except perhaps for those with -mzX.Y in the package name.
+  # This should be a complete list of all packages (minus -dbg) on the mezzanine train,
+  # in alphabetical order.
+  # This is fragile, and needs to be updated every time we add a package.
+  # FIXME: change code to use oblong-mezzanine*2.7 instead, and remove the hardcoded list
   packages="
     mezzanine2.7
     ob-http-ctl2.7
@@ -420,6 +423,7 @@ then
     oblong-mezzanine-screencast-payload-mac2.7
     oblong-mezzanine-screencast-payload-win2.7
     oblong-mezzanine-screencast-provisioner2.7
+    oblong-mezzanine-screenshare-provisioner2.7
     oblong-mezzanine-updater2.7
     oblong-mezzanine-user-docs-videos2.7
     oblong-mezzanine-user-docs-www2.7
@@ -430,7 +434,7 @@ then
   "
 
   # Full list of all suffixes of files in debian subdirectory that might need renaming
-  debsuffices="install preinst prerm postinst postrm lintian-overrides service upstart"
+  debsuffices="install lintian-overrides preinst prerm postinst postrm lintian-overrides service upstart"
 
   # About STOP-SUBSTITUTION:
   # The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
@@ -448,7 +452,9 @@ then
       to=$(echo $package | sed "s/2.7/$mezz_version/")
       sed -i \
           -e "0, /STOP-SUBSTITUTION/ s/$from/$to/" \
-          debian/control debian/rules debian/changelog debian/.gitignore
+          debian/control debian/rules debian/changelog debian/.gitignore \
+          $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
+          #
 
       # Update the version number in all instances of the above filenames in the debian directory
       for debsuffix in $debsuffices
@@ -471,7 +477,10 @@ then
   done
 
   # FIXME: we should stop modifying files outside of debian here
-  for file in projects/mezzanine/MezzanineVersion.h debian/rules
+  for file in \
+    debian/rules \
+    projects/mezzanine/MezzanineVersion.h \
+    #
   do
     if test -f $file
     then
