@@ -125,6 +125,11 @@ esac
 
 set -e
 
+case "$(uname -s)" in
+Darwin) sed=gsed; if ! gsed --version; then bs_abort "please install gnu-sed"; fi;;
+*) sed=sed;;
+esac
+
 # Tweakable Defaults
 # The defaults that can be overridden by ob-set-defaults.conf
 gspeak_version=""
@@ -266,7 +271,7 @@ then
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
-projname=$(echo "$pkgname" | sed 's/-gs.*//')
+projname=$(echo "$pkgname" | $sed 's/-gs.*//')
 
 if test "$opt_major" != ""
 then
@@ -313,7 +318,7 @@ fi
 # Tell shellcheck to not complain about possible spaces in output of $(ls debian...)
 # shellcheck disable=2046
 
-sed -i.bak \
+$sed -i.bak \
     -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g}" \
     -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g}" \
     -e "1,/STOP-SUBSTITUTION/ s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
@@ -362,7 +367,7 @@ sed -i.bak \
     #
 
 # Only want to change 1st line of changelog, and only non-yovo package name fragments.
-sed -i.bak \
+$sed -i.bak \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
@@ -386,7 +391,7 @@ for from in \
 do
     if test -f "$from"
     then
-        to="$(echo "$from" | sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs$suffix${gspeak_version}x${version_major}/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
+        to="$(echo "$from" | $sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs$suffix${gspeak_version}x${version_major}/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/")"
         if test "$from" != "$to"
         then
             # Leave GITCMD empty when just building, set it to git when renaming in anger
@@ -448,9 +453,9 @@ then
   do
       # Update the version number in all instances of the above packages
       # in file bodies in the debian directory
-      from=$(echo $package | sed 's/2.7/[1-9].[0-9][0-9]*/')
-      to=$(echo $package | sed "s/2.7/$mezz_version/")
-      sed -i \
+      from=$(echo $package | $sed 's/2.7/[1-9].[0-9][0-9]*/')
+      to=$(echo $package | $sed "s/2.7/$mezz_version/")
+      $sed -i \
           -e "1,/STOP-SUBSTITUTION/ s/$from/$to/g" \
           debian/control debian/rules debian/changelog debian/.gitignore \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
@@ -460,8 +465,8 @@ then
       for debsuffix in $debsuffices
       do
         file=$package.$debsuffix
-        from=$(echo $file | sed 's/2.7/[1-9].[0-9]*/')
-        to=$(echo $file | sed "s/2.7/$mezz_version/")
+        from=$(echo $file | $sed 's/2.7/[1-9].[0-9]*/')
+        to=$(echo $file | $sed "s/2.7/$mezz_version/")
         if test $(echo debian/$from | wc -w) -gt 1
         then
             echo "Alas, there are more than one file matching debian/$from.  There can be only one.  Try git clean?"
@@ -484,7 +489,7 @@ then
   do
     if test -f $file
     then
-      sed -i \
+      $sed -i \
         -e 's/MEZZANINE_VERSION *= *"[1-9].[0-9]*"/MEZZANINE_VERSION = "'$mezz_version'"/' \
         $file
     fi
