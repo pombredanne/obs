@@ -70,7 +70,7 @@ fallback_to_classic_mezzanine() {
        esac
        shift
     done
-    exec sh $verbose set-mezanine.sh "$mezz_version" "$@"
+    exec sh $verbose set-mezzanine.sh "$mezz_version" "$@"
 }
 
 # Project defined a set-gspeak.sh, so call that instead.
