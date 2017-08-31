@@ -318,7 +318,7 @@ fi
 # Tell shellcheck to not complain about possible spaces in output of $(ls debian...)
 # shellcheck disable=2046
 
-$sed -i.bak \
+$sed -i \
     -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g}" \
     -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g}" \
     -e "1,/STOP-SUBSTITUTION/ s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
@@ -367,7 +367,7 @@ $sed -i.bak \
     #
 
 # Only want to change 1st line of changelog, and only non-yovo package name fragments.
-$sed -i.bak \
+$sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
