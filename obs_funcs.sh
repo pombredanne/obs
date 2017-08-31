@@ -885,10 +885,18 @@ bs_create_empty_dir_on_master() {
 # If on gitlab-ci, reads magic environment variable.
 # Else returns the string "default" (an old convention).
 bs_get_artifact_subdir() {
-    if test -f ../bs-artifactsubdir
+    if test "${bs_artifactsubdir}" != ""
+    then
+        echo "${bs_artifactsubdir}"
+    elif test -f ../bs-artifactsubdir
     then
         # See ob-repobot/common/SimpleConfig.py
-        echo "${bs_artifactsubdir:-$(cat ../bs-artifactsubdir)}"
+        cat ../bs-artifactsubdir
+    elif test "$bs_origdir" && test -f "$bs_origdir/../bs-artifactsubdir"
+    then
+        # obs_funcs.sh sets bs_origdir when sourced
+        # This matters on windows buildbots, which change to a short directory before building deeply nested things
+        cat "$bs_origdir/../bs-artifactsubdir"
     elif test "$CI_PROJECT_PATH_SLUG" != ""
     then
         # See https://docs.gitlab.com/ee/ci/variables/
@@ -1215,6 +1223,7 @@ MASTER=${MASTER:-buildhost4.oblong.com}
 bs_upload_user=${bs_upload_user:-buildbot}
 bs_install_host=$MASTER
 bs_install_root=$bs_repotop/tarballs
+bs_origdir="$(pwd)"
 
 # Allow user to download as a different user
 bs_get_install_sshspec() {
