@@ -408,7 +408,16 @@ then
   # This should be a complete list of all packages (minus -dbg) on the mezzanine train,
   # in alphabetical order.
   # This is fragile, and needs to be updated every time we add a package.
-  # FIXME: change code to use oblong-mezzanine*2.7 instead, and remove the hardcoded list
+  # To remove the fragility and hardcoding, and get rid of the list, there
+  # are two options:
+  # 1) change code to use oblong-mezzanine*2.7 instead.  Hard to get right.
+  # 2) move the mezz version number to immediately after oblong-mezzanine,
+  #    so packages are named e.g. oblong-mezzanine2.7-mip
+  #    This would make life SO MUCH EASIER I would CRY TEARS OF JOY
+  # 2 is probably the right option.  To make the transition easy, we could
+  # make this script automatically switch conventions above a certain
+  # mezzanine version number.  One-way conversion from old to new is
+  # probably sufficient.  Of course, project buy-in would be vital.
   packages="
     mezzanine2.7
     ob-http-ctl2.7
@@ -464,20 +473,42 @@ then
       # Update the version number in all instances of the above filenames in the debian directory
       for debsuffix in $debsuffices
       do
-        file=$package.$debsuffix
-        from=$(echo $file | $sed 's/2.7/[1-9].[0-9]*/')
-        to=$(echo $file | $sed "s/2.7/$mezz_version/")
-        if test $(echo debian/$from | wc -w) -gt 1
+       # Get possible service-specific filenames (only need to check if debsuffix is service or init or upstart, but overkill is fine)
+       # This is hard because there's no way to list service names, we have to discover them
+       files=""
+       # First, construct RE matching the base package name:
+       fromleft=$(echo "$package" | $sed 's/2.7/[1-9].[0-9]*/')
+       # Then loop over service names found for that base package name and this debsuffix, appending full filename to list... but with 2.7 for mezz version
+       for service in $(cd debian; ls | grep "$fromleft\\..*\\.$debsuffix\$" 2> /dev/null | sed "s,$fromleft\.,,;s,\.$debsuffix,," | sort -u)
+       do
+           files="$files $package.$service.$debsuffix"
+       done
+       # Plain old filename
+       files="$files $package.$debsuffix"
+       # files is now a complete set of probable (possibly service-specific) filenames for this package with 2.7 instead of mezzanine version number
+
+       # Now loop over the files and rename them to match current mezzanine version number
+       for file in $files
+       do
+        # file globs not sufficient, we need regexp to avoid matching garbage after version number
+        from=$(echo "$file" | $sed 's/2.7/[1-9]\.[0-9][0-9]*/')
+        if ! from=$(cd debian; ls | grep "$from")
+        then
+            continue
+        fi
+        if test $(echo "$from" | wc -w) -ne 1
         then
             echo "Alas, there are more than one file matching debian/$from.  There can be only one.  Try git clean?"
             exit 1
         fi
+        to=$(echo "$file" | $sed "s/2.7/$mezz_version/")
         if test debian/$from != debian/$to && test -f debian/$from
         then
             $GITCMD mv debian/$from debian/$to
             moved=true
             movedcmd="mv $from $to"
         fi
+       done
       done
   done
 
