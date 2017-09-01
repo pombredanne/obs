@@ -479,7 +479,7 @@ then
        # First, construct RE matching the base package name:
        fromleft=$(echo "$package" | $sed 's/2.7/[1-9].[0-9]*/')
        # Then loop over service names found for that base package name and this debsuffix, appending full filename to list... but with 2.7 for mezz version
-       for service in $(cd debian; ls | grep "$fromleft\\..*\\.$debsuffix\$" 2> /dev/null | sed "s,$fromleft\.,,;s,\.$debsuffix,," | sort -u)
+       for service in $(cd debian; ls | grep "^$fromleft\\..*\\.$debsuffix\$" 2> /dev/null | sed "s,^$fromleft\\.,,;s,\\.$debsuffix,," | sort -u)
        do
            files="$files $package.$service.$debsuffix"
        done
@@ -492,7 +492,7 @@ then
        do
         # file globs not sufficient, we need regexp to avoid matching garbage after version number
         from=$(echo "$file" | $sed 's/2.7/[1-9]\.[0-9][0-9]*/')
-        if ! from=$(cd debian; ls | grep "$from")
+        if ! from=$(cd debian; ls | grep "^$from")
         then
             continue
         fi
