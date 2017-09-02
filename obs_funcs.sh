@@ -445,7 +445,7 @@ _EOF_
     then
         # gpg 2 needs agent, and we don't want to use the desktop's
         gpg-agent --debug-quick-random --daemon -- \
-        gpg --pinentry-mode loopback --passphrase '' --gen-key gpg.in.tmp
+        gpg --pinentry-mode loopback --passphrase '' --personal-digest-preferences SHA256 --gen-key gpg.in.tmp
     else
         # Older gpg that does not need agent
         gpg --passphrase '' --gen-key --quick-random gpg.in.tmp < /dev/null
@@ -530,7 +530,17 @@ bs_apt_server_add() {
 
     $maybesudo rm -f $sources_list_d/repobot-$host-*.list
     local _apt_codename
-    _apt_codename=${bs_apt_codename:-"$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)"}
+    _apt_codename=${bs_apt_codename:-"$(awk -F= '/VERSION_CODENAME/{print $2}' /etc/os-release)"}
+
+    # FIXME: transition repos to SHA256 keys and remove this section
+    # Ubuntu 1710 does not trust repos signed with SHA1 keys.
+    # Until all repos we want to add have transitioned to SHA256 keys, be insecure there.
+    # See https://wiki.ubuntu.com/SecurityTeam/GPGMigration
+    local livedangerously
+    case $_apt_codename in
+    artful) livedangerously="trusted=true";;
+    esac
+
     local dpkgarch=$(dpkg --print-architecture)
     local dir
     local line
@@ -540,10 +550,10 @@ bs_apt_server_add() {
         sdir="$(echo $dir | tr '/' '-')"
         case "$host" in
         localhost)
-            line="deb [arch=$dpkgarch] file:$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch $livedangerously] file:$dir $_apt_codename main non-free"
             ;;
         *)
-            line="deb [arch=$dpkgarch] http://$host/$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch $livedangerously] http://$host/$dir $_apt_codename main non-free"
             ;;
         esac
         echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list"
