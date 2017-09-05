@@ -531,7 +531,12 @@ bs_apt_server_add() {
 
     $maybesudo rm -f $sources_list_d/repobot-$host-*.list
     local _apt_codename
-    _apt_codename=${bs_apt_codename:-"$(awk -F= '/VERSION_CODENAME/{print $2}' /etc/os-release)"}
+    if test -f /etc/lsb-release
+    then
+        _apt_codename=${bs_apt_codename:-"$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)"}
+    else
+        _apt_codename=${bs_apt_codename:-"$(awk -F= '/VERSION_CODENAME/{print $2}' /etc/os-release)"}
+    fi
 
     # FIXME: transition repos to SHA256 keys and remove this section
     # Ubuntu 1710 does not trust repos signed with SHA1 keys.
