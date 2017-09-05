@@ -241,6 +241,17 @@ do
     shift
 done
 
+# The version-changing options are sensitive to debris left
+# behind in the debian directory by builds, so abort early
+# if that's likely to be a problem.
+if test "$mezz_version" != "" || test "$gspeak_version" != ""
+then
+    if ls debian/*.bak 2>/dev/null || ls debian/*.debhelper 2>/dev/null
+    then
+        bs_abort "Please remove debris (e.g. .bak, .debhelper) from debian directory, e.g. with 'bau clean', 'git clean -f', and/or 'dh clean'"
+    fi
+fi
+
 BITS=$(getconf LONG_BIT)
 if test "$gspeak_version" = ""
 then
