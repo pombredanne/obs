@@ -477,7 +477,7 @@ then
        # This is hard because there's no way to list service names, we have to discover them
        files=""
        # First, construct RE matching the base package name:
-       fromleft=$(echo "$package" | $sed 's/2.7/[1-9].[0-9]*/')
+       fromleft=$(echo "$package" | $sed 's/2.7/[1-9]\.[0-9]*/')
        # Then loop over service names found for that base package name and this debsuffix, appending full filename to list... but with 2.7 for mezz version
        for service in $(cd debian; ls | grep "^$fromleft\\..*\\.$debsuffix\$" 2> /dev/null | sed "s,^$fromleft\\.,,;s,\\.$debsuffix,," | sort -u)
        do
