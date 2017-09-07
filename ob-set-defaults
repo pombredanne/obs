@@ -282,7 +282,7 @@ then
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
-projname=$(echo "$pkgname" | $sed 's/-gs.*//')
+projname=$(echo "$pkgname" | $sed 's/-gs.*//;s/-gh//;')
 
 if test "$opt_major" != ""
 then
@@ -377,12 +377,13 @@ $sed -i \
     $(ls debian/*.install debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
     #
 
-# Only want to change 1st line of changelog, and only non-yovo package name fragments.
+# Only want to change 1st line of changelog
 $sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
-    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
-    -e "s,oblong-yobuild[0-9]*,oblong-yobuild$YOVERSION," \
-    -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+    -e "1s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
+    -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix${gspeak_version}/g" \
     debian/changelog \
     #
 
