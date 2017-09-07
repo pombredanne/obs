@@ -335,7 +335,7 @@ $sed -i \
     -e "1,/STOP-SUBSTITUTION/ s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/g-speak-gst-plugins[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/g-speak-gst-plugins\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
