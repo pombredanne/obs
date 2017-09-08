@@ -161,6 +161,9 @@ bs_get_gspeak_version() {
     then
         # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
         grep g-speak bs-options.dat | sed 's/.*--g-speak //;s/ .*//'
+    elif egrep -q 'G_SPEAK_HOME=.*g-speak[0-9]' debian/rules
+    then
+        awk -F= '/G_SPEAK_HOME=/ {print $2}' debian/rules | sed 's/.*speak//'
     else
         bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
