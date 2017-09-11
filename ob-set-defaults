@@ -383,6 +383,7 @@ $sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "1s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
+    -e "1s/oblong-rtsp-viddle-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
     -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix${gspeak_version}/g" \
     debian/changelog \
