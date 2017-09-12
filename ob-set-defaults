@@ -377,6 +377,7 @@ $sed -i \
     debian/control \
     $(ls \
       debian/.gitignore \
+      debian/*.alternatives \
       debian/*.install \
       debian/*.lintian-overrides \
       debian/*.postinst \
@@ -397,28 +398,42 @@ $sed -i \
     debian/changelog \
     #
 
-# Update the version number in all instances of the above filenames in the debian directory
-# (to the tune of http://www.nytimes.com/2010/10/04/arts/television/04lesser.html )
+# Update the version numbers in all instances of the above filenames in the debian directory
 moved=false
 for from in \
-    debian/*oblong-yobuild[1-9]*.install \
-    debian/*oblong-yobuild[1-9]*.postinst \
-    debian/*oblong-yobuild[1-9]*.prerm \
-    debian/*oblong-*-gs*[1-9].[0-9]*.install \
-    debian/*oblong-*-gs*[1-9].[0-9]*.lintian-overrides \
-    debian/*oblong-*-gs*[1-9].[0-9]*.postinst \
-    debian/*oblong-*-gs*[1-9].[0-9]*.prerm \
-    debian/*oblong-*-gs*[1-9].[0-9]*.upstart \
-    debian/*oblong-*-gs*[1-9].[0-9]*.service \
-    debian/*oblong-staging[1-9].[0-9]*.install \
-    debian/*oblong-staging-gh*[1-9].[0-9]*.install \
+    debian/*.alternatives \
+    debian/*.install \
+    debian/*.lintian-overrides \
+    debian/*.postinst \
+    debian/*.prerm \
+    debian/*.service \
+    debian/*.upstart \
     #
 do
     if test -f "$from"
     then
+        # Traditional g-speak package names (like oblong-staging or oblong-loam) need special handling.
+        # These packages can be recognized as follows:
+        # - they contain the words oblong or g-speak
+        # - they do not contain two embedded version numbers
+        # - they do not contain the patterns -gs[1-9] or -gs-gh[0-9]
+        # - they do not contain the patterns mezzanine, ob-http-ctl, oblong-mip, oblong-mzreach,
+        #   oblong-whiteboard, or oblong-ir-inertial-admin-applications
+        if echo "$from" | grep -qE -e 'oblong|g-speak' &&
+           ! echo "$from" | grep -qE -e '[0-9].*[-a-z].*[0-9]' &&
+           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-gh[0-9]' &&
+           ! echo "$from" | grep -qE -e 'mezzanine|ob-http-ctl|oblong-mip|oblong-mzreach|oblong-whiteboard|oblong-ir-inertial-admin-applications' \
+           #
+        then
+           # It's a traditional g-speak package name.  The only number
+           # in it is the g-speak version number, and it is at the end.
+           traditional_gspeak_pkg=$(basename "$from" | sed -e 's/[0-9].*//' -e 's/-gh//')
+        else
+           traditional_gspeak_pkg=xyzzy-no-match
+        fi
         to="$(echo "$from" | $sed \
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
-           -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging${suffix}${gspeak_version}/" \
+           -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/-cef[1-9][0-9]*/-${cefbranch}/;s/yobuild[0-9]*/yobuild$YOVERSION/" \
           #
         )"
@@ -478,7 +493,7 @@ then
   "
 
   # Full list of all suffixes of files in debian subdirectory that might need renaming
-  debsuffices="install lintian-overrides preinst prerm postinst postrm lintian-overrides service upstart"
+  debsuffices="alternatives install lintian-overrides preinst prerm postinst postrm lintian-overrides service upstart"
 
   # About STOP-SUBSTITUTION:
   # The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
