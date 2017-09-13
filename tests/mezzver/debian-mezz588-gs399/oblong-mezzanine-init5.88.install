@@ -1,0 +1,92 @@
+../../projects/mezzanine/init.d/mz-pools-setup                         etc/init.d/mz
+../../projects/mezzanine/init.d/x11                                    etc/init.d/mz
+../../projects/mezzanine/init.d/ob-http-ctl                            etc/init.d/mz
+../../projects/mezzanine/init.d/check-mezz                             etc/init.d/mz
+../../projects/mezzanine/init.d/check-firmware                         etc/init.d/mz
+../../projects/mezzanine/init.d/mz-plasma-web-proxy                    etc/init.d/mz
+
+../../projects/mezzanine/systemd/network-interfaces.service            lib/systemd/system
+../../projects/mezzanine/systemd/mz-pools-setup.service                lib/systemd/system
+../../projects/mezzanine/systemd/x11-tune.service                      lib/systemd/system
+../../projects/mezzanine/systemd/x11-screen.service                    lib/systemd/system
+../../projects/mezzanine/systemd/x11.service                           lib/systemd/system
+../../projects/mezzanine/systemd/ob-http-ctl.service                   lib/systemd/system
+../../projects/mezzanine/systemd/check-mezz.service                    lib/systemd/system
+../../projects/mezzanine/systemd/check-firmware.service                lib/systemd/system
+../../projects/mezzanine/systemd/mz-plasma-web-proxy.service           lib/systemd/system
+
+../../projects/mezzanine/systemd/bandwidth-chk.service                 lib/systemd/system
+
+../../projects/mezzanine/systemd/run-mezzanine.mount                   lib/systemd/system
+../../projects/mezzanine/systemd/poolserver.service                    lib/systemd/system
+../../projects/mezzanine/systemd/mezzanine-distillery.service          lib/systemd/system
+../../projects/mezzanine/systemd/mezzanine-redistillery.path           lib/systemd/system
+../../projects/mezzanine/systemd/mezzanine-redistillery.service        lib/systemd/system
+
+../../projects/mezzanine/systemd/syslog-ng.service.d/override.conf     etc/systemd/system/syslog-ng.service.d
+../../projects/mezzanine/systemd/x11.service.d/watchdog.conf           opt/oblong/mezzanine/systemd-drop-ins/x11.service.d
+../../projects/mezzanine/systemd/x11.service.d/radeon.conf             opt/oblong/mezzanine/systemd-drop-ins/x11.service.d
+
+../../projects/mezzanine/systemd/pulseaudio.service                    lib/systemd/system
+
+../../projects/mezzanine/systemd/feature-toggle-manager.service        lib/systemd/system
+../../projects/mezzanine/systemd/feature-toggle-manager.path           lib/systemd/system
+../../projects/feature-toggle-manager/feature-toggle-manager.d         etc/oblong/
+
+../../projects/mezzanine/init.d/helpers/monitrc                        etc/monit/mz
+../../projects/mezzanine/init.d/xinitrc                                etc/oblong/mz
+../../projects/mezzanine/init.d/startup-commons                        etc/oblong/mz
+../../projects/mezzanine/init.d/helpers/ob-rotate-mezzanine            etc/logrotate.d/mz
+../../projects/mezzanine/init.d/helpers/obsslproxy                     etc/nginx/sites-available
+../../projects/mezzanine/init.d/helpers/nginx-server-certs-path        etc/oblong
+../../projects/mezzanine/init.d/helpers/dhparam.pem                    etc/oblong
+../../projects/mezzanine/init.d/helpers/nginx.conf                     etc/oblong
+../../projects/mezzanine/init.d/helpers/nic-convention.conf            etc/oblong
+../../projects/mezzanine/init.d/helpers/404.html                       etc/oblong
+../../projects/mezzanine/init.d/helpers/configure-mezz-for-new-ip      etc/network/if-up.d
+../../projects/mezzanine/init.d/helpers/00mezz-fillip                  etc/cron.daily
+../../projects/mezzanine/init.d/helpers/mz.audio-ingest.sh             usr/bin
+../../projects/mezzanine/init.d/helpers/mz.network-interfaces.sh       usr/bin
+../../projects/mezzanine/init.d/helpers/mz.copylogs.sh                 usr/bin
+../../projects/mezzanine/init.d/helpers/mz.firewall.up.sh              usr/bin
+../../projects/mezzanine/init.d/helpers/mz.ssh.off.sh                  usr/bin
+../../projects/mezzanine/init.d/helpers/mz.ssh.on.sh                   usr/bin
+../../projects/mezzanine/init.d/helpers/mz.snmp.sh                     usr/bin
+../../projects/mezzanine/init.d/helpers/snmpd.conf                     etc/oblong
+../../projects/mezzanine/init.d/helpers/edid.conf                      etc/oblong
+../../projects/mezzanine/init.d/helpers/mz.x11.sh                      usr/bin
+../../projects/mezzanine/init.d/helpers/30-oblong-mezzanine-init.conf  etc/sysctl.d
+../../projects/mezzanine/init.d/helpers/mz.monitrc                     etc/monit.d
+../../projects/mezzanine/init.d/helpers/mz.reconcile-app-settings.rb                  usr/bin
+../../projects/mezzanine/init.d/helpers/mz.reconcile-startup-commons.sh               usr/bin
+../../projects/mezzanine/init.d/helpers/mz.upgrader.sh                                usr/bin
+../../projects/mezzanine/init.d/feature-toggles.conf.all               etc/oblong
+../../projects/mezzanine/init.d/feature-toggles.conf.ga                etc/oblong
+../../projects/mezzanine/init.d/feature-toggles.conf.mvp               etc/oblong
+../../projects/mezzanine/init.d/feature-toggles.info                   etc/oblong
+../../projects/mezzanine/init.d/helpers/mz.feature-toggles.rb          usr/bin
+../../projects/mezzanine/init.d/helpers/start-weave.sh                 usr/bin
+../../projects/mezzanine/init.d/helpers/stop-weave.sh                  usr/bin
+
+usr/bin/surface-inspect
+usr/bin/surface-create
+usr/bin/surface-update
+usr/bin/surface-delete
+usr/bin/adl-tear-free
+usr/bin/adl-edid-emulation
+usr/bin/protein-generate-feld
+usr/bin/protein-make-px-adjacent
+usr/bin/protein-undo-antigravity
+usr/bin/protein-generate-xorg
+usr/bin/protein-split-and-merge
+usr/bin/protein-is-screen-valid
+usr/bin/guess-xorg-monitor-ordering.sh
+usr/bin/upgrade-corkboard-to-lightbox.sh
+usr/bin/x11-tune.sh
+usr/bin/edid-manager
+usr/bin/screen-inspect
+usr/bin/screenmap-manager
+usr/bin/x11-screen.sh
+usr/lib/libdrm-ioctl-preload.so
+usr/bin/feature-toggle-manager
+usr/lib/python2.7/dist-packages/feature_toggle_manager.py

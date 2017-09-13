@@ -1,0 +1,217 @@
+#!/bin/sh
+# postinst script for mezzanine common scripts
+#
+# see: dh_installdeb(1)
+
+set -e
+set -x
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+MAJOR=$( lsb_release -sr | cut -d"." -f1 )
+MAJOR_WITH_SYSTEMD=15
+
+create_link ()
+{
+  if [ ! -e $2 ]
+  then
+    ln -s $1 $2
+  fi
+}
+
+create_persistent_journal ()
+{
+  # 16.04 requires persistent journals to be explicitly configured (bug 16402)
+  # let the journal use up to 15G of the drive, or
+  # keep 10GB free, whichever results in more free space
+
+  vld=/var/log/journal
+  if [ ! -d $vld ]
+  then
+    mkdir -p $vld || true
+    systemd-tmpfiles --create --prefix $vld || true
+  fi
+
+  jdcd=/etc/systemd/journald.conf.d
+  if [ ! -d $jdcd ]
+  then
+    mkdir -p $jdcd || true
+  fi
+
+  if [ -d $jdcd ]
+  then
+    cat <<EOF > $jdcd/oblong-persistence.conf
+[Journal]
+Storage=persistent
+SystemMaxUse=15G
+SystemKeepFree=10G
+EOF
+  fi
+}
+
+case "$1" in
+    configure)
+        create_link /etc/logrotate.d/mz/ob-rotate-mezzanine /etc/logrotate.d/ob-rotate-mezzanine
+        create_link /etc/oblong/mz/startup-commons /etc/oblong/startup-commons
+        create_link /etc/oblong/mz/xinitrc /etc/oblong/xinitrc
+        create_link /usr/bin/mz.firewall.up.sh /etc/network/if-pre-up.d/mz-firewall-up
+
+        # because x11 may overwrite this file
+        if [ -e /etc/X11/default-display-manager ]
+        then
+          if [ ! -e /etc/X11/default-display-manager.obbak ]
+          then
+            cp -f /etc/X11/default-display-manager /etc/X11/default-display-manager.obbak
+          fi
+        fi
+
+        if [ ${MAJOR} -lt ${MAJOR_WITH_SYSTEMD} ]
+        then
+          # only in 12.04
+          create_link /etc/init.d/mz/mz-pools-setup /etc/init.d/mz-pools-setup
+          create_link /etc/init.d/mz/ob-http-ctl /etc/init.d/ob-http-ctl
+          create_link /etc/init.d/mz/check-mezz /etc/init.d/check-mezz
+          create_link /etc/init.d/mz/check-firmware /etc/init.d/check-firmware
+          create_link /etc/init.d/mz/mz-plasma-web-proxy /etc/init.d/mz-plasma-web-proxy
+          create_link /etc/init.d/mz/x11 /etc/init.d/x11
+        else
+          # only in 16.04+
+          create_persistent_journal
+        fi
+
+        # remove all enabled sites and then enable ours
+        rm -f /etc/nginx/sites-enabled/*
+        create_link /etc/nginx/sites-available/obsslproxy /etc/nginx/sites-enabled/obsslproxy
+
+        # copy over the default cert path for nginx
+        if [ ! -e /etc/nginx/sites-available/ob-sites/nginx-server-certs-path ]
+        then
+          cp /etc/oblong/nginx-server-certs-path /etc/nginx/sites-available/ob-sites/
+        fi
+
+        # get nginx to start with our conf file
+        DMOPTS='DAEMON_OPTS="${DAEMON_OPTS} -c /etc/oblong/nginx.conf"'
+        FILE="/etc/default/nginx"
+
+        if ! grep -xq "${DMOPTS}" ${FILE}
+        then
+          sed -i '$a'"${DMOPTS}" ${FILE}
+        fi
+
+        if [ ${MAJOR} -ge ${MAJOR_WITH_SYSTEMD} ]
+        then
+          # the 16.04 systemd nginx.service does not pay attention to
+          # the above modified file, so...
+          # add oblong to nginx systemd unit (bug 16068)
+          lx=$( readlink --canonicalize /lib/systemd/system/nginx.service )
+          if [ -f "$lx" ]
+          then
+            if [ $( grep -c oblong $lx ) -lt 1 ]
+            then
+              sed -i -e "s/\([^\/]\/usr\/sbin\/nginx \)\(.*\)$/\1-c \/etc\/oblong\/nginx.conf \2/" $lx || true
+              systemctl daemon-reload || true
+            fi
+          fi
+
+          # fix the localhost issue in ob nginx setup (bug 16360)
+          ospx=$( readlink --canonicalize /etc/nginx/sites-enabled/obsslproxy )
+          if [ -f "$ospx" ]
+          then
+            if [ $( grep -c localhost $ospx ) -gt 0 ]
+            then
+              sed -i -e "s/localhost/127.0.0.1/g" $ospx || true
+            fi
+          fi
+        fi
+
+        # KLUDGE: monit installs a default config file.  dpkg won't let us also install one, so overwrite theirs here.
+        if [ ! -f /etc/monit/monitrc.orig.mz ]
+        then
+          cp /etc/monit/monitrc /etc/monit/monitrc.orig.mz
+        fi
+        cp /etc/monit/mz/monitrc /etc/monit/monitrc
+        chmod 600 /etc/monit/monitrc
+
+        # change the time for cron.daily to 2 am from whatever it is
+        CRONTAB="/etc/crontab"
+        if [ -f ${CRONTAB} ]; then
+          sed -r -i 's/([0-9][0-9] [0-9][0-9]?)(.*cron.daily.*)/00 2\2/g' ${CRONTAB}
+        fi
+
+        # look through /etc/sysctl.d/*.conf
+        if [ ${MAJOR} -lt ${MAJOR_WITH_SYSTEMD} ]
+        then
+          # only in 12.04
+          invoke-rc.d procps start
+        fi
+
+        # edit fstab to create a ramdisk for pools if it doesn't exist
+        FILE="/etc/fstab"
+        POOLS_DIR="/mnt/poolsramdisk"
+        MOUNT="tmpfs ${POOLS_DIR} tmpfs nodev,nosuid,noexec,nodiratime 0 0"
+
+        if ! grep -xq "${MOUNT}" ${FILE}
+        then
+          sed -i '$a# the following was automatically created by oblong-mezzanine-init.postinst' ${FILE}
+          sed -i '$a'"${MOUNT}" ${FILE}
+          mkdir -p ${POOLS_DIR}
+        fi
+
+        # SNMP install
+        # upon initial install, the file /var/lib/snmpd.conf will not exist
+        if [ ! -f /var/lib/snmp/snmpd.conf ]
+        then
+          install /etc/oblong/snmpd.conf /etc/snmp/snmpd.conf \
+                       --backup --suffix=orig.mz \
+                       --mode 600
+          # disable snmptrapd completely
+          sed -i 's/TRAPDRUN=yes/TRAPDRUN=no/' /etc/default/snmpd
+          # turn it off by default
+          mz.snmp.sh off
+        else
+          # User info is written directly into /etc/snmp/snmpd.conf
+          # so copy it over. Password and passphrase is in
+          # /var/lib/snmp/snmpd.conf so it should be preserved automatically.
+          # see https://bugs.oblong.com/show_bug.cgi?id=15921
+          snmp_location=$( grep '^sysLocation' /etc/snmp/snmpd.conf | cut -d' ' -f2- )
+          snmp_contact=$( grep '^sysContact' /etc/snmp/snmpd.conf | cut -d' ' -f2- )
+          install /etc/oblong/snmpd.conf /etc/snmp/snmpd.conf \
+                       --backup --suffix=orig.mz \
+                       --mode 600
+          # setting location/contact will also restart service if necessary
+          mz.snmp.sh config --location "$snmp_location" --contact "$snmp_contact"
+        fi
+
+        # Save local feature-toggles.conf customizations:
+        /usr/bin/mz.feature-toggles.rb --save || true
+        # Configure feature-toggles.conf for GA features:
+        /usr/bin/mz.feature-toggles.rb --configure=ga --no-restart || true
+        # Restore customizations saved during preinst:
+        /usr/bin/mz.feature-toggles.rb --restore || true
+    ;;
+
+    abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+#DEBHELPER#
+
+exit 0

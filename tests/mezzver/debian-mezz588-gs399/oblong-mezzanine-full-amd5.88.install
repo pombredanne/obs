@@ -1,0 +1,3 @@
+../../projects/mezzanine/init.d/helpers/xorg.conf                      etc/X11
+../../projects/mezzanine/init.d/helpers/xorg.conf                      opt/oblong/mezzanine/share
+../../projects/tools/amdsetup.sh                                       usr/bin

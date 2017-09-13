@@ -1,0 +1,72 @@
+#!/bin/sh
+# postinst script for mezzanine common scripts
+#
+# see: dh_installdeb(1)
+
+set -e
+set -x
+
+case "$1" in
+    upgrade|install)
+        # cleanup leftovers from previous upgrades (see bug 15792 15904):
+        rm -rf /etc/oblong/mz/startup-commons.dpkg-old
+
+        # Older versions of mezzanine didn't include check-mezz in the deb files
+        # it was installed by the installer drive, but /etc/init.d/check-mezz
+        # was a regular file, not a symlink.  We nuke that here so we can write
+        # the symlink in the postinst
+        rm -f /etc/init.d/check-mezz
+
+        # In Mezzanine-2.12.0, /etc/oblong/startup-commons is not a symlink to
+        # /etc/oblong/mz/startup-commons which causes us to lose user changes
+        # when updating the pacakge. This is because /etc/oblong/startup-commons
+        # is removed as part of postrm, and a symlink is created in its place
+        # by postinst, but dpkg doesn't bother to check if it's changed since
+        # installation because it is not a conffile.
+        # https://bugs.oblong.com/show_bug.cgi?id=13220
+        if [ -f /etc/oblong/startup-commons ] && [ ! -h /etc/oblong/startup-commons ]
+        then
+            mkdir -p /etc/oblong/mz
+            mv -f /etc/oblong/startup-commons /etc/oblong/mz/startup-commons
+        fi
+
+        if [ ! -f /etc/ssh/mezzanine/ssh.enabled ]
+        then
+            echo "+---------------------------------------------------+"
+            echo "| WARNING!! WARNING!! WARNING!! WARNING!! WARNING!! |"
+            echo "|                                                   |"
+            echo "| This package will disable ssh access after reboot |"
+            echo "+---------------------------------------------------+"
+            echo
+            echo "To enable ssh access, do the following:"
+            echo
+            echo "    sudo /usr/bin/mz.ssh.on.sh"
+            echo
+            echo "You will only have to run that once."
+            echo "To disable ssh access again, do the follwoing:"
+            echo
+            echo "    sudo /usr/bin/mz.ssh.off.sh"
+        fi
+
+        # Keep a copy of the defaults for merging customizations in postinst:
+        if test -f /etc/oblong/feature-toggles.conf.ga
+        then
+            # The defaults live in feature-toggles.conf.ga
+            cp /etc/oblong/feature-toggles.conf.ga /etc/oblong/feature-toggles.conf.old
+        elif test -f /etc/oblong/feature-toggles.conf.rel
+        then
+            # But they used to live in feature-toggles.conf.rel
+            cp /etc/oblong/feature-toggles.conf.rel /etc/oblong/feature-toggles.conf.old
+        fi
+        ;;
+    abort-upgrade)
+        ;;
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
+
+# end of file
