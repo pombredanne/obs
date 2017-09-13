@@ -1,0 +1,11 @@
+[Unit]
+Description=Private Api For Peripheral Machines
+
+[Service]
+ExecStart=/usr/bin/node /var/ob/www/private-network-api/bin/www
+Environment=NODE_ENV=production
+Restart=always
+
+[Install]
+Alias=mezzanine-private-api.service
+WantedBy=multi-user.target

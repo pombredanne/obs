@@ -6,7 +6,9 @@
   # Get access to uncommitted ob-set-default and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
-  cd tests/mezzver
+  cd tests
+
+  cd mezzver
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
@@ -27,7 +29,32 @@
   fi
 
   rm -rf debian
-  cd ../..
+  cd ..
+
+  cd adminweb
+
+  rm -rf debian
+  cp -a adminweb-mezz322-gs330 debian
+  ob-set-defaults --g-speak 3.30
+  if ! diff -ur adminweb-mezz322-gs330 debian
+  then
+    echo "ob-set-defaults --g-speak 3.30 did not give expected result on admin-web"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a adminweb-mezz322-gs330 debian
+  ob-set-defaults --g-speak 4.0 --mezz 5.88
+  if ! diff -ur adminweb-mezz588-gs40 debian
+  then
+    echo "ob-set-defaults --g-speak 4.0 --mezz 5.88 did not give expected result on admin-web"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+
+  cd ..
 }
 
 @test "obs-artifact" {

@@ -1,0 +1,9 @@
+*.log
+*.substvars
+*.debhelper
+debhelper-build-stamp
+files
+oblong-mezzanine-admin-web3.22
+oblong-perception-admin-web-gs3.30x
+oblong-ultrasonic-perception-admin-web-gs3.30x
+tmp

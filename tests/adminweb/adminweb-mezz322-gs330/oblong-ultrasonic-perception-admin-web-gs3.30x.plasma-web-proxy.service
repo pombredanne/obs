@@ -1,0 +1,12 @@
+[Unit]
+Description=Plasma web proxy
+After=network-online.target
+
+[Service]
+Type=simple
+PIDFile=/run/plasma-web-proxy.pid
+ExecStart=/usr/bin/plasma-web-proxy --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
