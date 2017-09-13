@@ -1,0 +1,4 @@
+../../projects/tools/xlayoutsetup.sh                                   usr/bin
+../../projects/mezzanine/grub.d/10_ob_mezzanine.cfg                    etc/default/grub.d
+../../projects/mezzanine/grub.d/11_ob_edid.cfg                         etc/default/grub.d
+../../projects/mezzanine/grub.d/EDID.README                            lib/firmware/edid

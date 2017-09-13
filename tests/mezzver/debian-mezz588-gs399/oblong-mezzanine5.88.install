@@ -1,0 +1,108 @@
+
+usr/bin/curler
+usr/bin/dogsbody
+usr/bin/edid-bindiff
+usr/bin/giecy
+usr/bin/pygiandros
+usr/bin/thumbhammer
+usr/bin/rtsp-remote-provisioner-spawner
+usr/bin/siemcy
+usr/bin/siemcy.dir
+usr/bin/siemcy.dir/chrome-sandbox
+usr/bin/siemcy.dir/icudtl.dat
+usr/bin/siemcy.dir/natives_blob.bin
+usr/bin/siemcy.dir/siemcy
+usr/bin/siemcy.dir/snapshot_blob.bin
+usr/bin/progresso
+usr/bin/meetman
+usr/bin/mip-client
+usr/bin/vtci
+usr/bin/vtcitester
+usr/bin/calendar-service
+
+usr/lib/libMezzanine.a
+
+opt/oblong/
+
+../../projects/mezzanine/init.d/mezzanine                        etc/init.d/mz
+../../projects/mezzanine/init.d/siemcy                           etc/init.d/mz
+../../projects/mezzanine/init.d/pygiandros                       etc/init.d/mz
+../../projects/mezzanine/init.d/thumbhammer                      etc/init.d/mz
+../../projects/mezzanine/init.d/rtsp-remote-provisioner-spawner  etc/init.d/mz
+../../projects/mezzanine/init.d/giecy                            etc/init.d/mz
+../../projects/mezzanine/init.d/qm-provisioner-bm                etc/init.d/mz
+../../projects/mezzanine/init.d/qm-merchant-inogeni              etc/init.d/mz
+../../projects/mezzanine/init.d/rtsp-viddle-server               etc/init.d/mz
+../../projects/mezzanine/init.d/rtsp-inroom-server               etc/init.d/mz
+../../projects/mezzanine/init.d/ob-cthulhu                       etc/init.d/mz
+../../projects/mezzanine/init.d/remote-participation-pool-server etc/init.d/mz
+../../projects/mezzanine/init.d/meetman                          etc/init.d/mz
+../../projects/mezzanine/init.d/iperf                            etc/init.d/mz
+../../projects/mezzanine/init.d/vtci                             etc/init.d/mz
+
+../../projects/mezzanine/systemd/mezzanine.service                        lib/systemd/system
+../../projects/mezzanine/systemd/siemcy.service                           lib/systemd/system
+../../projects/mezzanine/systemd/pygiandros.service                       lib/systemd/system
+../../projects/mezzanine/systemd/thumbhammer.service                      lib/systemd/system
+../../projects/mezzanine/systemd/rtsp-remote-provisioner-spawner.service  lib/systemd/system
+../../projects/mezzanine/systemd/giecy.service                            lib/systemd/system
+../../projects/mezzanine/systemd/qm-provisioner-bm.service                lib/systemd/system
+../../projects/mezzanine/systemd/qm-merchant-inogeni.service              lib/systemd/system
+../../projects/mezzanine/systemd/rtsp-viddle-server.service               lib/systemd/system
+../../projects/mezzanine/systemd/rtsp-inroom-server.service               lib/systemd/system
+../../projects/mezzanine/systemd/ob-cthulhu.service                       lib/systemd/system
+../../projects/mezzanine/systemd/remote-participation-pool-server.service lib/systemd/system
+../../projects/mezzanine/systemd/meetman.service                          lib/systemd/system
+../../projects/mezzanine/systemd/iperf.service                            lib/systemd/system
+../../projects/mezzanine/systemd/iperf@.service                           lib/systemd/system
+../../projects/mezzanine/systemd/vtci.service                             lib/systemd/system
+../../projects/mezzanine/systemd/mz-analytics.service                     lib/systemd/system
+../../projects/mezzanine/systemd/audio-ingest.service                     lib/systemd/system
+../../projects/mezzanine/systemd/calendar-ews.service                     lib/systemd/system
+../../projects/mezzanine/systemd/screen-autoconf.service                  lib/systemd/system
+
+../../projects/mezzanine/systemd/siemcy.service.d/watchdog.conf  opt/oblong/mezzanine/systemd-drop-ins/siemcy.service.d
+../../projects/mezzanine/systemd/siemcy.service.d/radeon.conf  opt/oblong/mezzanine/systemd-drop-ins/siemcy.service.d
+
+../../projects/mezzanine/systemd/wd_keepalive.service.d/oblong.conf              opt/oblong/mezzanine/systemd-drop-ins/wd_keepalive.service.d
+../../projects/mezzanine/systemd/wd_keepalive.service.d/oblong-common.env        opt/oblong/mezzanine/systemd-drop-ins/wd_keepalive.service.d
+../../projects/mezzanine/systemd/wd_keepalive.service.d/helpers/watchdog.conf    etc/oblong
+
+../../projects/mezzanine/systemd/set_usb_irq.sh                  usr/bin
+
+../../projects/mezzanine/init.d/helpers/app-settings.protein     etc/oblong
+../../projects/mezzanine/init.d/helpers/mezzanine-rtsp.conf      etc/oblong
+../../projects/mezzanine/init.d/helpers/inroom-rtsp.conf         etc/oblong
+../../projects/mezzanine/init.d/helpers/dvi.conf                 etc/oblong/quartermaster
+../../projects/mezzanine/init.d/helpers/bm.conf                  etc/oblong/quartermaster
+../../projects/mezzanine/init.d/helpers/inogeni.conf             etc/oblong/quartermaster
+../../projects/mezzanine/init.d/helpers/bandwidth-chk.rb         usr/bin
+../../projects/mezzanine/init.d/helpers/mz.installer.rb          usr/bin
+../../projects/mezzanine/init.d/helpers/cthulhu.protein          etc/oblong
+../../projects/mezzanine/init.d/helpers/doss-persistence.sh      usr/bin
+../../projects/mezzanine/init.d/helpers/pool-tcp-server.conf     etc/oblong
+../../projects/mezzanine/init.d/helpers/pools-directory.conf     etc/oblong
+../../projects/mezzanine/init.d/helpers/mz.installer.conf        etc/oblong
+../../projects/mezzanine/init.d/helpers/99-oblong-inogeni.rules  etc/udev/rules.d
+../../projects/mezzanine/init.d/helpers/mz-configure-nfs.rb      usr/bin
+../../projects/mezzanine/init.d/helpers/syslog-config.protein    etc/oblong
+../../projects/vestry/vtci/vtc_defs.protein                      etc/oblong
+../../projects/vestry/vtci/vtci.protein                          etc/oblong
+../../projects/mezzanine/init.d/helpers/wb-config-ip-cameras.sh  usr/bin
+../../projects/mezzanine/init.d/helpers/mz.disable-usb.sh        usr/bin
+../../projects/mezzanine/init.d/helpers/usb-lockdown.rules       etc/oblong
+../../projects/tools/ob-hardware-watchdog                        usr/bin
+../../projects/tools/ob-watchdogs                                usr/bin
+../../projects/tools/ob-radeon-override                          usr/bin
+../../projects/tools/wand-swap.py                                usr/bin
+../../projects/mezzanine/init.d/helpers/mz.check-firewall.sh     usr/bin
+../../projects/mezzanine/init.d/helpers/mz.config-syslog-ng.rb   usr/bin
+../../projects/mezzanine/init.d/helpers/mz.config-hsts.rb        usr/bin
+../../projects/mezzanine/init.d/helpers/mz.screen-autoconf.sh    usr/bin
+
+../../projects/vestry/analytics/conf/analytics.conf              etc/oblong
+../../projects/vestry/analytics/mz-analytics.sh                  usr/bin
+../../projects/vestry/analytics/mz-analytics.rb                  opt/oblong/mezzanine/share/mz-analytics
+../../projects/vestry/analytics/AnalyticsEngine.rb               opt/oblong/mezzanine/share/mz-analytics
+../../projects/vestry/analytics/AnalyticsManager.rb              opt/oblong/mezzanine/share/mz-analytics
+../../projects/vestry/analytics/AnalyticsEventHandler.rb         opt/oblong/mezzanine/share/mz-analytics

@@ -1,0 +1,65 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
+
+# Hmm, why isn't this set by default?
+DESTDIR=$(CURDIR)/debian/tmp
+export DESTDIR
+
+%:
+	dh --with systemd $@
+
+define OLD_ADMIN_WEB_MODULES
+        oblong-admin-web-authentication,
+	oblong-admin-web-ldap,
+	oblong-admin-web-logs,
+	oblong-admin-web-screens,
+	oblong-admin-web-system,
+	oblong-admin-web-certificate,
+	oblong-admin-web-keystone,
+	oblong-admin-web-mezzanine,
+	oblong-admin-web-mz-collaboration,
+	oblong-admin-web-network-root,
+	oblong-admin-web-obbase,
+	oblong-admin-web-triptych,
+	oblong-admin-web-wands,
+        oblong-admin-web-whiteboard,
+endef
+export OLD_ADMIN_WEB_MODULES
+
+override_dh_gencontrol:
+	dh_gencontrol -- -Vold-deps:AdminWebModules="$$OLD_ADMIN_WEB_MODULES"
+
+# Now, we could wrangle the service files ourselves,
+# but it's hard to get the prerm / postinst actions
+# right.  So let's let dh do all that for us magically per
+# https://wiki.debian.org/Teams/pkg-systemd/Packaging
+# If you let dh install the service files itself
+# via dh_systemd_enable or dh_installinit,
+# it'll start the service after install,
+# stop it on uninstall, etc. without us having
+# to write that logic.
+# The price is having to put the service files
+# into The Right Place, named The Right Way,
+# with No Funny Business.
+#
+# By default, dh uses the package name as the service name.
+# Override the name of the service to what rest of stack expects
+# In that case, dh gets the service files from files in the debian directory
+# pkgname.name.service or pkgname.name.upstart (or pkgname.name.init)
+
+# systemd:
+# Note: mezzanine's service should not start by default, see mz.install.rb and mz.upgrader.sh
+override_dh_systemd_enable:
+	dh_systemd_enable -p oblong-mezzanine-admin-web5.88                 --name mezzanine-private-api           --no-enable
+	dh_systemd_enable -p oblong-perception-admin-web-gs4.0x            --name perception-admin-web
+	dh_systemd_enable -p oblong-perception-admin-web-gs4.0x            --name plasma-web-proxy
+	dh_systemd_enable -p oblong-ultrasonic-perception-admin-web-gs4.0x --name plasma-web-proxy
+	dh_systemd_enable -p oblong-ultrasonic-perception-admin-web-gs4.0x --name ultrasonic-perception-admin-web
+
+# upstart / sysv:
+#override_dh_installinit:
+#	...
+

@@ -1,0 +1,14 @@
+[Unit]
+Description=Perception admin web server
+After=network-online.target
+Requires=ir-inertial-perception-pool-setup.service
+After=ir-inertial-perception-pool-setup.service
+
+[Service]
+Type=simple
+PIDFile=/run/perception-admin-web.pid
+ExecStart=/usr/local/bin/thin -R /var/ob/www/perception-admin-web/config.ru -p 80 start
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

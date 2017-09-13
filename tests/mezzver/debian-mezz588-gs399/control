@@ -1,0 +1,310 @@
+Source: mezzanine5.88
+Section: non-free/devel
+Priority: extra
+Maintainer: buildtools <buildtools@oblong.com>
+Build-Depends: debconf,
+## Boilerplate build dependencies first, in alphabetical order
+               debhelper (>= 7.0.50~),
+               dh-systemd (>= 1.20),
+               oblong-spruce,
+##  Prefer yobuild's cmake, but accept system's cmake if new enough
+               oblong-yobuild11-cmake | cmake (>= 3.5.1),
+##  We default to building with ninja
+               ninja-build,
+               strip-nondeterminism,
+# Project-specific build dependencies, in alphabetical order:
+  file,
+  gawk,
+  g-speak3.99,
+  libasound2,
+  libdrm-dev,
+  libffi-dev,
+  libfreetype6,
+  libgl1-mesa-glx,
+  libice6,
+  libjpeg62,
+  libltdl7,
+  libmagic1,
+  libmagick++-dev,
+  libpcre3,
+  libselinux1-dev,
+  libsm6,
+  libssh-dev,
+  libssl-dev,
+  libsystemd-dev,
+  libtiff5-dev,
+  libtool,
+  libxau6,
+  libxcb1,
+  libxdmcp6,
+  libxext6,
+  libxfixes3,
+  libxt6,
+  locales,
+  mesa-common-dev,
+  mime-support,
+  oblong-obmcp,
+  oblong-decklink-sdk,
+  oblong-mezzanine-kipple5.88,
+# pull in spruce for precommit hook
+  oblong-spruce,
+  oblong-webthing-cef3112-gs3.99x,
+# Note that nodejs6 includes npm:
+  nodejs-legacy (>= 4.2) | nodejs6 (>= 6.11.2),
+  npm (>= 3.5.2) | nodejs6 (>= 6.11.2),
+# use system graphicsmagick if new enough; see yobuild11/yobuild-ubu12-example.sh
+  oblong-yobuild11-graphicsmagick | graphicsmagick (>= 1.3.24),
+  pciutils,
+  pkg-config,
+  pylint,
+  python-docopt,
+  python-flake8,
+  python-pytest,
+  python-yaml,
+  psmisc,
+# install ruby gems for usage analytics and its tests
+  rubygem-ffi,
+  rubygem-rb-inotify,
+  rubygem-public-suffix,
+  rubygem-safe-yaml,
+  rubygem-addressable,
+  rubygem-crack,
+  rubygem-hashdiff,
+  rubygem-webmock,
+Standards-Version: 3.8.3
+Homepage: http://oblong.com
+
+Package: oblong-mezzanine-init5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-deps5.88, python-yaml, nginx (>= 1.4.5)
+Description: Common init scripts for mezzanine apps
+ In separate package because mezzanine and whiteboard all need these.
+
+Package: oblong-mezzanine5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+#
+#
+# Mezzanine dependencies
+#
+#
+    oblong-mezzanine-init5.88,
+    oblong-mezzanine-web5.88,
+    oblong-ir-inertial-install-guide-gs3.99x0,
+#
+#
+# System dependencies
+#
+#
+    bridge-utils,
+    cryptsetup,
+    cryptsetup-bin,
+# 16756: Needed for pdf uploads (see mezz-image-commands.C)
+    ghostscript,
+    imagemagick,
+    libssh-4,
+    libsystemd0,
+    net-tools,
+    pciutils,
+    poppler-utils,
+    ruby,
+    rubygem-rb-inotify,
+    unzip,
+# 17638: Needed for bandwidth-chk
+    tcpdump,
+# Needed for usage analytics - generate unique mezzanine id
+    dmidecode,
+# Needed for mz.installer.rb
+    rubygem-mz-config-parser,
+#
+#
+# yobuild11 dependencies
+#
+#
+    oblong-yobuild11-glib-networking,
+# use system graphicsmagick if new enough; see yobuild11/yobuild-ubu12-example.sh
+    oblong-yobuild11-graphicsmagick | graphicsmagick (>= 1.3.21),
+    libimage-exiftool-perl,
+    zip,
+# Needed for hardware watchdog using for example iTCO_wdt module.
+    watchdog,
+# Needed for configuration management
+    oblong-conman-server,
+    oblong-conman-node,
+    rubygem-ob-conman,
+# Needed for feature-toggle-manager
+    python-docopt,
+# Needed for autoconnect
+    oblong-autoconnect,
+# Needed for webthing
+    oblong-webthing-cef3112-gs3.99x,
+Description: Super collaboration, whiteboarding, and presentation system
+ Mezzanine is a remarkable new collaboration, whiteboarding, and presentation system
+ whose triptych of high-definition displays forms a shared workspace. Multiple
+ participants simultaneously manipulate elements on Mezzanine's displays, working via
+ the system's intuitive spatial wands, via a fluid browser-based client, and via their
+ own portable devices.
+
+Package: oblong-mezzanine5.88-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends},
+    oblong-mezzanine5.88 (= ${binary:Version}),
+    oblong-mezzanine-deps5.88-dbg,
+    oblong-ir-inertial-install-guide-gs3.99x0-dbg,
+    oblong-webthing-cef3112-gs3.99x-dbg,
+Description: debugging symbols for mezzanine
+
+Package: oblong-whiteboard5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-init5.88
+Description: Capture whiteboard contents and import into mezzanine
+ Unique application for capturing whiteboard content and importing it into the mezzanine
+ environment
+
+Package: oblong-whiteboard5.88-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends},
+    oblong-whiteboard5.88 (= ${binary:Version}),
+    oblong-mezzanine-deps5.88-dbg
+Description: debugging symbols for whiteboard
+
+Package: oblong-mezzanine-deps5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    autofs,
+    desktopvideo,
+    g-speak3.99,
+    g-speak-gst-plugins3.99,
+    lsb-release,
+    nfs-kernel-server,
+    oblong-obmcp,
+    oblong-mezzanine-ob-http-ctl5.88,
+    nodejs-legacy (>= 4.2) | nodejs6 (>= 6.11.2),
+    oblong-node-gelatin-gs3.99x0,
+    oblong-plasma-web-proxy-gs3.99x,
+    oblong-projects-ganglia3.99,
+    oblong-decklink-sdk,
+    monit,
+    oblong-yobuild11-gst-libav,
+    oblong-yobuild11-gst-oblong,
+    oblong-yobuild11-gst-plugins-bad,
+    oblong-yobuild11-gst-plugins-base,
+    oblong-yobuild11-gst-plugins-good,
+    oblong-yobuild11-gst-plugins-ugly,
+    oblong-yobuild11-gstreamer,
+    oblong-yobuild11-gst-rtsp-server,
+    liborc-0.4-dev,
+    pulseaudio,
+    snmpd,
+    snmp-mibs-downloader,
+    syslog-ng,
+    tinywm,
+    usbutils,
+    xinit
+Description: The things Mezzanine (or whiteboard) depend on
+
+Package: oblong-mezzanine-deps5.88-dbg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-deps5.88 (= ${binary:Version}),
+    g-speak3.99-dbg,
+    g-speak-gst-plugins3.99-dbg,
+    oblong-yobuild11-gst-libav-dbg,
+    oblong-yobuild11-gst-oblong-dbg,
+    oblong-yobuild11-gst-plugins-bad-dbg,
+    oblong-yobuild11-gst-plugins-base-dbg,
+    oblong-yobuild11-gst-plugins-good-dbg,
+    oblong-yobuild11-gst-plugins-ugly-dbg,
+    oblong-yobuild11-gstreamer-dbg,
+    oblong-yobuild11-gst-rtsp-server-dbg,
+    liborc-0.4-dev,
+Description: Debug symbols for the things Mezzanine (or whiteboard) depend on
+
+Package: oblong-mezzanine-lightbox5.88
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         g-speak3.99,
+         oblong-webthing-cef3112-gs3.99x,
+Description: lightbox cross screen visual synchronizer
+ lightbox enables content to be dragged between lightbox
+ instances as well as some other g-speak applications.
+ the content can be resized, rotated, and moved
+ using any or all of oblongs current gestural input mechanisms.
+ additional interaction can also come through the oblong ios
+ pointing application.
+
+Package: oblong-mezzanine-lightbox5.88-dbg
+Section: non-free/debug
+Architecture: any
+Depends: oblong-mezzanine-lightbox5.88 (= ${binary:Version}),
+         g-speak3.99-dbg,
+         oblong-webthing-cef3112-gs3.99x-dbg,
+Description: debug symbols for lightbox cross screen visual synchronizer
+ lightbox enables content to be dragged between lightbox
+ instances as well as some other g-speak applications.
+ the content can be resized, rotated, and moved
+ using any or all of oblongs current gestural input mechanisms.
+ additional interaction can also come through the oblong ios
+ pointing application.
+
+Package: oblong-mezzanine-extras5.88
+Architecture: any
+Depends: oblong-sedutil,
+    oblong-weave,
+    oblong-yobuild11-iperf,
+    oblong-projects-inogeni3.99,
+    oblong-inogeni-fw-gs3.99x,
+Description: Tools and misc packages needed by Mezzanine appliances
+
+Package: oblong-mezzanine-full5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine5.88,
+    oblong-mezzanine-extras5.88,
+    oblong-mezzanine-lightbox5.88,
+    oblong-mezzanine-admin-web5.88,
+    oblong-mezzanine-kipple5.88,
+    oblong-mezzanine-screencast-provisioner5.88,
+    oblong-mezzanine-screenshare-provisioner5.88,
+    oblong-mip5.88,
+    oblong-mzreach-www5.88,
+    oblong-rtsp-viddle-server3.99,
+    oblong-whiteboard5.88,
+# adding arandr and x11vnc dependencies bacause xlayoutsetup.sh
+    arandr,
+    x11vnc
+Description: Mezzanine with all the trimmings
+
+Package: oblong-mezzanine-full5.88-dbg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-full5.88 (= ${binary:Version}),
+    oblong-mezzanine5.88-dbg,
+    oblong-mezzanine-lightbox5.88-dbg,
+    oblong-rtsp-viddle-server3.99-dbg,
+    oblong-whiteboard5.88-dbg
+Description: Debug symbols for Mezzanine with all the trimmings
+
+Package: oblong-mezzanine-appliance5.88
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-full5.88,
+    oblong-mezzanine-plymouth5.88,
+    oblong-intrackx,
+    oblong-perception-appliance-ultrasonic-gs3.99x,
+    xserver-xorg,
+Description: Mezzanine with all the trimmings and appliance extras
+
+Package: oblong-mezzanine-appliance5.88-dbg
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+    oblong-mezzanine-appliance5.88 (= ${binary:Version}),
+    oblong-mezzanine-full5.88-dbg
+Description: Debug symbols for Mezzanine with all the trimmings and appliance extras

@@ -375,7 +375,18 @@ $sed -i \
     -e "1,/STOP-SUBSTITUTION/ s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
     debian/control \
-    $(ls debian/*.install debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
+    $(ls \
+      debian/.gitignore \
+      debian/*.alternatives \
+      debian/*.install \
+      debian/*.lintian-overrides \
+      debian/*.postinst \
+      debian/*.postrm \
+      debian/*.preinst \
+      debian/*.prerm \
+      debian/*.service \
+      debian/*.upstart \
+      2>/dev/null) \
     #
 
 # Only want to change 1st line of changelog
@@ -389,26 +400,70 @@ $sed -i \
     debian/changelog \
     #
 
-# Update the version number in all instances of the above filenames in the debian directory
-# (to the tune of http://www.nytimes.com/2010/10/04/arts/television/04lesser.html )
+# Update the version numbers in all instances of the above filenames in the debian directory
 moved=false
 for from in \
-    debian/*oblong-yobuild[1-9]*.install \
-    debian/*oblong-yobuild[1-9]*.postinst \
-    debian/*oblong-yobuild[1-9]*.prerm \
-    debian/*oblong-*-gs*[1-9].[0-9]*.install \
-    debian/*oblong-*-gs*[1-9].[0-9]*.lintian-overrides \
-    debian/*oblong-*-gs*[1-9].[0-9]*.postinst \
-    debian/*oblong-*-gs*[1-9].[0-9]*.prerm \
-    debian/*oblong-*-gs*[1-9].[0-9]*.upstart \
-    debian/*oblong-*-gs*[1-9].[0-9]*.service \
-    debian/*oblong-staging[1-9].[0-9]*.install \
-    debian/*oblong-staging-gh*[1-9].[0-9]*.install \
+    debian/*.alternatives \
+    debian/*.install \
+    debian/*.lintian-overrides \
+    debian/*.postinst \
+    debian/*.postrm \
+    debian/*.preinst \
+    debian/*.prerm \
+    debian/*.service \
+    debian/*.upstart \
     #
 do
     if test -f "$from"
     then
-        to="$(echo "$from" | $sed "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs$suffix${gspeak_version}x${version_major}/;s/oblong-staging\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/;s/-cef[1-9][0-9]*/-${cefbranch}/;s/yobuild[0-9]*/yobuild$YOVERSION/")"
+        # Traditional g-speak package names (like oblong-staging or oblong-loam) need special handling.
+        # These packages can be recognized as follows:
+        # - they contain the words oblong or g-speak
+        # - they do not contain two embedded version numbers
+        # - they do not contain the patterns -gs[1-9] or -gs-gh[0-9]
+        # - they do not contain the patterns mezzanine, ob-http-ctl, oblong-mip, oblong-mzreach,
+        #   oblong-whiteboard, or oblong-ir-inertial-admin-applications
+        if echo "$from" | grep -qE -e 'oblong|g-speak' &&
+           ! echo "$from" | grep -qE -e '[0-9].*[-a-z].*[0-9]' &&
+           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-gh[0-9]' &&
+           ! echo "$from" | grep -qE -e 'mezzanine|ob-http-ctl|oblong-mip|oblong-mzreach|oblong-whiteboard|oblong-ir-inertial-admin-applications' \
+           #
+        then
+           # It's a traditional g-speak package name.  The only number
+           # in it is the g-speak version number, and it is at the end.
+           traditional_gspeak_pkg=$(basename "$from" | sed -e 's/[0-9].*//' -e 's/-gh//')
+        else
+           traditional_gspeak_pkg=xyzzy-no-match
+        fi
+
+        # Traditional mezzanine package names need special handling, but only if we're changing the mezzanine version.
+        # These packages can be recognized as follows:
+        # - they contain the patterns mezzanine, ob-http-ctl, oblong-mip, oblong-mzreach,
+        #   oblong-whiteboard, or oblong-ir-inertial-admin-applications
+        # - they do not contain two embedded version numbers
+        # - they do not contain the patterns -gs[1-9] or -gs-gh[0-9]
+        # - they do not contain the word g-speak
+        if test "$mezz_version" != "" &&
+           echo "$from" | grep -qE -e 'mezzanine|ob-http-ctl|oblong-mip|oblong-mzreach|oblong-whiteboard|oblong-ir-inertial-admin-applications' &&
+           ! echo "$from" | grep -qE -e '[0-9].*[-a-z].*[0-9]' &&
+           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-gh[0-9]' &&
+           ! echo "$from" | grep -qE -e 'g-speak' \
+           #
+        then
+           # It's a traditional mezzanine package name.  The only number
+           # in it is the mezzanine version number, and it is at the end.
+           traditional_mezz_pkg=$(basename "$from" | sed -e 's/[0-9].*//')
+        else
+           traditional_mezz_pkg=xyzzy-no-match
+        fi
+
+        to="$(echo "$from" | $sed \
+           -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
+           -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
+           -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
+           -e "s/-cef[1-9][0-9]*/-${cefbranch}/;s/yobuild[0-9]*/yobuild$YOVERSION/" \
+          #
+        )"
         if test "$from" != "$to"
         then
             # Leave GITCMD empty when just building, set it to git when renaming in anger
@@ -418,6 +473,8 @@ do
         fi
     fi
 done
+
+# FIXME: can this be simplified as the file renames were?
 
 # Don't do (most) mezzanine version processing unless explicitly called for
 if test "$mezz_version" != ""
@@ -464,9 +521,6 @@ then
     oblong-whiteboard2.7
   "
 
-  # Full list of all suffixes of files in debian subdirectory that might need renaming
-  debsuffices="install lintian-overrides preinst prerm postinst postrm lintian-overrides service upstart"
-
   # About STOP-SUBSTITUTION:
   # The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
   # so that it will uninstall the old mezzanine before a new one is installed.
@@ -474,73 +528,18 @@ then
   # There is a special line in debian/control with the string STOP-SUBSTITUTION
   # which tells sed below to stop there.
 
-  # Assume we don't need to handle -dbg packages separately, they 'never' have control files
+  # Assume we don't need to handle -dbg packages separately
   for package in $packages
   do
       # Update the version number in all instances of the above packages
       # in file bodies in the debian directory
-      from=$(echo $package | $sed 's/2.7/[1-9].[0-9][0-9]*/')
-      to=$(echo $package | $sed "s/2.7/$mezz_version/")
+      from=$(echo "$package" | $sed 's/2.7/[1-9].[0-9][0-9]*/')
+      to=$(echo "$package" | $sed "s/2.7/$mezz_version/")
       $sed -i \
           -e "1,/STOP-SUBSTITUTION/ s/$from/$to/g" \
           debian/control debian/rules debian/changelog debian/.gitignore \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
           #
-
-      # Update the version number in all instances of the above filenames in the debian directory
-      for debsuffix in $debsuffices
-      do
-       # Get possible service-specific filenames (only need to check if debsuffix is service or init or upstart, but overkill is fine)
-       # This is hard because there's no way to list service names, we have to discover them
-       files=""
-       # First, construct RE matching the base package name:
-       fromleft=$(echo "$package" | $sed 's/2.7/[1-9]\.[0-9]*/')
-       # Then loop over service names found for that base package name and this debsuffix, appending full filename to list... but with 2.7 for mezz version
-       for service in $(cd debian; ls | grep "^$fromleft\\..*\\.$debsuffix\$" 2> /dev/null | sed "s,^$fromleft\\.,,;s,\\.$debsuffix,," | sort -u)
-       do
-           files="$files $package.$service.$debsuffix"
-       done
-       # Plain old filename
-       files="$files $package.$debsuffix"
-       # files is now a complete set of probable (possibly service-specific) filenames for this package with 2.7 instead of mezzanine version number
-
-       # Now loop over the files and rename them to match current mezzanine version number
-       for file in $files
-       do
-        # file globs not sufficient, we need regexp to avoid matching garbage after version number
-        from=$(echo "$file" | $sed 's/2.7/[1-9]\.[0-9][0-9]*/')
-        if ! from=$(cd debian; ls | grep "^$from")
-        then
-            continue
-        fi
-        if test $(echo "$from" | wc -w) -ne 1
-        then
-            echo "Alas, there are more than one file matching debian/$from.  There can be only one.  Try git clean?"
-            exit 1
-        fi
-        to=$(echo "$file" | $sed "s/2.7/$mezz_version/")
-        if test debian/$from != debian/$to && test -f debian/$from
-        then
-            $GITCMD mv debian/$from debian/$to
-            moved=true
-            movedcmd="mv $from $to"
-        fi
-       done
-      done
-  done
-
-  # FIXME: we should stop modifying files outside of debian here
-  for file in \
-    debian/rules \
-    projects/mezzanine/MezzanineVersion.h \
-    #
-  do
-    if test -f $file
-    then
-      $sed -i \
-        -e 's/MEZZANINE_VERSION *= *"[1-9].[0-9]*"/MEZZANINE_VERSION = "'$mezz_version'"/' \
-        $file
-    fi
   done
 fi
 

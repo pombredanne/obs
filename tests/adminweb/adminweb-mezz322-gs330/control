@@ -1,0 +1,76 @@
+Source: oblong-mezzanine-admin-web3.22
+Section: non-free/misc
+Priority: extra
+Maintainer: buildtools <buildtools@oblong.com>
+Standards-Version: 3.8.3
+Homepage: http://oblong.com
+Build-Depends: debhelper (>= 7),
+    dh-systemd (>= 1.20),
+# Note that nodejs6 includes npm:
+    nodejs6 (>= 6.11.2) | npm (>= 3.5.2),
+    rsync,
+
+Package: oblong-mezzanine-admin-web3.22
+Architecture: any
+Depends: ${misc:Depends},
+    ntpdate,
+    oblong-appup,
+    oblong-ir-inertial-admin-applications3.22,
+    oblong-mezzanine-ob-http-ctl3.22,
+    oblong-mip3.22,
+    oblong-obmcp,
+    oblong-plasma-web-proxy-gs3.30x,
+    opensaml2-tools,
+    ruby (>= 1:1.9.3.4),
+    rubygem-erubis,
+    rubygem-mezzanine-samltools,
+    rubygem-mezz-ldap,
+    rubygem-mezz-logger,
+    rubygem-nokogiri,
+    rubygem-ob-conman,
+    rubygem-rack-csrf,
+    rubygem-sinatra-packrat,
+    rubygem-uuid,
+Breaks: ${old-deps:AdminWebModules}
+Replaces: ${old-deps:AdminWebModules}
+Description: Mezzanine admin server
+
+Package: oblong-perception-admin-web-gs3.30x
+Architecture: any
+Depends: ${misc:Depends},
+    oblong-appup,
+    oblong-obmcp,
+    oblong-plasma-ruby3.30,
+    oblong-plasma-web-proxy-gs3.30x,
+    rubygem-erubis,
+    rubygem-mezz-logger,
+    rubygem-ob-conman,
+    rubygem-rack-csrf,
+    rubygem-sinatra-packrat,
+    rubygem-thin,
+Provides: oblong-perception-admin-web
+Breaks: oblong-perception-admin-web, ${old-deps:AdminWebModules}
+        oblong-perception-admin-web-gs3.27x0, ${SKIP-SUBSTITUTION}
+Replaces: oblong-perception-admin-web, ${old-deps:AdminWebModules}
+          oblong-perception-admin-web-gs3.27x0, ${SKIP-SUBSTITUTION}
+Description: perception server web admin application
+
+Package: oblong-ultrasonic-perception-admin-web-gs3.30x
+Architecture: any
+Depends: ${misc:Depends},
+    oblong-appup,
+    oblong-obmcp,
+    oblong-plasma-ruby3.30,
+    oblong-plasma-web-proxy-gs3.30x,
+    rubygem-erubis,
+    rubygem-ob-conman,
+    rubygem-sinatra-packrat,
+    rubygem-systemd-journal,
+    rubygem-thin,
+Provides: oblong-ultrasonic-perception-admin-web
+Breaks: oblong-ultrasonic-perception-admin-web, ${old-deps:AdminWebModules}
+        oblong-ultrasonic-perception-admin-web-gs3.27x0, ${SKIP-SUBSTITUTION}
+Replaces: oblong-ultrasonic-perception-admin-web, ${old-deps:AdminWebModules}
+          oblong-ultrasonic-perception-admin-web-gs3.27x0, ${SKIP-SUBSTITUTION}
+Description: perception server web admin application
+

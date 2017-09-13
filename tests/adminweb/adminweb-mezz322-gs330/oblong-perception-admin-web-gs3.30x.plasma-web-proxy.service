@@ -1,0 +1,14 @@
+[Unit]
+Description=Plasma web proxy
+After=network-online.target
+Requires=ir-inertial-perception-pool-setup.service
+After=ir-inertial-perception-pool-setup.service
+
+[Service]
+Type=simple
+PIDFile=/run/plasma-web-proxy.pid
+ExecStart=/usr/bin/plasma-web-proxy --port 8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

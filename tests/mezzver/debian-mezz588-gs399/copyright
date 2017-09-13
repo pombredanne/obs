@@ -1,0 +1,23 @@
+This work was packaged for Debian by:
+
+    buildtools <buildtools@oblong.com> on Wed, 28 Sep 2011 11:00:23 -0700
+
+It was downloaded from <url://example.com>
+
+Upstream Author(s):
+
+    Oblong Industries, Inc 
+
+Copyright:
+
+    Copyright (C) 2011 Oblong Industies, Inc
+
+License:
+
+    Commercial/Proprietary
+
+The Debian packaging is:
+
+    Copyright (C) 2011 buildtools <buildtools@oblong.com>
+
+and is licensed under a commercial/proprietary license (http://oblong.com)
