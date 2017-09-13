@@ -18,6 +18,12 @@
     echo "ob-set-defaults --g-speak 3.30 did not give expected result on mezzanine"
     exit 1
   fi
+  ob-set-defaults --mezz 3.22
+  if ! diff -ur debian-mezz322-gs330 debian
+  then
+    echo "ob-set-defaults --mezz 3.22 did not give expected result on mezzanine"
+    exit 1
+  fi
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
@@ -25,6 +31,35 @@
   if ! diff -ur debian-mezz588-gs399 debian
   then
     echo "ob-set-defaults --g-speak 3.99 --mezz 5.88 did not give expected result on mezzanine"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a debian-mezz322-gs330 debian
+  ob-set-defaults --mezz 5.88 --g-speak 3.99
+  if ! diff -ur debian-mezz588-gs399 debian
+  then
+    echo "ob-set-defaults --mezz 5.88 --g-speak 3.99 did not give expected result on mezzanine"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a debian-mezz322-gs330 debian
+  ob-set-defaults --g-speak 3.99
+  ob-set-defaults --mezz 5.88
+  if ! diff -ur debian-mezz588-gs399 debian
+  then
+    echo "ob-set-defaults --g-speak 3.99; ob-set-defaults --mezz 5.88 did not give expected result on mezzanine"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a debian-mezz322-gs330 debian
+  ob-set-defaults --mezz 5.88
+  ob-set-defaults --g-speak 3.99
+  if ! diff -ur debian-mezz588-gs399 debian
+  then
+    echo "ob-set-defaults --mezz 5.88; ob-set-defaults --g-speak 3.99 did not give expected result on mezzanine"
     exit 1
   fi
 
@@ -39,6 +74,12 @@
   if ! diff -ur adminweb-mezz322-gs330 debian
   then
     echo "ob-set-defaults --g-speak 3.30 did not give expected result on admin-web"
+    exit 1
+  fi
+  ob-set-defaults --mezz 3.22
+  if ! diff -ur adminweb-mezz322-gs330 debian
+  then
+    echo "ob-set-defaults --mezz 3.22 did not give expected result on admin-web"
     exit 1
   fi
 
