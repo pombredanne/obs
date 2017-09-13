@@ -98,6 +98,41 @@
   cd ..
 }
 
+@test "greenhousever" {
+  # Verify ob-set-defaults --greenhouse
+
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+
+  cd greenhousever
+
+  rm -rf debian
+  cp -a greenhouse-gs41 debian
+  ob-set-defaults --g-speak 4.1
+  if ! diff -ur greenhouse-gs41 debian
+  then
+    echo "ob-set-defaults --g-speak 4.1 did not give expected result on greenhouse"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a greenhouse-gs41 debian
+  ob-set-defaults --g-speak 4.1 --greenhouse
+  if ! diff -ur greenhouse-gs41-gh debian
+  then
+    echo "ob-set-defaults --g-speak 4.1 --greenhouse did not give expected result on greenhouse"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+
+  cd ..
+}
+
+
 @test "obs-artifact" {
   rm -rf obs-artifact.tmp
   mkdir obs-artifact.tmp

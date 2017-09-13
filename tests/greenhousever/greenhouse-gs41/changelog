@@ -1,0 +1,31 @@
+oblong-greenhouse-gs4.1x (4.1.0) xenial; urgency=low
+
+  * Bug 13955: reproducible builds
+    Timestamp all packaged files with SOURCE_DATE_EPOCH
+    (set by debhelper from date in debian/changelog)
+
+ -- Dan Kegel <dank@oblong.com>  Wed, 14 Jun 2017 20:54:54 -0700
+
+oblong-greenhouse-gs3.31x (3.31.0) trusty; urgency=low
+
+  * 0.4.51: support yobuild10
+
+ -- Dan Kegel <dank@oblong.com>  Wed, 05 Nov 2014 08:54:26 -0800
+
+oblong-greenhouse-gs3.31x (0.4.36) lucid; urgency=low
+
+  * 0.4.36 release: support g-speak 3.14
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 08 Apr 2014 12:11:54 -0700
+
+oblong-greenhouse-gs3.31x (0.4.20) lucid; urgency=low
+
+  * seedpod works now; updated radiology with new Makefile.
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 13 Aug 2013 17:14:38 -0700
+
+oblong-greenhouse-gs3.31x (0.4.18) lucid; urgency=low
+
+  * Initial release.
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 13 Aug 2013 12:29:16 -0700
