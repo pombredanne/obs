@@ -6,6 +6,10 @@
   # Get access to uncommitted ob-set-default and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
+  # Kludge: pass on raspberry pi
+  BITS=$(getconf LONG_BIT)
+  sed -i "s/deps-64-/deps-${BITS}-/" tests/*/*/rules
+
   cd tests
 
   cd mezzver
