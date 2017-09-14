@@ -1,0 +1,6 @@
+debhelper-build-stamp
+files
+*.substvars
+tmp
+oblong-greenhouse-*x-dbg/
+oblong-greenhouse-*x/

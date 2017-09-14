@@ -362,7 +362,9 @@ $sed -i \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-samples\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "1,/STOP-SUBSTITUTION/ s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
     -e "1,/STOP-SUBSTITUTION/ s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
     -e "1,/STOP-SUBSTITUTION/ s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
@@ -386,6 +388,17 @@ $sed -i \
       debian/*.prerm \
       debian/*.service \
       debian/*.upstart \
+      2>/dev/null) \
+    #
+
+# Special case for greenhouse-ish paths in files with bare paths
+# Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
+PREFIX_NOSLASH=$(echo $PREFIX | sed 's,^/,,')
+$sed -i \
+    -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
+    -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
+    $(ls \
+      debian/*.install \
       2>/dev/null) \
     #
 

@@ -1,0 +1,99 @@
+Source: oblong-greenhouse-gs4.1x
+Section: non-free/oblong
+Priority: extra
+Maintainer: Dan Kegel <buildtools@oblong.com>
+Build-Depends: debconf,
+## Boilerplate build dependencies first, in alphabetical order
+               debhelper (>= 7.0.50~),
+##  If ubuntu >= 15.04, pull in dh-systemd
+               dh-systemd (>= 1.20) | libc6 (<< 2.20),
+##  If ubuntu >= 16.04, pull in spruce, for precommit hook
+               oblong-spruce | libc6 (<< 2.23),
+##  Prefer yobuild's cmake, but accept system's cmake if new enough
+               oblong-yobuild11-cmake | cmake (>= 3.5.1),
+##  We default to building with ninja
+               ninja-build,
+##  If ubuntu >= 16.04, pull in strip-nondeterminism, for reproducible builds
+               strip-nondeterminism | libc6 (<< 2.23),
+# Project-specific build dependencies, in alphabetical order:
+               doxygen,
+               graphviz,
+               g-speak4.1,
+# libffi and libselinux only needed for -gh builds, and only on
+# ubu15+, and only with yobuild11?  Pulled in by system gio-2.0.pc.
+# Shouldn't hurt to always have them.  See issue 22.
+               libffi-dev,
+               libselinux1-dev,
+               libssl-dev,
+               libxinerama-dev,
+# Some things aren't available on Raspberry Pi, and aren't needed there anyway...
+               oblong-decklink-sdk-static | libraspberrypi-bin,
+               oblong-staging4.1,
+# we build samples, so samples build dependencies go here, too
+         oblong-plasma-zeroconf4.1,
+         libmagick++-dev,
+# The nvidia driver package in ubuntu/lucid has an issue that will make
+# built packages that use GL depend on nvidia-current. This is wrong, so
+# I use shlibs.local to force the correct dependency. This file is a link to the
+# one in libgl1-mesa-glx packages, so that MUST exist. See
+# https://answers.launchpad.net/ubuntu/+source/nvidia-graphics-drivers/+question/166830
+               libgl1-mesa-glx,
+Standards-Version: 3.8.4
+Homepage: http://greenhouse.oblong.com
+Vcs-Git: ssh://git.oblong.com/ob/git/repo/sandbox.git
+Vcs-Browser: https://git.oblong.com/cgit.cgi/sandbox/
+
+Package: oblong-greenhouse-gs4.1x
+Section: non-free/devel
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends},
+# needed by core, but not pulled in by dh_shlibdeps
+         oblong-projects-tile-daemon4.1,
+# only needed by the static build for the .h files
+         oblong-afferent4.1,
+         oblong-basement4.1,
+         oblong-impetus4.1,
+         oblong-loam++4.1,
+         oblong-media4.1,
+         oblong-noodoo4.1,
+         oblong-plasma++4.1,
+         oblong-staging4.1,
+# The samples need a few more packages than greenhouse.so does
+         oblong-plasma-zeroconf4.1,
+         oblong-system-protist4.1,
+         libmagick++-dev,
+# We have to link against -lXinerama, and because of
+# http://fedoraproject.org/wiki/UnderstandingDSOLinkChange, downstream
+# users must, too.  So pull that in for them.
+         libxinerama-dev,
+Conflicts: oblong-greenhouse
+Replaces: oblong-greenhouse
+Description: oblong's creative coding spatial environment
+ Quick way to get into a groove with spatial-aware creative coding
+
+Package: oblong-greenhouse-gs4.1x-dbg
+Conflicts: oblong-greenhouse-dbg
+Replaces: oblong-greenhouse-dbg
+Section: non-free/devel
+Architecture: any
+Depends: oblong-greenhouse-gs4.1x
+Description: Debug symbols for Oblong Greenhouse
+ If you run into trouble with greenhouse, install this for mo better backtraces.
+
+Package: oblong-greenhouse-hantenna-gs4.1x
+Section: non-free/devel
+Architecture: any
+Depends: oblong-greenhouse-gs4.1x, oblong-gloveless-gs4.1x
+Conflicts: oblong-greenhouse-hantenna
+Replaces: oblong-greenhouse-hantenna
+Description: greenhouse plus input device support
+ Adds gestural camera support
+
+Package: oblong-greenhouse-hantenna-gs4.1x-dbg
+Section: non-free/devel
+Architecture: any
+Depends: oblong-greenhouse-hantenna-gs4.1x
+Conflicts: oblong-greenhouse-hantenna-dbg
+Replaces: oblong-greenhouse-hantenna-dbg
+Description: Debug symbols for Oblong Greenhouse and its input devices
+ If you run into trouble with greenhouse's input devices, install this for mo betta backtraces.
