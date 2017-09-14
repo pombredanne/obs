@@ -1,0 +1,15 @@
+[Unit]
+Description=Disaster
+Requires=ob-x11-dm.service oblong-poolserver.service
+After=ob-x11-dm.service oblong-poolserver.service
+PartOf=oblong.target
+
+[Service]
+EnvironmentFile=/etc/oblong/site.conf
+Environment=PULSE_RUNTIME_PATH=/tmp/pulse-oblong
+ExecStart=/opt/oblong/astor/bin/disaster --room-pool=disaster-sync --config=${DISASTER_CONFIG} --site=${SITE_PROTEIN} --room=${ROOM_PROTEIN} ${SCREEN_PROTEIN} ${FELD_PROTEIN}
+User=oblong
+TimeoutStopSec=1
+
+[Install]
+WantedBy=oblong.target

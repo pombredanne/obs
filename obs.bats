@@ -1,5 +1,6 @@
 #!/usr/bin/env bats
 
+# FIXME: make the ob-set-defaults test data-driven and shorter
 @test "mezzver" {
   # Verify that setting g-speak version does not set mezzanine version
 
@@ -133,6 +134,20 @@
   rm -rf debian
   cd ..
 
+  cd disasterver
+
+  rm -rf debian
+  cp -a disasterver-gs328 debian
+  # have to use --major because test is not tagged same as original repo
+  ob-set-defaults --g-speak 4.1 --major 1
+  if ! diff -ur disasterver-gs41 debian
+  then
+    echo "ob-set-defaults --g-speak 4.1 did not give expected result on disaster"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
   cd ..
 }
 

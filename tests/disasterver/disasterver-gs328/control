@@ -1,0 +1,42 @@
+Source: oblong-disaster-gs3.28x1
+Section: non-free/oblong
+Priority: extra
+Maintainer: Dan Kegel <buildtools@oblong.com>
+Build-Depends: debconf,
+## Boilerplate build dependencies first, in alphabetical order
+               debhelper (>= 7.0.50~),
+##  If ubuntu >= 15.04, pull in dh-systemd
+               dh-systemd (>= 1.20) | libc6 (<< 2.20),
+##  If ubuntu >= 16.04, pull in spruce, for precommit hook
+               oblong-spruce | libc6 (<< 2.23),
+##  Prefer yobuild's cmake, but accept system's cmake if new enough
+               oblong-yobuild11-cmake | cmake (>= 3.5.1),
+##  We default to building with ninja
+               ninja-build,
+##  If ubuntu >= 16.04, pull in strip-nondeterminism, for reproducible builds
+               strip-nondeterminism | libc6 (<< 2.23),
+# Project-specific build dependencies, in alphabetical order:
+               g-speak3.28,
+               oblong-greenhouse-gs3.28x,
+               oblong-libmosaic-gs3.28x3 (>= 3.1),
+Standards-Version: 3.8.4
+Homepage: FIXME
+Vcs-Git: FIXME
+Vcs-Browser: FIXME
+
+Package: oblong-disaster-gs3.28x1
+Section: non-free/devel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+# FIXME: shouldn't have to list greenhouse here, it should be autodetected in debian/rules by dh_shlibdeps
+         oblong-greenhouse-gs3.28x,
+Description: Watson Health Application
+ Protein-driven, naturally.
+
+Package: oblong-disaster-gs3.28x1-dbg
+Section: non-free/devel
+Architecture: any
+Depends: oblong-disaster-gs3.28x1
+Description: Debug symbols for Oblong disaster
+ If you run into trouble with disaster, install this for mo better backtraces.

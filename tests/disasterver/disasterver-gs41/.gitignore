@@ -1,0 +1,9 @@
+debhelper-build-stamp
+*.debhelper
+files
+*.substvars
+*.log
+*.bak
+tmp
+oblong-*x0-dbg/
+oblong-*x0/

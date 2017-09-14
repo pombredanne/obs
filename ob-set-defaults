@@ -400,7 +400,7 @@ $sed -i \
     $(ls \
       debian/*.install \
       2>/dev/null) \
-    #
+    || true
 
 # Only want to change 1st line of changelog
 $sed -i \
