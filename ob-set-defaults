@@ -81,11 +81,13 @@ fallback_to_classic() {
     # Adjust args to match old interface
     local verbose
     local gspeak_version
+    local cef_version
     while true
     do
        case "$1" in
        -v)         verbose=-x;;
        --g-speak)  shift; gspeak_version=$1;;
+       --cef)      shift; cef_version="--cef $1";;
        --hard)
            # makes --g-speak more emphatic and check-in-able
            # Let caller specify it via 'GITCMD=git' for backward compatibility
@@ -95,7 +97,7 @@ fallback_to_classic() {
        esac
        shift
     done
-    exec sh $verbose set-gspeak.sh "$gspeak_version" "$@"
+    exec sh $verbose set-gspeak.sh "$gspeak_version" $cef_version
 }
 
 # Let project override by defining set-gspeak.sh (as in days of yore)
