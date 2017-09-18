@@ -10,7 +10,7 @@ Build-Depends: debconf,
 ##  If ubuntu >= 16.04, pull in spruce, for precommit hook
                oblong-spruce | libc6 (<< 2.23),
 ##  Prefer yobuild's cmake, but accept system's cmake if new enough
-               oblong-yobuild11-cmake | cmake (>= 3.5.1),
+               oblong-yobuild12-cmake | cmake (>= 3.5.1),
 ##  We default to building with ninja
                ninja-build,
 ##  If ubuntu >= 16.04, pull in strip-nondeterminism, for reproducible builds
