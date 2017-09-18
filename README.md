@@ -81,9 +81,12 @@ For example, to install greenhouse and webthing, use 'obs list' to discover depe
 ```
 $ obs list | grep yobuild
 oblong-yobuild11-cef2704
+oblong-yobuild11-cef3112
 oblong-yobuild11-v8-4.2.77
 oblong-yobuild11-v8-5.2.361
+oblong-yobuild12-cef3112
 yobuild11
+yobuild12
 $ obs install yobuild11 oblong-yobuild11-cef2704
 $ obs list | egrep 'g-speak|webthing|greenhouse|staging' | grep 3.31
 g-speak3.31
