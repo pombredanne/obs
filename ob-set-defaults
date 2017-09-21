@@ -18,7 +18,7 @@ usage() {
 Usage: ob-set-defaults [options]
 Sets default generic build parameters for this project.
 Sticky options:
-  --cef branch   - which version of cef to build against (sticky)
+  --cef branch   - which version of cef to build against (sticky, but --g-speak resets to default)
   --g-speak VER  - which version of g-speak to build against (sticky)
   --mezz VER     - which version of mezzanine to build against (sticky)
 Options:
@@ -42,6 +42,9 @@ Options:
 
 --cef, --g-speak, and --mezz are 'sticky', and keep their value on next run
 even if you don't specify them again.
+
+The --g-speak option also resets cef version to the default value for that
+version of g-speak unless you also use --cef.
 
 If this command renames files in the debian directory, it will
 tell you, and remind you about the --hard option (which can save
@@ -257,8 +260,11 @@ fi
 BITS=$(getconf LONG_BIT)
 if test "$gspeak_version" = ""
 then
+    gspeak_specified=false
     # Keep old version, if any, as this is a sticky option
     gspeak_version=$(bs_get_gspeak_version)
+else
+    gspeak_specified=true
 fi
 YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
 YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
@@ -276,8 +282,10 @@ then
 fi
 if test "$cefbranch" = ""
 then
+    # --cef not specified.
     # Keep old version, if any, as this is a sticky option
-    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = ""
+    # But switch to default version if no old version, or if --g-speak was given
+    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = "" || $gspeak_specified
     then
         cefbranch=$(bs_yovo2cefversion "$gspeak_version" || true)
     fi

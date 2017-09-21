@@ -30,38 +30,40 @@
     exit 1
   fi
 
+  # FIXME: following tests are ugly because they use a future version
+  # of cef, so must explicitly specify cef.
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
-  ob-set-defaults --g-speak 3.99 --mezz 5.88
+  ob-set-defaults --g-speak 3.99 --mezz 5.88 --cef 3112
   if ! diff -ur debian-mezz588-gs399 debian
   then
-    echo "ob-set-defaults --g-speak 3.99 --mezz 5.88 did not give expected result on mezzanine"
+    echo "ob-set-defaults --g-speak 3.99 --mezz 5.88 --cef 3112 did not give expected result on mezzanine"
     exit 1
   fi
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
-  ob-set-defaults --mezz 5.88 --g-speak 3.99
+  ob-set-defaults --mezz 5.88 --g-speak 3.99 --cef 3112
   if ! diff -ur debian-mezz588-gs399 debian
   then
-    echo "ob-set-defaults --mezz 5.88 --g-speak 3.99 did not give expected result on mezzanine"
+    echo "ob-set-defaults --mezz 5.88 --g-speak 3.99 --cef 3112 did not give expected result on mezzanine"
     exit 1
   fi
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
-  ob-set-defaults --g-speak 3.99
+  ob-set-defaults --g-speak 3.99 --cef 3112
   ob-set-defaults --mezz 5.88
   if ! diff -ur debian-mezz588-gs399 debian
   then
-    echo "ob-set-defaults --g-speak 3.99; ob-set-defaults --mezz 5.88 did not give expected result on mezzanine"
+    echo "ob-set-defaults --g-speak 3.99 --cef 3112; ob-set-defaults --mezz 5.88 did not give expected result on mezzanine"
     exit 1
   fi
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
   ob-set-defaults --mezz 5.88
-  ob-set-defaults --g-speak 3.99
+  ob-set-defaults --g-speak 3.99 --cef 3112
   if ! diff -ur debian-mezz588-gs399 debian
   then
     echo "ob-set-defaults --mezz 5.88; ob-set-defaults --g-speak 3.99 did not give expected result on mezzanine"

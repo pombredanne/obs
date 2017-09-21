@@ -48,7 +48,7 @@ Build-Depends: debconf,
   oblong-mezzanine-kipple3.22,
 # pull in spruce for precommit hook
   oblong-spruce,
-  oblong-webthing-cef3112-gs3.30x,
+  oblong-webthing-cef2704-gs3.30x,
 # Note that nodejs6 includes npm:
   nodejs-legacy (>= 4.2) | nodejs6 (>= 6.11.2),
   npm (>= 3.5.2) | nodejs6 (>= 6.11.2),
@@ -138,7 +138,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends},
 # Needed for autoconnect
     oblong-autoconnect,
 # Needed for webthing
-    oblong-webthing-cef3112-gs3.30x,
+    oblong-webthing-cef2704-gs3.30x,
 Description: Super collaboration, whiteboarding, and presentation system
  Mezzanine is a remarkable new collaboration, whiteboarding, and presentation system
  whose triptych of high-definition displays forms a shared workspace. Multiple
@@ -154,7 +154,7 @@ Depends: ${misc:Depends},
     oblong-mezzanine3.22 (= ${binary:Version}),
     oblong-mezzanine-deps3.22-dbg,
     oblong-ir-inertial-install-guide-gs3.30x0-dbg,
-    oblong-webthing-cef3112-gs3.30x-dbg,
+    oblong-webthing-cef2704-gs3.30x-dbg,
 Description: debugging symbols for mezzanine
 
 Package: oblong-whiteboard3.22
@@ -231,7 +231,7 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          g-speak3.30,
-         oblong-webthing-cef3112-gs3.30x,
+         oblong-webthing-cef2704-gs3.30x,
 Description: lightbox cross screen visual synchronizer
  lightbox enables content to be dragged between lightbox
  instances as well as some other g-speak applications.
@@ -245,7 +245,7 @@ Section: non-free/debug
 Architecture: any
 Depends: oblong-mezzanine-lightbox3.22 (= ${binary:Version}),
          g-speak3.30-dbg,
-         oblong-webthing-cef3112-gs3.30x-dbg,
+         oblong-webthing-cef2704-gs3.30x-dbg,
 Description: debug symbols for lightbox cross screen visual synchronizer
  lightbox enables content to be dragged between lightbox
  instances as well as some other g-speak applications.
