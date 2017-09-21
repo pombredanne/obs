@@ -57,7 +57,7 @@ _EOF_
 # that might interest them.
 # FIXME: consider generating this automatically from 'git describe'
 # Must be integer
-OBS_VERSIONOID=90
+OBS_VERSIONOID=91
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
