@@ -20,7 +20,7 @@ fi
 opt_autoremove=${opt_autoremove:-false}
 
 # Regular expression for packages to remove
-blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps"
+blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-opencv-perl|libpdl-linearalgebra-perl|libpdl-graphics-gnuplot-perl|ob-awesomium|build-deps|depdemo"
 
 # Regular expression for packages to not remove, even though they are may be from oblong
 # The mesa/libgbm1/libxatracker2 entries are to avoid removing build products of oblong-mesa
@@ -82,6 +82,7 @@ checkfiles /etc/logrotate.d/ob-rotate-mezzanine
 checkfiles /etc/oblong/quartermaster
 checkfiles /etc/oblong/startup-commons
 checkfiles /etc/oblong/xinitrc
+checkfiles /etc/apt/sources.list.d/repobot-*oblong*.list
 
 for dir in /var/ob /etc/oblong /mnt/poolsramdisk
 do
