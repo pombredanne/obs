@@ -837,6 +837,30 @@ bs_apt_pkg_rm() {
     echo "Released lock $LOCKFILE... time is `date`"
 }
 
+# Download a set of packages and their dependencies into the current directory,
+# filtering out any not from $MASTER.  This is a bit dirty.
+# On entry:
+#    you must already have access to the right repos on $MASTER
+#    you must already have executed 'sudo apt clean'
+bs_apt_pkg_get_transitive() {
+    local filter
+    case $MASTER in
+    localhost) filter=file;;
+    *)         filter=$MASTER;;
+    esac
+
+    local expanded
+    for pkg in $(sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get install --download-only -y $* | awk '/^Get:[0-9].*:/ { print $5}')
+    do
+        if apt-cache policy $pkg | grep -w -q ${filter}
+        then
+            expanded="$expanded $pkg"
+        fi
+    done
+
+    apt-get download $expanded
+}
+
 #----------- begin upload support ---------------------------------------------------
 # Not pretty.  Needs cleaning up.
 

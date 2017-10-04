@@ -1,5 +1,38 @@
 #!/usr/bin/env bats
 
+@test "obs-apt-pkg-get-transitive" {
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  case $(cat /etc/os-release) in
+  *14.04*) gspeak=3.30;;
+  *16.04*) gspeak=4.0;;
+  *17.10*) gspeak=4.1;;
+  esac
+  yoversion=$(obs yovo2yoversion $gspeak)
+
+  if test $(uname) = Linux
+  then
+    unset MASTER
+    # Assumes we have access to the apt repo already.
+    # Download a package and its dependencies
+    # (but first uninstall them, and remove all cached previously installed
+    # packages, or the trick doesn't work)
+    sudo apt remove oblong-loam${gspeak} oblong-loam++${gspeak} || true
+    sudo apt-get clean
+    obs -v apt-pkg-get-transitive oblong-loam++${gspeak}
+
+    # Verify they were downloaded
+    for pkg in oblong-loam++${gspeak} oblong-loam${gspeak} oblong-yobuild${yoversion}-boost
+    do
+      if ! test -f ${pkg}*.deb
+      then
+	echo "FAIL: ${pkg}*.deb not found"
+      fi
+    done
+  fi
+}
+
 # FIXME: make the ob-set-defaults test data-driven and shorter
 @test "mezzver" {
   # Verify that setting g-speak version does not set mezzanine version
