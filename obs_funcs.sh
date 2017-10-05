@@ -388,6 +388,7 @@ bs_gnupg_init_insecure_unattended() {
     # Delete mercilessly now because rm -rf $bs_repotop doesn't delete $GNUPGHOME
     gpgconf --kill gpg-agent || true
     rm -rf "$GNUPGHOME"
+    ls -la "$HOME"/.gnupg || true
     cp -a "$HOME"/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
     bs_append_to_file no-tty "$gpgconf"
     bs_append_to_file batch  "$gpgconf"
