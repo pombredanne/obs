@@ -849,8 +849,18 @@ bs_apt_pkg_get_transitive() {
     *)         filter=$MASTER;;
     esac
 
+    # It is risky to parse verbose tool output, but I dunno where else to get the info.
+    # Ubuntu 14.04: Get:1 http://buildhost4.oblong.com/repobot/rel-trusty/apt/ trusty/non-free oblong-loam3.30 amd64 3.30.12-0 [74.0 kB]
+    # Ubuntu 16.04: Get:2 http://buildhost4.oblong.com/repobot/rel-xenial/apt/ xenial/non-free amd64 oblong-loam3.30 3.30.12-0 [74.0 kB]
+    local field
+    case $_os in
+    ubu1404)
+       field=4;;
+    *) field=5;;
+    esac
+
     local expanded
-    for pkg in $(sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get install --download-only -y $* | awk '/^Get:[0-9].*:/ { print $5}')
+    for pkg in $(sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get install --download-only -y $* | awk '/^Get:[0-9].*:/ { print $'$field'}')
     do
         if apt-cache policy $pkg | grep -w -q ${filter}
         then
