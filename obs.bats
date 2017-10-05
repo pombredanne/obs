@@ -30,6 +30,8 @@
 	echo "FAIL: ${pkg}*.deb not found"
       fi
     done
+    # Delete it, or it'll get uploaded!
+    rm *.deb
   fi
 }
 
