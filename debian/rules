@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
 # Workaround to avoid clash during 'localbuild.sh build nobuild'
-BS_GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.alt.tmp
+BS_GNUPGHOME=/tmp/obs_localbuild_gpghome_$(LOGNAME).alt.tmp
 export BS_GNUPGHOME
 
 # Uncomment this to turn on verbose mode.

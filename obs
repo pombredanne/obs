@@ -114,6 +114,7 @@ apt_server_init)       bs_apt_server_init "$@";;
 apt_pkg_gen)           bs_apt_pkg_gen "$@";;
 apt_pkg_add)           bs_apt_pkg_add "$@";;
 apt_pkg_rm)            bs_apt_pkg_rm "$@";;
+apt_pkg_get_transitive) bs_apt_pkg_get_transitive "$@";;
 sudo)                  sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" "$@";;
 run)                   "$@";;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
