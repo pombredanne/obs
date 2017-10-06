@@ -577,7 +577,7 @@ bs_apt_server_add() {
         sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key
     fi
 
-    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q update
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q -q update
 }
 
 # Undo bs_apt_server_add
@@ -702,10 +702,12 @@ _EOF_
         bs_apt_pkg_gen obs-hello-${section} 0.0.1 $section
         for suite in $apt_suites
         do
-            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb
+            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb > /tmp/reprepro.log.$$
             then
+               cat /tmp/reprepro.log.$$
                bs_abort "reprepro includedeb failed"
             fi
+            rm /tmp/reprepro.log.$$
         done
         rm obs-hello-${section}_0.0.1_*.deb
     done
@@ -764,7 +766,7 @@ bs_apt_pkg_add() {
     then
         bs_abort "Could not aquire lock $LOCKFILE"
     fi
-    echo "Acquired lock $LOCKFILE... time is `date`"
+    #echo "Acquired lock $LOCKFILE... time is `date`"
 
     # Whew.  All that sanity checking, and the payload is just one line.
 
@@ -774,7 +776,7 @@ bs_apt_pkg_add() {
         # Remove the previous version of these packages to avoid dreaded
         # "Already existing files can only be included again, if they are the same, but..."
         # at least for dev builds, so people can force builds after an iz change.
-        reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames
+        reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames > /dev/null
         ;;
     esac
 
@@ -828,11 +830,11 @@ bs_apt_pkg_rm() {
 
     local LOCKFILE=$apt_archive_root/reprepro.lock
 
-    echo "Acquiring lock $LOCKFILE... time is `date`"
+    #echo "Acquiring lock $LOCKFILE... time is `date`"
     (
     reprepro -Vb $apt_archive_root remove $apt_suite $@
     ) 9>$LOCKFILE
-    echo "Released lock $LOCKFILE... time is `date`"
+    #echo "Released lock $LOCKFILE... time is `date`"
 }
 
 # Download a set of packages and their dependencies into the current directory,
