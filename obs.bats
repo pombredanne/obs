@@ -20,7 +20,7 @@
     # packages, or the trick doesn't work)
     sudo apt remove oblong-loam${gspeak} oblong-loam++${gspeak} || true
     sudo apt-get clean
-    obs -v apt-pkg-get-transitive oblong-loam++${gspeak}
+    obs apt-pkg-get-transitive oblong-loam++${gspeak}
 
     # Verify they were downloaded
     for pkg in oblong-loam++${gspeak} oblong-loam${gspeak} oblong-yobuild${yoversion}-boost
@@ -230,10 +230,10 @@
   export bs_repotop=/tmp/obs-upload-test.dir
   echo "hello" > snort.dat
   tar -czf snort.tar.gz snort.dat
-  ./obs -v upload obs-upload-test 1 0 0 snort.tar.gz
+  ./obs upload obs-upload-test 1 0 0 snort.tar.gz
   mv snort.dat snort.dat.orig
   rm snort.tar.gz
-  ./obs -v download obs-upload-test
+  ./obs download obs-upload-test
   tar -xzvf snort.tar.gz
   if ! cmp snort.dat snort.dat.orig
   then
@@ -251,10 +251,10 @@
   export bs_repotop=/tmp/obs-upload-test.dir
   echo "hello" > snort.dat
   tar -czf snort.tar.gz snort.dat
-  ./obs -v upload obs-upload-test 1 0 0 snort.tar.gz
+  ./obs upload obs-upload-test 1 0 0 snort.tar.gz
   mv snort.dat snort.dat.orig
   rm snort.tar.gz
-  ./obs -v download obs-upload-test
+  ./obs download obs-upload-test
   tar -xzvf snort.tar.gz
   if ! cmp snort.dat snort.dat.orig
   then
@@ -287,7 +287,7 @@
   cd tmp.tmp
     date > snortifact.dat
     tar -czf snortifact.tar.gz snortifact.dat
-    ../obs -v upload obs-upload-test 1 0 0 snortifact.tar.gz
+    ../obs upload obs-upload-test 1 0 0 snortifact.tar.gz
     if ! cmp snortifact.tar.gz $bs_repotop/$BS_FORCE_BUILDTYPE/builds/$expected_subdir/snortifact.tar.gz
     then
       echo "snortifact.tar.gz not uploaded where we expected it"

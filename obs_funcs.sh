@@ -444,9 +444,9 @@ _EOF_
     # used until later.
     # We could add a runtime dependency on reprepro in debian/control, but then
     # the bootstrap check in bs_funcs.sh would need to do apt-get install -f.
-    if ! reprepro --version
+    if ! reprepro --version > /dev/null 2>&1
     then
-        sudo apt-get install -y reprepro
+        sudo apt-get install -q -y reprepro
     fi
 
     if gpg --version | head -n 1 | grep ' 2\.' > /dev/null
@@ -569,7 +569,7 @@ bs_apt_server_add() {
             line="deb [arch=$dpkgarch $livedangerously] http://$host/$dir $_apt_codename main non-free"
             ;;
         esac
-        echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list"
+        echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list" > /dev/null
     done
 
     if test "$key" != "none"
@@ -577,7 +577,7 @@ bs_apt_server_add() {
         sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key
     fi
 
-    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q update
 }
 
 # Undo bs_apt_server_add
@@ -597,8 +597,8 @@ bs_apt_server_rm() {
         sudo rm -f $sources_list_d/repobot-$host-*.list
         ;;
     esac
-    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get clean
-    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get update
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q clean
+    sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q update
 }
 
 # Create a package $1 with version $2 claiming to be in section $3
@@ -691,9 +691,9 @@ _EOF_
     done
 
     # We don't usually like installing these on the fly, but it makes bootstrapping easier
-    if ! reprepro --version
+    if ! reprepro --version > /dev/null 2>&1
     then
-        sudo apt-get install -y reprepro
+        sudo apt-get install -q -y reprepro
     fi
     #gpg -k || true
     # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
@@ -702,7 +702,7 @@ _EOF_
         bs_apt_pkg_gen obs-hello-${section} 0.0.1 $section
         for suite in $apt_suites
         do
-            if ! reprepro --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb
+            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb
             then
                bs_abort "reprepro includedeb failed"
             fi
@@ -758,7 +758,7 @@ bs_apt_pkg_add() {
     # See how fd 9 is set up by redirection at end of this function
     local LOCKFILE=$apt_archive_root/reprepro.lock
 
-    echo "Acquiring lock $LOCKFILE... time is `date`"
+    #echo "Acquiring lock $LOCKFILE... time is `date`"
     (
     if ! flock 9
     then
@@ -774,7 +774,7 @@ bs_apt_pkg_add() {
         # Remove the previous version of these packages to avoid dreaded
         # "Already existing files can only be included again, if they are the same, but..."
         # at least for dev builds, so people can force builds after an iz change.
-        reprepro --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames
+        reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames
         ;;
     esac
 
@@ -783,7 +783,6 @@ bs_apt_pkg_add() {
     set +e
     LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
     status=$?
-    cat /tmp/reprepro.log.$$
     set -e
     if grep "Already existing files can only" /tmp/reprepro.log.$$
     then
@@ -794,11 +793,12 @@ bs_apt_pkg_add() {
     echo $status > subshell.status.tmp
     if test $status -ne 0
     then
+        cat /tmp/reprepro.log.$$
         bs_abort "Upload failed, see message above."
     fi
 
     ) 9>$LOCKFILE
-    echo "Released lock $LOCKFILE... time is `date`"
+    #echo "Released lock $LOCKFILE... time is `date`"
     local status
     status=$(cat subshell.status.tmp)
     rm -rf subshell.status.tmp
@@ -866,7 +866,7 @@ bs_apt_pkg_get_transitive() {
         fi
     done
 
-    apt-get download $expanded
+    apt-get -q download $expanded
 }
 
 #----------- begin upload support ---------------------------------------------------
@@ -992,7 +992,7 @@ bs_apt_list_installed_deps() {
 }
 
 bs_apt_uninstall_deps() {
-    $SUDO apt-get autoremove --purge -y $(bs_apt_list_installed_deps) 'build-deps*' || true
+    $SUDO apt-get -q autoremove --purge -y $(bs_apt_list_installed_deps) 'build-deps*' || true
     rm -f ../install_deps.log || true
 }
 
