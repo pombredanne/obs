@@ -627,7 +627,7 @@ Description: Tiny package
  This package gives reprepro something to chew on.
 _EOF_
     (cd dummy.$$
-    dpkg-deb --build debian
+    dpkg-deb --build debian > /dev/null
     )
     mv dummy.$$/debian.deb ${name}_${version}_all.deb
     rm -rf dummy.$$
@@ -702,7 +702,7 @@ _EOF_
         bs_apt_pkg_gen obs-hello-${section} 0.0.1 $section
         for suite in $apt_suites
         do
-            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb > /tmp/reprepro.log.$$
+            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb > /tmp/reprepro.log.$$ 2>&1
             then
                cat /tmp/reprepro.log.$$
                bs_abort "reprepro includedeb failed"
