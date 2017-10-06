@@ -1,8 +1,13 @@
 #!/bin/sh
 set -e
-set -x
 
-echo "Script to uninstall everything oblong-related, along with their config files.  Caution: may remove more than you expect."
+echo "ob-remove.sh: Uninstalling all oblong-related packages (except possibly obs, bau, and ruby gems)."
+
+case "$BAU_VERBOSE" in
+1) set -x;;
+*) set +x;;
+esac
+
 if ! test -w /
 then
     echo "This script must be run as root."

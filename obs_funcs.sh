@@ -388,7 +388,6 @@ bs_gnupg_init_insecure_unattended() {
     # Delete mercilessly now because rm -rf $bs_repotop doesn't delete $GNUPGHOME
     gpgconf --kill gpg-agent || true
     rm -rf "$GNUPGHOME"
-    ls -la "$HOME"/.gnupg || true
     cp -a "$HOME"/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
     bs_append_to_file no-tty "$gpgconf"
     bs_append_to_file batch  "$gpgconf"
@@ -450,21 +449,21 @@ _EOF_
         sudo apt-get install -y reprepro
     fi
 
-    if gpg --version | head -n 1 | grep ' 2\.'
+    if gpg --version | head -n 1 | grep ' 2\.' > /dev/null
     then
         # gpg 2 needs agent, and we don't want to use the desktop's
         gpg-agent --debug-quick-random --daemon -- \
-        gpg --pinentry-mode loopback --passphrase '' --personal-digest-preferences SHA256 --gen-key gpg.in.tmp
+        gpg -q --pinentry-mode loopback --passphrase '' --personal-digest-preferences SHA256 --gen-key gpg.in.tmp
     else
         # Older gpg that does not need agent
-        gpg --passphrase '' --gen-key --quick-random gpg.in.tmp < /dev/null
+        gpg -q --passphrase '' --gen-key --quick-random gpg.in.tmp < /dev/null
 
         # Extra step only needed for ubuntu 16.04 (which has both gpg and gpg2)
         if test -x /usr/bin/gpg2
         then
-            gpg --passphrase '' --armor --export-secret-keys $keyemail \
+            gpg -q --passphrase '' --armor --export-secret-keys $keyemail \
             | gpg-agent --daemon -- \
-              gpg2 --passphrase '' --import -
+              gpg2 -q --passphrase '' --import -
         fi
     fi
     rm gpg.in.tmp
@@ -473,9 +472,9 @@ _EOF_
     keyfile=$bs_repotop/repo.pubkey
     gpg --armor --export $keyemail > $keyfile
 
-    echo "Generated local repo's fake key $keyfile, contents:"
-    gpg --with-fingerprint $keyfile
-    echo "We only need it for one build, so it expires in $days days."
+    #echo "Generated local repo's fake key $keyfile, contents:"
+    #gpg --with-fingerprint $keyfile
+    #echo "We only need it for one build, so it expires in $days days."
 }
 
 bs_apt_key_rm() {
@@ -491,17 +490,17 @@ bs_apt_key_rm() {
         local keyemail="temp-repo@example.com"
         local fingerprint
         fingerprint=$(gpg -k --with-colons $keyemail | awk -F: '/^fpr:/ {print $10}' | head -n 1)
-        if gpg --version | head -n 1 | grep ' 2\.'
+        if gpg --version | head -n 1 | grep ' 2\.' > /dev/null
         then
             # gpg 2 needs agent, and we don't want to use the desktop's
             gpg-agent --daemon -- \
-            gpg --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
+            gpg -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
         else
-            gpg --passphrase '' --delete-secret-and-public-key "$fingerprint"
+            gpg -q --passphrase '' --delete-secret-and-public-key "$fingerprint"
             if test -x /usr/bin/gpg2
             then
                 gpg-agent --daemon -- \
-                gpg2 --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
+                gpg2 -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
             fi
         fi
     fi
@@ -696,7 +695,7 @@ _EOF_
     then
         sudo apt-get install -y reprepro
     fi
-    gpg -k || true
+    #gpg -k || true
     # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
     for section in $apt_sections
     do
@@ -745,7 +744,6 @@ bs_apt_pkg_add() {
         test -f $arg || bs_abort "Package $arg is not a file."
     done
 
-    #set +x
     local pkgnames
     pkgarch=`echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//'`
     for arg in $@
@@ -755,7 +753,6 @@ bs_apt_pkg_add() {
         pkgname=${pkgname##*/}
         pkgnames="$pkgnames $pkgname"
     done
-    set -x
 
     # Acquire an exclusive lock on this repo
     # See how fd 9 is set up by redirection at end of this function
@@ -782,7 +779,7 @@ bs_apt_pkg_add() {
     esac
 
     # Note: Remove the --ask-passphrase once you've configured a key without one, or configured an agent, or something
-    gpg -k || true
+    #gpg -k || true
     set +e
     LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
     status=$?
