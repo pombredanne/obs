@@ -185,7 +185,7 @@ do
         exit 1
         ;;
     -D*)
-        extra_cmake_options="$extra_cmake_options '$1'"
+        extra_cmake_options="$extra_cmake_options $1"
         ;;
     --asan)
         extra_cmake_options="$extra_cmake_options -DASAN=on"
