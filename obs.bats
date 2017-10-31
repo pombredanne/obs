@@ -305,6 +305,7 @@
   ./obs detect_os
   ./obs get_major_version_git
   ./obs get_version_git
+  ./obs get_changenum_git
   ./obs yovo2cefversion 4.0
   ./obs yovo2yoversion 4.0
   ! ./obs blart
