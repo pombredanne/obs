@@ -117,7 +117,7 @@ bs_detect_ncores() {
         system_profiler -detailLevel full SPHardwareDataType | awk '/Total Number .f Cores/ {print $5};'
         ;;
     cygwin)
-        echo $NUMBER_OF_PROCESSORS
+        echo "$NUMBER_OF_PROCESSORS"
         ;;
     esac
 }
@@ -194,17 +194,18 @@ bs_get_version_git() {
     osx*) xregx=-E;;
     *) xregx=-r;;
     esac
-    d2=$(echo $d1 | sed $xregx 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]?[a-z0-9]?$//')
+    # git uses a variable number of digits in the hex hash ID
+    d2=$(echo "$d1" | sed $xregx 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]*$//')
     # Strip off -COUNT suffix, if any
-    d3=$(echo $d2 | sed 's/-[0-9]*$//')
+    d3=$(echo "$d2" | sed 's/-[0-9]*$//')
     # Remove non-numeric prefix (e.g. rel- or debian/), if any
-    d4=$(echo $d3 | sed 's/^[^0-9]*//')
+    d4=$(echo "$d3" | sed 's/^[^0-9]*//')
     # Remove non-numeric suffix (e.g. -mz-gouda), if any
-    d5=$(echo $d4 | sed 's/-[^0-9]*$//')
+    d5=$(echo "$d4" | sed 's/-[^0-9]*$//')
     case "$d5" in
     "") bs_abort "can't parse version number from git describe --long's output $d1";;
     esac
-    echo $d5
+    echo "$d5"
 }
 
 # Echo the major version number of this project as given by git
