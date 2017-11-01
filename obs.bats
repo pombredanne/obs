@@ -308,6 +308,12 @@
   ./obs get_changenum_git
   ./obs yovo2cefversion 4.0
   ./obs yovo2yoversion 4.0
+  vers=$(./obs yovo2yoversion 4.0.5)
+  if test "$vers" != 11
+  then
+    echo "obs yovo2yoversion 4.0.5 was $vers, wanted 11"
+    exit 1
+  fi
   ! ./obs blart
   ./obs --help
 }
