@@ -79,7 +79,7 @@ bs_detect_os() {
         elif grep -q "Ubuntu 16.04" /etc/issue ; then echo ubu1604
         elif grep -q "Ubuntu 17.04" /etc/issue ; then echo ubu1704
         elif grep -q "Ubuntu Core 16" /etc/issue ; then echo ubu1604
-        elif grep -q "Ubuntu Artful Aardvark" /etc/issue ; then echo ubu1710
+        elif grep -q "Ubuntu 17.10" /etc/issue ; then echo ubu1710
         else bs_abort "unrecognized linux" >&2
         fi
         ;;
