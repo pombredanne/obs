@@ -190,6 +190,9 @@ do
     --asan)
         extra_cmake_options="$extra_cmake_options -DASAN=on"
         ;;
+    --tsan)
+        extra_cmake_options="$extra_cmake_options -DTSAN=on"
+        ;;
     --cef)
         shift
         cefbranch=cef$1
