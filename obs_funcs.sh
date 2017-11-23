@@ -55,7 +55,8 @@ bs_yovo2cefversion() {
         esac
         ;;
     4.0) echo cef2704;;
-    4.*) echo cef3202;;
+    4.1|4.2) echo cef3202;;
+    4.*) echo cef3239;;
     *) bs_abort "bs_yovo2cefversion: don't know which CEF goes with g-speak $1" >&2;;
     esac
 }
