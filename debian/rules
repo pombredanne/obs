@@ -9,3 +9,6 @@ export DH_VERBOSE=1
 
 %:
 	dh $@
+
+override_dh_auto_test:
+	if ! echo "$$DEB_BUILD_OPTIONS" | grep nocheck; then dh_auto_test; fi
