@@ -172,10 +172,52 @@ bs_get_gspeak_version() {
     then
         awk -F= '/G_SPEAK_HOME=/ {print $2}' debian/rules | sed 's/.*speak//'
     else
-        bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
+        bs_abort "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
 
     # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
+}
+
+# Look at source tree to see what g-speak it builds against currently
+bs_get_gspeak_home() {
+    if egrep -q '^G_SPEAK_HOME=' debian/rules
+    then
+        awk -F= '/^G_SPEAK_HOME=/ {print $2}' debian/rules
+    else
+        # Would like to do this:
+        #echo /opt/oblong/g-speak$(bs_get_gspeak_version)
+        # but that discards error status of the called function... so use printf
+        # instead (which by default does not output a newline) so we can concatenate
+        # the two strings without losing the exit status from bs_get_gspeak_version.
+        printf /opt/oblong/g-speak
+        bs_get_gspeak_version
+    fi
+}
+
+# Look at source tree to see what yobuild this project builds against currently
+bs_get_yobuild_home() {
+    if egrep -q 'YOBUILD=.*g-speak[0-9]' debian/rules
+    then
+        awk -F= '/YOBUILD=/ {print $2}' debian/rules
+    else
+        # Can't use echo, or it will clear status after bs_abort sets it
+        # Also, can't nest function calls, have to save intermediaries as variables
+        # Also, can't declare and set local variable in same statement, or it ignores status
+        printf /opt/oblong/deps-$(getconf LONG_BIT)-
+        local ver
+        ver=$(bs_get_gspeak_version)
+        bs_yovo2yoversion $ver
+    fi
+}
+
+# Look at source tree to see where this project will be installed
+bs_get_prefix() {
+    if egrep -q '^PREFIX=.*g-speak[0-9]' debian/rules
+    then
+        awk -F= '/^PREFIX=/ {print $2}' debian/rules
+    else
+        bs_get_gspeak_home
+    fi
 }
 
 # Get the package name (for use with bs_upload)

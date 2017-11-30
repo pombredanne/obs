@@ -34,6 +34,9 @@ obs get-changenum-git       - get number of changes since last heavyweight tag o
 obs get-gspeak-version      - show version of g-speak the current project expects
 obs get-major-version-git   - get major version number of current project from heavyweight git tags
 obs get-version-git         - get version number of current project from heavyweight git tags
+obs get-gspeak-home         - show path to g-speak this project builds against currently
+obs get-yobuild-home        - show path to yobuild this project builds against currently
+obs get-prefix              - show where this project will be installed
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
 
@@ -98,10 +101,13 @@ detect_os)             # shellcheck disable=SC2154
 get_artifact_subdir)   bs_get_artifact_subdir;;
 get_cef_version)       bs_get_cef_version;;
 get_changenum_git)     bs_get_changenum_git;;
+get_gspeak_home)       bs_get_gspeak_home;;
 get_gspeak_version)    bs_get_gspeak_version;;
 get_major_version_git) bs_get_major_version_git;;
 get_pkgname)           bs_get_pkgname;;
+get_prefix)            bs_get_prefix;;
 get_version_git)       bs_get_version_git;;
+get_yobuild_home)      bs_get_yobuild_home;;
 install)               bs_install "$@";;
 download)              bs_download "$@";;
 upload)                proj=$1; shift; bs_upload2 "$proj" "$_os" "$@";;
