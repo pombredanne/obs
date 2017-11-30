@@ -158,6 +158,9 @@ bs_get_gspeak_version() {
     elif egrep -q 'gs(-gh)?[0-9.]+x' debian/control
     then
         egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
+    elif egrep -q -e '-gs[0-9.]+' debian/control
+    then
+        egrep -e '-gs[0-9.]+' debian/control | head -n 1 | sed 's/^.*gs\([1-9][0-9.]*\)[^0-9.].*$/\1/'
     elif egrep -q 'oblong-plasma-ruby' debian/control
     then
         egrep 'oblong-plasma-ruby' debian/control | sed 's/.*ruby//;s/,.*//'
