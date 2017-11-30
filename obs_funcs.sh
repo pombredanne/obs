@@ -172,7 +172,7 @@ bs_get_gspeak_version() {
     then
         awk -F= '/G_SPEAK_HOME=/ {print $2}' debian/rules | sed 's/.*speak//'
     else
-        bs_abort "bs_get_gspeak_version: cannot find g-speak version" >&2
+        bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
 
     # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
@@ -190,7 +190,15 @@ bs_get_gspeak_home() {
         # instead (which by default does not output a newline) so we can concatenate
         # the two strings without losing the exit status from bs_get_gspeak_version.
         printf /opt/oblong/g-speak
-        bs_get_gspeak_version
+        # Annoyingly, some code (e.g. bau-defaults/buildshim-ubu_
+        # relies on bs_get_gspeak_version not aborting on error,
+        # so just test if it's empty here.
+        local ver
+        ver=$(bs_get_gspeak_version)
+        case "$ver" in
+        "") bs_abort "bs_get_gspeak_home: can't get g-speak version";;
+        esac
+        echo $ver
     fi
 }
 
@@ -1188,6 +1196,11 @@ bs_intuit_buildtype_deps() {
     if test "$gspeak" = ""
     then
         gspeak=$(bs_get_gspeak_version)
+        if test "$?" != 0 || test "$gspeak" = ""
+        then
+            # Does not depend on g-speak at all
+            echo "rel"; return
+        fi
     fi
     if bs_version_is_dev "$gspeak"
     then
