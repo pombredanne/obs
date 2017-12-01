@@ -152,35 +152,33 @@ bs_get_gspeak_version() {
     # sed's regular expressions are a bit ugly
     #  egrep: (abc)?
     #  sed:   \(abc\)\{0,1\}
-    if egrep -q 'g-speak(-gh)?[0-9]' debian/control
+    if test -f debian/control && egrep -q 'g-speak(-gh)?[0-9]' debian/control
     then
         egrep 'g-speak(-gh)?[0-9]' debian/control | head -n 1 | sed 's/.*g-speak\(-gh\)\{0,1\}//;s/[^0-9.].*//'
-    elif egrep -q 'gs(-gh)?[0-9.]+x' debian/control
+    elif test -f debian/control && egrep -q 'gs(-gh)?[0-9.]+x' debian/control
     then
         egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
-    elif egrep -q -e '-gs[0-9.]+' debian/control
+    elif test -f debian/control && egrep -q -e '-gs[0-9.]+' debian/control
     then
         egrep -e '-gs[0-9.]+' debian/control | head -n 1 | sed 's/^.*gs\([1-9][0-9.]*\)[^0-9.].*$/\1/'
-    elif egrep -q 'oblong-plasma-ruby' debian/control
+    elif test -f debian/control && egrep -q 'oblong-plasma-ruby' debian/control
     then
         egrep 'oblong-plasma-ruby' debian/control | sed 's/.*ruby//;s/,.*//'
-    elif grep -q g-speak bs-options.dat
+    elif test -f bs-options.dat && grep -q g-speak bs-options.dat
     then
         # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
         grep g-speak bs-options.dat | sed 's/.*--g-speak //;s/ .*//'
-    elif egrep -q 'G_SPEAK_HOME=.*g-speak[0-9]' debian/rules
+    elif test -f debian/rules && egrep -q '^G_SPEAK_HOME=' debian/rules
     then
         awk -F= '/G_SPEAK_HOME=/ {print $2}' debian/rules | sed 's/.*speak//'
     else
         bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
-
-    # If the above doesn't work reliably, we could also look in debian/rules for variables set by ob-set-defaults
 }
 
 # Look at source tree to see what g-speak it builds against currently
 bs_get_gspeak_home() {
-    if egrep -q '^G_SPEAK_HOME=' debian/rules
+    if test -f debian/rules && egrep -q '^G_SPEAK_HOME=' debian/rules
     then
         awk -F= '/^G_SPEAK_HOME=/ {print $2}' debian/rules
     else
@@ -204,10 +202,16 @@ bs_get_gspeak_home() {
 
 # Look at source tree to see what yobuild this project builds against currently
 bs_get_yobuild_home() {
-    if egrep -q 'YOBUILD=.*g-speak[0-9]' debian/rules
+    if test -f debian/rules && egrep -q '^YOBUILD=' debian/rules
     then
-        awk -F= '/YOBUILD=/ {print $2}' debian/rules
+        # First try: get from debian/rules
+        awk -F= '/^YOBUILD=/ {print $2}' debian/rules
+    elif ob-version | awk 'BEGIN { err=1 } /ob_yobuild_dir/ { print $3; err=0 } END { exit err }'
+    then
+        # Second try: ask ob-version
+        return 0
     else
+        # Third try: guess based on g-speak version 
         # Can't use echo, or it will clear status after bs_abort sets it
         # Also, can't nest function calls, have to save intermediaries as variables
         # Also, can't declare and set local variable in same statement, or it ignores status
@@ -220,7 +224,7 @@ bs_get_yobuild_home() {
 
 # Look at source tree to see where this project will be installed
 bs_get_prefix() {
-    if egrep -q '^PREFIX=.*g-speak[0-9]' debian/rules
+    if test -f debian/rules && egrep -q '^PREFIX=' debian/rules
     then
         awk -F= '/^PREFIX=/ {print $2}' debian/rules
     else
