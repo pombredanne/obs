@@ -201,6 +201,7 @@ bs_get_gspeak_home() {
 }
 
 # Look at source tree to see what yobuild this project builds against currently
+# Optional arg: G_SPEAK_HOME
 bs_get_yobuild_home() {
     if test -f debian/rules && egrep -q '^YOBUILD=' debian/rules
     then
@@ -210,8 +211,13 @@ bs_get_yobuild_home() {
     then
         # Second try: ask ob-version
         return 0
+    elif test -n "$1" && test -f "$1"/lib/pkgconfig/libLoam.pc
+    then
+        # Third try: look up yobuild used by packages installed at given G_SPEAK_HOME
+        # FIXME: bit of a kludge, should have an explicit variable for this in libLoam.pc
+        grep 'Cflags:' < "$1"/lib/pkgconfig/libLoam.pc | sed 's,.*-I,,;s,/include.*,,'
     else
-        # Third try: guess based on g-speak version 
+        # fourth try: guess based on detected g-speak version 
         # Can't use echo, or it will clear status after bs_abort sets it
         # Also, can't nest function calls, have to save intermediaries as variables
         # Also, can't declare and set local variable in same statement, or it ignores status
