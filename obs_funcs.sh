@@ -200,6 +200,26 @@ bs_get_gspeak_home() {
     fi
 }
 
+# See what version of yobuild this project builds against currently
+# Optional arg: G_SPEAK_HOME
+bs_get_yoversion() {
+    if ob-version | awk 'BEGIN { err=1 } /yobuild version/ { print $4; err=0 } END { exit err }' > /tmp/yover.dat.$$
+    then
+        sed 's/\..*//' < /tmp/yover.dat.$$
+        rm -rf  /tmp/yover.dat.$$
+        return 0
+    elif test -n "$1"
+    then
+        # guess based on supplied g-speak version 
+        bs_yovo2yoversion $1
+    else
+        # guess based on detected g-speak version 
+        local ver
+        ver=$(bs_get_gspeak_version)
+        bs_yovo2yoversion $ver
+    fi
+}
+
 # Look at source tree to see what yobuild this project builds against currently
 # Optional arg: G_SPEAK_HOME
 bs_get_yobuild_home() {
