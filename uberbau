@@ -1,0 +1,1234 @@
+#!/bin/sh
+# Simple script to build the entire stack locally
+# Will clone and patch each project if not already present
+#
+# This script requires the 'local' keyword; bash and dash support it.
+
+usage() {
+    cat <<_EOF_
+Manipulate multiple git clients as a whole.  Use cases:
+- branching a fleet of projects as a whole
+- testing a fleet of projects as a whole, with or without local changes
+
+Usage: $0 [nuke|install_deps|upload_debs]
+or   : $0 set-gspeak X.Y
+or   : $0 set-bsopts --greenhouse
+or   : $0 [--set-kind FOO] [list|clone|checkout|branch|build|mirror] ...
+or   : $0 upload pkgname _os X Y Z foo.tgz...
+or   : $0 obs ...       # run obs with access to local repo
+or   : $0 use_local_apt_repo    # add sources.list entry for local repo (usually handled by buildshim)
+
+The arguments to list/clone/build can be
+- special words which expand to the names of all the projects that embody them, e.g.
+    nobuild gspeak hantenna motion mezz platform
+- names of single projects, e.g.
+    yovo staging
+- git urls, e.g.
+    git@gitlab.oblong.com:dank/growroom
+and they can optionally be followed by a #branch, e.g.
+    yovo#iz yovo#rel-10
+
+Example session, from the top:
+
+Tell it which g-speak version you're working with:
+    $0 set-gspeak X.Y
+Remove all installed packages and clear local artifacts:
+    $0 nuke
+    $0 install_deps
+git-clone the projects of interest (this is a no-op if the project has already been cloned):
+    $0 clone proj1 proj2 ...
+Grab already-built artifacts that you don't feel like rebuilding (nobuild, yobuild, gspeak supported so far):
+    $0 mirror yobuild
+Build the projects of interest:
+    $0 build proj1 proj2 ...
+
+Switch to a release branch for a set of projects:
+    $0 checkout gspeak#rel-3.22 foo#rel-3.22
+
+Branch a new release of a set of projects:
+    $0 branch gspeak
+    $0 branch yovo staging webthing-cef greenhouse growroom samples
+
+Push after branching:
+    $0 push gspeak
+
+To see what projects a special project expands to, use list, e.g.
+    $0 list nobuild
+
+You can also build a single project by cd'ing to it and then running
+    $0
+with no arguments.
+
+If you need something from the upstream server that 'mirror' doesn't handle,
+pass its package name as an argument to nuke.
+
+Additional command to mirror just the debs from current directory
+(e.g. when starting trickledown after doing normal build):
+    $0 upload_debs
+
+Options:
+ --set-kind FOO: force build kind to FOO (dev or rel)
+_EOF_
+}
+
+#--------------------------------------------------------------------------------
+# Setup
+
+is_linux() {
+    case $_os in
+    ubu*) true;;
+    *) false;;
+    esac
+}
+
+do_check_deps() {
+    echo Verifying we can ssh to UPSTREAM_MASTER without a password prompt
+    # OB_DUMPER_HOST is localhost, don't need to ssh to it
+    ssh $v -o StrictHostKeyChecking=no -n ${UPSTREAM_MASTER} echo hello
+
+    for prereq in xz doxygen # cmake
+    do
+        if ! $prereq --version > /dev/null 2>&1
+        then
+            echo Please install $prereq
+            exit 1
+        fi
+    done
+    if ! sort --version-sort < /dev/null > /dev/null 2>&1 && ! gsort --version-sort < /dev/null > /dev/null
+    then
+        echo "Please install a modern gnu sort (e.g. 'brew install coreutils | sudo ports install coreutils')"
+        exit 1
+    fi
+    if ! 7z --help > /dev/null 2>&1
+    then
+        echo "Please install 7z (e.g. 'brew install p7zip | sudo ports install p7zip')"
+        exit 1
+    fi
+
+    case $_os in
+    ubu*)
+        if ! fakeroot -v > /dev/null 2>&1
+        then
+            echo Please install fakeroot
+            exit 1
+        fi
+        ;;
+    osx*)
+        if ! fakeroot -v > /dev/null 2>&1
+        then
+            echo Please install fakeroot
+            exit 1
+        fi
+        if ! javac -version
+        then
+            bs_abort "Please install the JDK (from e.g. http://obdumper/software/sdks/jdk-7u51-macosx-x64.dmg )"
+        fi
+        if ! test -f /usr/X11/share/fonts/TTF/VeraIt.ttf
+        then
+            bs_abort "Please work around https://bugs.oblong.com/show_bug.cgi?id=9806 by installing XQuartz from http://xquartz.macosforge.org/"
+        fi
+        ;;
+    esac
+}
+
+do_install_deps() {
+    # FIXME: whittle this list down, move it into the build dependencies of individual packages
+ubuntu_pkgs="
+build-essential
+cmake
+coreutils
+devscripts
+doxygen
+equivs
+fakeroot
+ninja-build
+p7zip-full
+reprepro
+time
+wget
+xz-utils
+"
+
+osxpkgs="
+cmake
+coreutils
+doxygen
+p7zip
+xz
+"
+
+    case $_os in
+    ubu1204)
+        sudo apt-get update      # in case this is a fresh-as-in-stale VM
+        sudo apt-get install -y $ubuntu_pkgs git rubygems libopenssl-ruby
+        ;;
+    ubu*)
+        sudo apt-get update      # in case this is a fresh-as-in-stale VM
+        sudo apt-get install -y $ubuntu_pkgs git ruby  # rubygems and libopenssl-ruby are in core for 1.9
+        ;;
+    osx*)
+        brew install $osxpkgs || sudo port install $osxpkgs || true
+    esac
+
+    do_check_deps
+}
+
+# Initialize directories used in uploading/downloading final builds
+# (that aren't handled by obs or bs_install).
+# FIXME: why do we have four ways of uploading and downloading?
+do_init_www() {
+
+    # Arrange for isolated uploads to OB_DUMPER_HOST to work
+    # (e.g. "scp foo.bar ${OB_DUMPER_HOST}:/ob/dumper/blah" )
+    mkdir -p ~/var/dumper
+    if ! test -d /ob
+    then
+        $SUDO mkdir /ob
+    fi
+    $SUDO ln -sf ~/var/dumper /ob
+
+    # Arrange for isolated downloads from OB_DUMPER_HOST to work
+    # (e.g. "wget http://$OB_DUMPER_HOST/blah/foo.bar" )
+    #echo "Removing contents of fake /ob/dumper.  This is why we don't run this on the real buildmaster."
+    for dir in g-speak yobuild
+    do
+        rm -rf ~/var/dumper/$dir
+        mkdir -p ~/var/dumper/$dir
+    done
+}
+
+# Temporarily grant access to $UPSTREAM_MASTER and mirror packages from it
+# Bit of a kludge, only supports rel packages, doesn't grab dependencies
+# Arguments: packages to repload
+do_mirror_apt() {
+    rm -rf dir.tmp
+    mkdir dir.tmp
+    cd dir.tmp
+
+    local kind=${BS_FORCE_BUILDTYPE:-rel}
+
+    # use subshell to avoid changing caller's shell or environment variables
+    (
+        # Download from the upstream master using the non-isolated apt config
+        MASTER=$UPSTREAM_MASTER
+        bs_repodir=repobot
+        GNUPGHOME=""
+        APT_CONFIG=""
+        version=0   # fake out context check in bs_use_package_repo
+        bs_use_package_repo
+        apt-get download $*
+
+        # undo bs_use_package_repo
+        sudo rm -f /etc/apt/sources.list.d/repobot*-*-*.list
+    )
+
+    cd ..
+
+    # Upload into the isolated apt repo.
+    local apt_codename
+    apt_codename=$(bs_os_codename $_os)
+    bs_apt_pkg_add $kind-$apt_codename $apt_codename dir.tmp/*.deb
+
+    rm -rf dir.tmp
+}
+
+# Temporarily grant access to $UPSTREAM_MASTER and mirror packages from it
+# Arguments: packages to repload
+do_mirror_obs() {
+    local pkgname
+    for pkgname
+    do
+        rm -rf dir.tmp
+        mkdir dir.tmp
+
+        # use subshell to avoid changing caller's shell or environment variables
+        (
+            cd dir.tmp
+            # Download from the upstream master using the non-isolated apt config
+            # FIXME: obs_funcs.sh should have a function to set these; at least it has bs_get_install_sshspec
+            MASTER=$UPSTREAM_MASTER
+            bs_repodir=repobot
+            bs_repotop=/home/buildbot/var/repobot
+            bs_install_host=$MASTER
+            bs_install_root=$bs_repotop/tarballs
+            bs_install_sshspec=$(bs_get_install_sshspec)
+
+            bs_download $pkgname
+        )
+        # Use fake version number and upload to local repo
+        bs_upload2 $pkgname $_os 0.0 0 0 dir.tmp/*
+
+        rm -rf dir.tmp
+    done
+}
+
+# Initialize directories used in uploading/downloading stuff via apt.
+# Ubuntu only.
+# Violently initialize the world
+# Arguments: packages to mirror from upstream after nuking
+do_nuke() {
+    preload="$*"
+
+    if test "$GSPEAK_VER" = ""
+    then
+        bs_warn "You probably want to specify a g-speak version with e.g. '$0 set-gspeak 3.20'"
+    fi
+
+    case `hostname` in
+    buildhost*)
+        bs_abort "No, I will not nuke a buildhost.  Make me.";;
+    esac
+    if df /ob/dumper | grep -v cygwin | grep :
+    then
+        bs_abort "No, I will not nuke an NFS-mounted /ob/dumper."
+    fi
+
+    # bs_repotop=$LB_SRCTOP/repotop.tmp
+    rm -rf $bs_repotop
+    mkdir -p $bs_repotop
+
+    if ! test -d $LB_SRCTOP/ob-repobot
+    then
+        # Allow standalone use, where user isn't running this script from the ob-repobot source tree
+        git clone git@gitlab.oblong.com:platform/ob-repobot $LB_SRCTOP/ob-repobot
+    fi
+
+    if test $bs_repotop
+    then
+        mkdir -p $bs_repotop/tarballs
+    fi
+
+    case $_os in
+    osx*)
+      sudo rm -rf /opt/oblong
+      if test "$preload" != ""
+      then
+          do_mirror_obs $preload
+      fi
+      ;;
+    ubu*)
+      # Clean up after platform-builder from prior runs
+      sudo rm -f /etc/apt/sources.list.d/oblong-platform-builder.list
+      # Use the less-awful ob-remove in obs
+      sudo ob-remove.sh || true
+
+      DISTRO=$(awk -F= '/CODENAME/{print $2}' /etc/lsb-release)
+      bs_apt_key_rm || true
+      bs_apt_key_gen
+      bs_apt_server_init rel-$DISTRO $bs_repotop/repo.pubkey
+      bs_apt_server_init dev-$DISTRO $bs_repotop/repo.pubkey
+      if test "$preload" != ""
+      then
+          do_mirror_apt $preload
+      fi
+      ;;
+    esac
+
+    do_init_www
+
+
+    echo "Done nuking.  The system is ready to start building."
+}
+
+#--------------------------------------------------------------------------------
+# Per-project functions
+
+guess_url() {
+    (
+    # If it is already checked out, no need to guess
+    if test -f $LB_SRCTOP/$1/.git/config
+    then
+        cd $LB_SRCTOP/$1; git remote -v | head -n 1 | awk '{print $2}'
+        return 0
+    fi
+    _guesses="
+        git@gitlab.oblong.com:mezzanine/$1 \
+        git@gitlab.oblong.com:solutions/$1 \
+        git@gitlab.oblong.com:platform/$1 \
+        git@gitlab.oblong.com:hardware/$1 \
+        git@gitlab.oblong.com:perception/$1 \
+        git@gitlab.oblong.com:astor/$1 \
+        git@gitlab-ibm.oblong.com:astor/$1 \
+        git@gitlab-ibm.oblong.com:seabed/$1 \
+        git@gitlab.oblong.com:$LOGNAME/$1 \
+        git.oblong.com:/ob/git/repo/$1 \
+        git.oblong.com:/ob/git/repo/deps/$1 \
+    "
+    _branch=$2
+    for _url in $_guesses
+    do
+        if git ls-remote $_url > git-ls.$$.tmp 2>/dev/null
+        then
+            if test "$_branch" = "" || grep -q -w refs/heads/$_branch git-ls.$$.tmp
+            then
+                echo $_url
+                rm git-ls.$$.tmp
+                return
+            fi
+        fi
+    done
+    rm git-ls.$$.tmp
+    bs_abort "Cannot guess URL for project $1 branch '$_branch', tried $_guesses" >&2
+    )
+}
+
+# Input: extended git url of form
+#    plain-git-url[#branch][@hash][%variant]
+# or
+#    project[#branch][@hash][%variant]
+# Output:
+#    sets globals eu_project eu_url eu_branch eu_hash eu_variant
+expand_url() {
+    eu_p=`echo $1 | cut -d'#' -f1`
+    eu_p2=`echo $1 | cut -s -d'#' -f2`
+    eu_branch=`echo $eu_p2 | sed 's/[@%].*$//'`
+    eu_p3=`echo $eu_p2 | cut -s -d'@' -f2`
+    eu_hash=`echo $eu_p3 | sed 's/%.*$//'`
+    eu_variant=`echo $1 | cut -s -d'%' -f2`
+    # If it has slashes in it, it already has a real url; otherwise guess one
+    case $eu_p in
+    */*) eu_url=$eu_p; eu_project=`basename $eu_p .git`;;
+    *)   eu_url=`guess_url $eu_p $eu_branch`; eu_project=$eu_p;;
+    esac
+
+    # Work around unfortunate naming conventions
+    case $eu_project-$eu_branch in
+    yovo-master)
+        echo "You asked for master of yovo, but probably meant iz, so using that."
+        eu_branch=iz
+        ;;
+    esac
+
+    #echo eu_project $eu_project
+    #echo eu_url $eu_url
+    #echo optional eu_branch $eu_branch
+    #echo optional eu_hash $eu_hash
+    #echo optional eu_variant $eu_variant
+}
+
+if false
+then
+    # built-in self-test
+    expand_url prefix/dir.git
+    test "$eu_project" = dir || bs_abort "expand_url fail project"
+    test "$eu_branch" = "" || bs_abort "expand_url fail empty branch"
+    test "$eu_hash" = "" || bs_abort "expand_url fail empty hash"
+    test "$eu_variant" = "" || bs_abort "expand_url fail empty variant"
+    expand_url prefix/dir.git#branch%variant
+    test "$eu_project" = dir || bs_abort "expand_url fail project"
+    test "$eu_branch" = branch || bs_abort "expand_url fail branch"
+    test "$eu_hash" = "" || bs_abort "expand_url fail empty hash"
+    test "$eu_variant" = variant || bs_abort "expand_url fail variant"
+    expand_url prefix/dir.git#branch@abc123%variant
+    test "$eu_project" = dir || bs_abort "expand_url fail project"
+    test "$eu_branch" = branch || bs_abort "expand_url fail branch"
+    test "$eu_hash" = abc123 || bs_abort "expand_url fail hash"
+    test "$eu_variant" = variant || bs_abort "expand_url fail variant"
+
+    exit 0
+fi
+
+clone_one() {
+    expand_url $1
+    project=$eu_project
+    url=$eu_url
+    branch=$eu_branch
+    cd $LB_SRCTOP
+    if test -d $project
+    then
+        echo "Project $project already exists, not cloning"
+        return
+    fi
+    if test "$branch" = ""
+    then
+        echo "============= Cloning $project from $url into $LB_SRCTOP/$project ============"
+        git clone --recursive $url
+    else
+        echo "============= Cloning $project from $url branch $branch into $LB_SRCTOP/$project ============"
+        git clone --recursive $url -b $branch
+    fi
+}
+
+clone_many() {
+    for project
+    do
+        clone_one $project
+    done
+}
+
+checkout_one() {
+    expand_url $1
+    project=$eu_project
+    url=$eu_url
+    branch=$eu_branch
+    cd $LB_SRCTOP
+    if ! test -d $project
+    then
+        bs_abort "Project $project does not exist yet, aborting"
+    fi
+    if test "$branch" = ""
+    then
+        bs_abort "Which branch did you want to check out?  Try adding it as #branchname on the project name or url."
+    fi
+
+    cd $project
+
+    # Clean up trivial differences in source tree so we can check out desired branch
+    if test `git diff debian/changelog | wc -l` = 10
+    then
+        echo "Checking out debian/changelog to undo differences from build step"
+        git checkout -- debian/changelog
+    fi
+    if ! git diff --exit-code > git.diff.tmp 2>&1
+    then
+        # need to undo differences from patch step
+        old_gspeak=`grep '^-G_SPEAK_HOME' < git.diff.tmp | sed 's,.*g-speak,,' | sort -u`
+        echo "Running ob-set-defaults to undo differences related to choice of g-speak version"
+        ob-set-defaults --g-speak $old_gspeak
+    fi
+    if ! git diff --exit-code > git.diff.tmp 2>&1
+    then
+        cat git.diff.tmp
+        bs_abort "Alas, there are still changes.  Clean them out (and maybe save them), then retry."
+    fi
+
+    echo "============= Checking out $project branch $branch in $LB_SRCTOP/$project ============"
+    git checkout $branch
+}
+
+checkout_many() {
+    for project
+    do
+        checkout_one $project
+    done
+}
+
+build_one() {
+    expand_url $1
+    project=$eu_project
+    url=$eu_url
+    branch=$eu_branch
+    cd $LB_SRCTOP/$project
+
+    # Make darn sure --g-speak is given exactly once (hmm, isn't it always in BSOPTS?)
+    local extraopts
+    case x"$BSOPTS" in
+    *--g-speak*)
+        echo "BSOPTS is $BSOPTS, contains g-speak already"
+        ;;
+    *)
+        if grep -E 'g-speak[1-9]|-gs[0-9]' debian/control
+        then
+            extraopts="--g-speak $GSPEAK_VER"
+            echo "BSOPTS is $BSOPTS, did not contain g-speak, but debian/control does... so adding it."
+        elif test -f g-speak.dat
+        then
+            extraopts="--g-speak $GSPEAK_VER"
+            echo "BSOPTS is $BSOPTS, did not contain g-speak, but g-speak.dat exists... so adding it."
+        fi
+        ;;
+    esac
+
+    echo "============= Building $project ============"
+    if ! LANG=C LC_ALL=C time bau $v all $extraopts $BSOPTS
+    then
+        bs_abort "Command 'bau $v all $extraopts $BSOPTS' FAILED"
+    fi
+
+    case ${_os} in
+    osx*)
+        # Detect invalid dylibs on mac; see bug 15121.
+        # Mac should be using install_name instead of rpath anyway
+        if otool -l /opt/oblong/*/lib/*.dylib | grep "Unknown load"
+        then
+            bs_abort "bad dylibs after installing deps for $1"
+        fi
+        ;;
+    esac
+
+    if ! LANG=C LC_ALL=C bau upload $BSOPTS
+    then
+        bs_abort "Command 'bau upload $BSOPTS' FAILED"
+    fi
+}
+
+build_many() {
+    for project
+    do
+        build_one $project
+    done
+}
+
+set_version() {
+    local xy=$1
+    local z=$2
+
+    if test -f debian/changelog.in
+    then
+        echo "This must be yovo.  Passing x.y.z to ob-set-defaults."
+        ob-set-defaults --hard --g-speak $xy.$z
+    else
+        ob-set-defaults --hard --g-speak $xy
+        # mac sed -i requires arg, alas
+        sed -i.bak -e "1s/(.*)/($xy.$z)/" debian/changelog
+        rm debian/changelog.bak
+    fi
+}
+
+get_master_name()
+{
+    case $1 in
+    yovo) echo iz;;
+    *)    echo master;;
+    esac
+}
+
+abort_if_unclean() {
+    # Clean up after ob-set-defaults (or set-gspeak.sh)
+    rm -f *.bak debian/*.bak debian/.*.bak
+    if test "$(git status --porcelain)" != ""
+    then
+        bs_abort "Directory is not clean"
+    fi
+}
+
+# branch $repo's trunk to:
+# branch rel-$NewRelXY tag rel-$NewRelXY.1
+# branch master        tag dev-$NewDevXY.0
+# (Branch names never have .Z's; tag names always have .Z's)
+branch_one()
+{
+    local repo=$1
+    master=`get_master_name $repo`
+    cd $repo
+
+    abort_if_unclean
+    git checkout $master
+    git checkout -b rel-$NewRelXY
+    abort_if_unclean
+
+    set_version $NewRelXY 1
+
+    git commit -a -m "happy oneth birthday, $repo $NewRelXY"'!'
+    git tag -a -m rel-$NewRelXY.1 rel-$NewRelXY.1
+
+    abort_if_unclean
+
+    # master then gets stamped with the new new version number
+    git checkout $master
+    set_version $NewDevXY 0
+
+    git status
+    git commit -a -m "$repo $NewDevXY development begins."
+    git tag -a -m dev-$NewDevXY.0 dev-$NewDevXY.0
+
+    abort_if_unclean
+    cd ..
+}
+
+# Assume $GSPEAK_VER is the current dev branch, and create the next two
+# higher minor versions for the new rel and dev branches.
+branch_many() {
+    for project in "$@"
+    do
+        branch_one $project
+    done
+    echo "Run 'uberbau set-gspeak $NewRelXY' to work with new release branch"
+}
+
+push_one()
+{
+    cd $1
+    git push --all
+    git push --tags
+    cd ..
+}
+
+push_many()
+{
+    echo "Are you sure you want to push?  Did you run gitk to inspect all the changed repos?  Did you do a check build?  Enter YES to continue."
+    read yesno
+    case $yesno in
+    YES) ;;
+    *) bs_abort "$yesno is not YES, aborting.";;
+    esac
+
+    for project in "$@"
+    do
+        push_one $project
+    done
+}
+
+#--------------------------------------------------------------------------------
+# Kludge to just grab the latest of a few basic packages
+# Not yet general purpose.
+
+mirror_one() {
+    local from=$1
+    local to=$2
+    local kind=$3
+
+    # Guess dev or rel from builder name
+    if test "$kind" = ""
+    then
+        kind=rel
+        case $from in
+        *-dev-*|*-iz*|*master*) kind=dev;;
+        esac
+    fi
+
+    # Download latest $kind build
+    build=`ssh -o StrictHostKeyChecking=no $UPSTREAM_MASTER "cd /var/repobot/$kind/builds/$from && ls | sort -rn | head -n 1"`
+    rm -rf dir.tmp
+    mkdir dir.tmp
+    scp $UPSTREAM_MASTER:/var/repobot/$kind/builds/$from/$build/* dir.tmp
+    if test $to = apt
+    then
+        # Jam it into the apt repo.
+        apt_codename=`bs_os_codename $_os`
+        bs_apt_pkg_add $kind-$apt_codename $apt_codename dir.tmp/*.deb
+    else
+        # Jam it into the place bs_install will grab it from.
+        # Fib about the version for now
+        micro=0
+        patch=0
+        rm -rf $bs_install_root/$to/$_os
+        mkdir -p $bs_install_root/$to/$_os/$YOVERSION/$micro/$patch
+        mv dir.tmp/* $bs_install_root/$to/$_os/$YOVERSION/$micro/$patch/
+    fi
+    rm -rf dir.tmp
+}
+
+# These should be, but are not yet, data-driven.
+
+# minimal set of packages needed to do 'bau all; bau upload' in ob-repobot
+# (after doing it in obs and spruce)
+mirror_minimal() {
+    case $_os in
+    ubu1204) ;;
+    ubu*)
+        mirror_one spruce-$_os-master        apt rel
+        ;;
+    esac
+    case $_os in
+    ubu*)
+        mirror_one obs-$_os-master                                    apt   rel
+        mirror_one ob-repobot-$_os-master                             apt   rel
+        ;;
+    osx*)
+        mirror_one ob-repobot-$_os-master                             oblong-bau                          rel
+        ;;
+    esac
+}
+
+# Random crud needed by yovo et al but not part of yobuild
+mirror_nobuild() {
+    mirror_minimal
+
+    case $_os in
+    ubu1204|ubu1404)
+        mirror_one nodejs-$_os-master   apt rel
+        mirror_one liblbfgs-$_os-debian apt rel
+        ;;
+    esac
+    case $_os in
+    ubu1204) ;;
+    ubu*)
+        # Only needed by ir_inertial, which doesn't run on 12.04
+        mirror_one ceres-backport-$_os-master apt rel
+        # Not supported on 12.04
+        mirror_one qt531-$_os-master                                  qt531 rel   # this one's pretty hacky, needed by screencast
+        ;;
+    esac
+    case $_os in
+    ubu*)
+        # argument to mirror_one is the buildbot builder name, should be a subdir of UPSTREAM_MASTER:/var/repobot/rel/builds/
+        mirror_one blackmagic-$_os-master    apt rel  # desktopvideo.  Should we even?
+        mirror_one decklink-sdk-$_os-master  apt rel
+        mirror_one rubygems-deps-$_os-master apt rel
+        mirror_one westar-$_os-master        apt rel
+        mirror_one oblong-qt-$_os-master     apt rel
+        mirror_one oblong-qwt-$_os-master    apt rel
+        mirror_one oblong-cef-$_os-${CEFBRANCHNAME}-yobuild$YOVERSION apt rel
+        mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            apt rel
+        # shoot me
+        mirror_one gst-oblong-$_os-rel-2.2-gst-yobuild$YOVERSION      apt   rel
+        mirror_one obmcp-$_os-master                                  apt   rel
+        ;;
+    osx*)
+        echo "Guessing about these versions..."
+        mirror_one oblong-cef-$_os-${CEFBRANCHNAME}-yobuild$YOVERSION oblong-yobuild$YOVERSION-$CEFBRANCH rel
+        mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            oblong-yobuild$YOVERSION-v8-5.2.361 rel
+        # this one's pretty hacky, needed by screencast and libqtplasma
+        mirror_one qt532-$_os-master                                  qt532                               rel
+        # this one's pretty hacky, needed by ir-inertial-bootloader-host
+        mirror_one qt551-$_os-master                                  qt551                               rel
+        # this one's pretty hacky, needed by ir-inertial-tracking-tools
+        mirror_one oblong-qwt-$_os-master                             qwt532                              rel
+        ;;
+    cygwin)
+        echo "WTF"
+        ;;
+    esac
+}
+
+mirror_yobuild() {
+    local p
+    case $YOVERSION in
+    10) p=yobuild-$_os-rel-$YOVERSION;;
+    11) p=yobuild-$_os-rel-$YOVERSION;;
+    12) p=yobuild-$_os-master;;
+    esac
+
+    case $_os in
+    ubu*)
+        mirror_one $p apt rel
+        ;;
+    osx*)
+        mirror_one $p yobuild$YOVERSION rel
+        ;;
+    cygwin)
+        opt_toolchain=`bs_detect_toolchain`
+        dir=yobuild${YOVERSION}-$opt_toolchain/cygwin
+        latest=`ssh -o StrictHostKeyChecking=no -n ${UPSTREAM_MASTER} "cd /var/repobot/tarballs/$dir; ls -v " | tail -n1`
+        mkdir -p $bs_repotop/tarballs/$dir/$latest
+        rsync -av ${UPSTREAM_MASTER}:/var/repobot/tarballs/$dir/$latest/* $bs_repotop/tarballs/$dir/$latest
+        ;;
+    esac
+}
+
+mirror_gspeak() {
+    case $GSPEAK_VER in
+    *[02468]) kind=rel; builder=rel-$GSPEAK_VER; yovobuilder=$builder;;
+    *[13579]) kind=dev; builder=master; yovobuilder=iz;;
+    *) bs_abort "can't tell whether $GSPEAK_VER is dev or rel";;
+    esac
+
+    SUFFIX=""
+    case "$BSOPTS" in
+    *greenhouse*) SUFFIX=-gh;;
+    esac
+
+    case $_os in
+    ubu*) mirror_one yovo-$_os-$yovobuilder$SUFFIX apt $kind
+          mirror_one staging-$_os-$builder$SUFFIX apt $kind
+          ;;
+    *)    mirror_one yovo-$_os-$yovobuilder$SUFFIX g-speak${SUFFIX}$GSPEAK_VER $kind
+          mirror_one staging-$_os-$builder$SUFFIX staging${SUFFIX}$GSPEAK_VER $kind
+          ;;
+    esac
+}
+
+mirror_kludge_one() {
+    case $1 in
+    minimal) mirror_minimal;;
+    nobuild) mirror_nobuild;;
+    yobuild) mirror_yobuild;;
+    gspeak) mirror_gspeak;;
+    *) bs_abort "Dunno how to mirror $1 yet";;
+    esac
+}
+
+mirror_many() {
+    for project in "$@"
+    do
+        mirror_kludge_one $project
+    done
+}
+
+#--------------------------------------------------------------------------------
+# Stacks to build
+# The list of things to build.
+# This script does no dependency tracking, so projects have to be
+# listed in the order they must be built.
+# This is roughly the list of deps installed by do_install_deps
+# in ob-repobot/platform-builder/buildshim*, plus dependencies,
+# broken up into groups.
+
+list_nobuild() {
+    echo obs
+    case $_os in
+    ubu)
+        echo rubygems-deps   # yovo needs rubygem-json
+        ;;
+    esac
+
+    if is_linux
+    then
+        echo blackmagic
+        echo decklink-sdk
+        echo westar
+        echo liblbfgs
+        # why is liblbfgs not needed for gloveless on mac?  Is it only needed for perception?
+        case $_os in
+        ubu1204|ubu1404) echo nodejs ;;   # need to build oblong-nodejs for plasma-web-proxy on older ubuntu
+        esac
+    fi
+
+    # oblong-cef needs to be told which branch to build
+    echo "oblong-cef#${CEFBRANCHNAME}"
+    echo oblong-v8
+}
+
+list_gspeak() {
+    echo yovo
+    echo staging
+    echo webthing-cef
+    echo greenhouse
+    case $_os in
+    ubu12*|ubu14*) ;;   # Older ubuntu can't build modern v8 / growroom
+    ubu*|osx*) echo growroom ;;
+    esac
+    echo samples
+    echo rtsp-viddle-server
+    case $_os in
+    ubu*)
+        echo plasma-web-proxy
+        echo ollivander
+        ;;
+    esac
+    # Add guile-plasma after
+    # https://gitlab.oblong.com/platform/guile-plasma/issues/1
+    # is fixed
+}
+
+list_hantenna() {
+    case $_os in
+    ubu1204) echo gmsl;;   # Mac buildshims get it from yobuild anyway, see bug 16633
+    esac
+    # Want to include buildsystem here, but need both buildsystem1 and buildsystem2,
+    # and this script kind of assumes you only want one branch of any project.
+    # So kludge it by making buildsystem1 be a fork of buildsystem that defaults to rel-1.
+    # FIXME: migrate all projects away from buildsystem and to cmake someday.
+    echo buildsystem1
+    echo buildsystem
+    echo libAttic
+    echo liboblong-dimager
+    echo gloveless
+    echo gloveless-models
+}
+
+list_motion() {
+    case $_os in
+    ubu1204)
+        echo PDL
+        echo libpdl-linearalgebra-perl
+        ;;
+    ubu*) echo "FIXME: not building pdl, libpdl-linearalgebra-perl, or libmath-quaternion-perl (part of cpan-deps) on ubuntu > 12.04, see https://bugs.oblong.com/show_bug.cgi?id=10660" >&2
+        ;;
+    esac
+
+    # some stuff just hasn't been ported to the mac yet
+    if is_linux
+    then
+        case $_os in
+        ubu1204) echo libdogleg;;   # Dima got it into Ubuntu 14.04
+        esac
+        echo libArgus
+        echo perception
+        echo perception-common
+        echo intersense
+        echo calibration-engines
+        echo liboblong-vrml
+        case $_os in
+        ubu1204|ubu1404)
+            echo "warning: perl-based tools do not yet build in ubuntu 15.10 and up" >&2
+            echo cpan-deps
+            echo PDL-OpenCV
+            echo feedgnuplot                # debian/1.22 = rel-1.22 = tip of master?
+            echo PDL-Graphics-Gnuplot#dima  # the dima branch is new as of 1 aug 2016, and changes package name
+            echo calibrator
+            ;;
+        esac
+
+        echo liboblong-isense#debian
+        echo oblong-intrackx
+        echo wandreader
+    fi
+}
+
+list_ir_inertial() {
+    case $_os in
+    ubu1204|ubu1404) ;;
+    osx*)
+        echo libtrackingrenderer
+        echo libqtplasma
+        echo ir-inertial-tracking
+        echo ir-inertial-tracking-tools
+        ;;
+    ubu*)
+        echo libtrackingrenderer
+        echo libqtplasma
+        echo ir-inertial-tracking
+        echo ir-inertial-tracking-tools
+        echo ir-inertial-bootloader-host
+        echo ir-inertial-hal
+        echo ir-inertial-install-guide
+        echo ir-inertial-perception-control
+        echo ir-inertial-perception-appliance
+        ;;
+    esac
+}
+
+list_mezz() {
+    echo rtsp-viddle-server
+    echo mezzanine-kipple
+    echo mezzanine
+    echo mezzanine-web
+    echo mezz-admin-web
+    echo mzreach-www
+    case $_os in
+    ubu1204|ubu1404)
+        echo fglrx
+        echo mezzanine-android
+        echo init-system-helpers
+        echo nginx
+        ;;
+    osx109)
+        echo mezzanine-ios
+        ;;
+    esac
+}
+
+list_platform() {
+    list_nobuild
+    echo yobuild
+    case $_os in
+    ubu*) echo gst-oblong;;        # depends on yobuild, so can't go in nobuild
+    esac
+    list_gspeak
+    list_hantenna
+    list_motion
+    echo platform-builder
+}
+
+# Expand e.g. gspeak[#branch] to e.g. yovo[#branch] staging[#branch] etc.
+expand_lists() {
+    (
+    for __arg
+    do
+        __proj=`echo $__arg | cut -d'#' -f1`
+        __branch=`echo $__arg | cut -s -d'#' -f2`
+        case $__proj in
+        nobuild|gspeak|mezz|hantenna|motion|platform|ir_inertial) list_$__proj | sed "s/\$/#$__branch/;s/#$//";;
+        *) echo $__arg;;
+        esac
+    done
+    )
+}
+
+prefer_gspeak() {
+    GSPEAK_VER=$1
+    echo GSPEAK_VER=$GSPEAK_VER > $LB_SRCTOP/uberbau-gspeak.dat
+    echo "Setting default g-speak version for future runs in $LB_SRCTOP/uberbau-gspeak.dat"
+}
+
+# Gain access to the local apt repo
+do_use_local_apt_repo() {
+    local kind=${BS_FORCE_BUILDTYPE:-rel}
+
+    # use subshell to avoid changing caller's shell or environment variables
+    (
+        version=0   # fake out context check in bs_use_package_repo
+        bs_use_package_repo
+    )
+}
+
+#----------------------------------------------------------------------------
+# Main
+
+set -e
+
+# Get directory containing this script, even if accessed via a symlink
+if test "`which greadlink`" != ""
+then
+   THISDIR=$(dirname "$(greadlink -f "$0")")
+else
+   THISDIR=$(dirname "$(readlink -f "$0")")
+fi
+
+LB_SRCTOP=${LB_SRCTOP:-$(pwd)}
+export bs_repodir=repotop.tmp
+bs_repotop=$LB_SRCTOP/repotop.tmp
+export bs_repotop
+
+# Tell obs we want a local isolated apt repository
+export MASTER=localhost
+export OB_DUMPER_HOST=localhost
+
+UPSTREAM_MASTER=buildhost4.oblong.com
+
+_bs_no_pkg=true
+. $THISDIR/bs_funcs.sh
+_os=`bs_detect_os`
+
+# Platform workarounds
+SUDO=sudo
+case $_os in
+cygwin) SUDO='' ;;
+esac
+
+GSPEAK_VER=
+# Get g-speak version from previous run, if any
+if grep -q "GSPEAK_VER=[0-9]" "$LB_SRCTOP"/uberbau-gspeak.dat 2> /dev/null
+then
+    . "$LB_SRCTOP"/uberbau-gspeak.dat
+    echo "Read g-speak version $GSPEAK_VER from $LB_SRCTOP/uberbau-gspeak.dat" >&2
+
+    YOVERSION=`bs_yovo2yoversion $GSPEAK_VER`
+    CEFBRANCH=`bs_yovo2cefversion $GSPEAK_VER`
+    case $CEFBRANCH in
+       cef2272) CEFBRANCHNAME=rel-3.2272.2077;;
+       *) CEFBRANCHNAME=`echo $CEFBRANCH | sed 's/cef/rel-3./'`;;
+    esac
+
+    # Get cmake, and on macosx, libtool
+    BITS=$(getconf LONG_BIT)
+    YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
+    PATH=${YOBUILD}/bin:$PATH
+fi
+# Get bau
+PATH=${THISDIR}:$PATH
+if test -f "$LB_SRCTOP"/uberbau-bsopts.dat
+then
+    . "$LB_SRCTOP"/uberbau-bsopts.dat
+    echo "Read buildshim options $BSOPTS from $LB_SRCTOP/uberbau-bsopts.dat" >&2
+fi
+
+# Force using one artifact repo for everything we do to avoid pesky
+# questions about build type of rel branches with patches during development
+# (Except yobuild_mirror, which always uses rel
+# FIXME: generalize yobuild_mirror somehow so e.g. mezz can grab prebuilt yovo artifacts if developer wants)
+# FIXME: make this sticky like set-bsopts
+export BS_FORCE_BUILDTYPE=dev
+
+# bs_should_publish returns false in try builders, but
+# in a trickle down try build, we definitely want to
+# publish to the local repo.  bs_should_publish should
+# probably check MASTER=localhost for that, but for now,
+# use the flag the old yovo trickle down buildshim used,
+# BUILDSHIM_LOCAL_ALREADY_RUNNING.  Needed in three places
+# (bs_upload_debs, bs_upload2, and bau upload), so do it
+# centrally.  Must be exported so bau sees it.
+export BUILDSHIM_LOCAL_ALREADY_RUNNING=1
+
+verbose=false
+v=""
+while true
+do
+    cmd=$1
+
+    case $cmd in
+    set-gspeak)
+        shift
+        prefer_gspeak $1
+        exit 0
+        ;;
+    set-bsopts)
+        shift
+        BSOPTS="$*"
+        echo "BSOPTS=\"$BSOPTS\"" > $LB_SRCTOP/uberbau-bsopts.dat
+        echo "Setting buildshim options for future runs in $LB_SRCTOP/uberbau-bsopts.dat"
+        exit 0
+        ;;
+    --set-kind)
+        shift
+        BS_FORCE_BUILDTYPE=$1
+        ;;
+    --verbose|-v)
+        set -x
+        verbose=true
+        v="-v"
+        ;;
+    -h|--help|"")
+        usage
+        exit 0
+        ;;
+    -*)
+        usage
+        exit 1
+        ;;
+    *)
+	shift
+        break
+        ;;
+    esac
+    shift
+done
+
+case $cmd in
+    install_deps)
+        do_install_deps
+        ;;
+    nuke)
+        do_nuke "$@"
+        ;;
+    mirror)
+        mirror_many "$@"
+        ;;
+    build)
+        do_check_deps
+        build_many `expand_lists "$@"`
+        ;;
+    checkout)
+        checkout_many `expand_lists "$@"`
+        ;;
+    clone)
+        clone_many `expand_lists "$@"`
+        ;;
+    upload_debs)
+        # Upload but don't delete
+        BS_KEEP_IT=1
+        bs_upload_debs
+        ;;
+    upload)
+        bs_upload2 "$@"
+        ;;
+    list)
+        expand_lists "$@"
+        ;;
+    majorbranch)
+        major=`echo $GSPEAK_VER | awk -F . '{print $1}'`
+        minor=`echo $GSPEAK_VER | awk -F . '{print $2}'`
+        NewRelXY=$(($major + 1)).0
+        NewDevXY=$(($major + 1)).1
+        branch_many `expand_lists "$@"`
+        prefer_gspeak $NewDevXY
+        echo "Note: current source tree is now master. If you want to do a check build of rel branch, do '$0 checkout rel-$NewRelXY $*; $0 set-gspeak $NewRelXY'"
+        ;;
+    branch)
+        major=`echo $GSPEAK_VER | awk -F . '{print $1}'`
+        minor=`echo $GSPEAK_VER | awk -F . '{print $2}'`
+        NewRelXY=$major.$(($minor + 1))
+        NewDevXY=$major.$(($minor + 2))
+        branch_many `expand_lists "$@"`
+        prefer_gspeak $NewDevXY
+        echo "Note: current source tree is now master. If you want to do a check build of rel branch, do '$0 checkout rel-$NewRelXY $*; $0 set-gspeak $NewRelXY'"
+        ;;
+    push)
+        push_many `expand_lists "$@"`
+        ;;
+    obs)
+        obs "$@"
+        ;;
+    run)
+        exec "$@"
+        ;;
+    use_local_apt_repo)
+        do_use_local_apt_repo
+        ;;
+    "")
+        # Special case: if you're already in a project directory, just build that one project.
+        if test -d debian || test -f bs/buildshim || test -f ../ob-repobot/`basename $PWD`/buildshim
+        then
+            build_many `basename $PWD`
+        else
+            usage
+            exit 1
+        fi
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac

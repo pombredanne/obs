@@ -1,0 +1,239 @@
+#!/bin/sh
+# Sources bs_funcs.sh, then calls given step in the current project's buildshim.
+# Runs new-style buildshims which are just a file of do_ functions,
+# including a do_list function which lists the available build steps in order.
+# This script may be installed along with bs_funcs.sh to any directory on $PATH.
+set -e
+
+BAU_DEFAULT_STEPS="clean patch install_deps configure compile check package compile_extra"
+BAU_BUILD_STEPS="patch configure compile check package"
+usage() {
+    cat << __EOF__
+Usage:
+  bau [options] step [args...]
+
+-v                          - verbose
+--version                   - show bau version
+
+Run this project's buildshim with the given step.
+If step = list, just lists the build steps in the order they should be run.
+If step = all, runs build steps '$BAU_DEFAULT_STEPS'.
+If step = build, runs build steps '$BAU_BUILD_STEPS'.
+
+For backwards compatibility, if no new-style buildshim is found,
+finds and executes the old one instead.
+__EOF__
+}
+
+# Return true if the argument is a user-defined shell function.
+isFunction() {
+  type $1 | head -n 1 | egrep "^$1.*function\$" >/dev/null 2>&1
+}
+
+# Yovo, greenhouse, and possibly other projects have a script baugen.sh
+# that installs a new version of bau if $(bau --version) outputs a number
+# that is too low for its taste.
+# So increment BAU_VERSIONOID when there's a fix in bau or bs_funcs.sh
+# that might interest them.
+# Must be integer
+BAU_VERSIONOID=53
+
+# Parse options
+BAU_VERBOSE=0
+while true
+do
+    case "$1" in
+    -v)        set -x; BAU_VERBOSE=1;;
+    --version) echo "bau versionoid $BAU_VERSIONOID"; exit 0;;
+    -h|--help) usage; exit 0;;
+    ""|-*)     usage; exit 1;;
+    *)         break;;
+    esac
+    shift
+done
+BAU_CMD=$(printf %s "$1" | tr '-' '_'); shift
+
+# Locate and source shell library
+BAU_SELF="$(readlink $0 2>/dev/null || echo $0)"
+BAU_BIN="$(dirname "$BAU_SELF")"
+BAU_BIN="$(cd "$BAU_BIN"; pwd)"
+# Add bau to PATH so 'bau patch --g-speak 3.29 --downstream staging'
+# works with yovo (it expects uberbau to be on PATH,
+# and on the buildbots, they're only in ob-repobot, not installed.)
+PATH="${BAU_BIN}:${PATH}"
+# bs_funcs.sh assumes SRC points to the ci directory...
+# FIXME: it also assumes that $SRC/../arepo.d works.
+SRC=$(pwd)/ci
+. "$BAU_BIN"/bs_funcs.sh
+
+# Locate and source buildshim
+
+# Get file suffix for this OS's buildshims (gulp, some may use .cyg, that wasn't intended; should we switch to that?)
+case $_os in
+ubu*) BAU_OS=ubu;;
+osx*) BAU_OS=osx;;
+cyg*) BAU_OS=win;;
+*) bs_abort "Don't know which buildshim type _os $_os maps to";;
+esac
+
+# ci/buildshim.override was the hallmark of an earlier scheme, and is an old-style buildshim
+if test -d ci && ! test -f ci/buildshim.override
+then
+    # New style buildshim for sure!
+    for BAU_SHIM in ci/buildshim ci/buildshim-$BAU_OS "$BAU_BIN"/bau-defaults/buildshim-$BAU_OS
+    do
+        if test -f "$BAU_SHIM"
+        then
+            break
+        fi
+    done
+    if ! test -f "$BAU_SHIM"
+    then
+        bs_abort "bau: bug: ci directory found, but no buildshim or default buildshim found?!"
+    fi
+else
+    # Check for old-style buildshim by detecting project name and looking in usual places
+    BAU_DIR=$(pwd)
+    BAU_NAME=$(basename "$BAU_DIR")
+    case "$BAU_NAME" in
+    build)
+        # buildbot case -- current dir is always 'build', parent dir is named after project
+        BAU_DIR=$(dirname "$BAU_DIR")
+        # Remove operating system and branch name suffix
+        # FIXME: OS suffix on windows isn't same as $_os...
+        BAU_NAME=$(basename "$BAU_DIR" | sed "s/-${_os}.*//;s/-win[178].*//")
+        ;;
+    esac
+    for LEGACY_DIR in ../ob-repobot ../../srclink "$HOME/src/ob-repobot"
+    do
+        if test -x "$LEGACY_DIR/$BAU_NAME/buildshim"
+        then
+            echo "bau: executing old buildshim $LEGACY_DIR/$BAU_NAME/buildshim with cmd $BAU_CMD" >&2
+            if test "$BAU_CMD" = "all"
+            then
+                for BAU_CMD in $BAU_DEFAULT_STEPS
+                do
+                    "$LEGACY_DIR/$BAU_NAME/buildshim" "$BAU_CMD" "$@"
+                done
+            else
+                exec "$LEGACY_DIR/$BAU_NAME/buildshim" "$BAU_CMD" "$@"
+            fi
+            exit 0
+        fi
+    done
+    # Try two more locations for new-style buildshim
+    for BAU_SHIM in "$LEGACY_DIR/$BAU_NAME/buildshim-$BAU_OS" "$BAU_BIN/bau-defaults/buildshim-$BAU_OS"
+    do
+        if test -f "$BAU_SHIM"
+        then
+            break
+        fi
+    done
+    if ! test -f "$BAU_SHIM"
+    then
+        bs_abort "bau: bug: totally failed to find old or new buildshim."
+    fi
+fi
+echo "bau: using buildshim $BAU_SHIM" >&2
+. "$BAU_SHIM"
+
+do_do_list() {
+    if isFunction do_list
+    then
+        do_list
+    else
+        echo $BAU_DEFAULT_STEPS upload clean uninstall_deps
+    fi
+}
+
+load_override() {
+    local stepfname
+    stepfname=$(echo $1 | tr '_' '-')
+    # Let project override individual steps
+    if test -f "ci/do-$stepfname.$BAU_OS"
+    then
+       echo "bau: using override ci/do-$stepfname.$BAU_OS" >&2
+       . "ci/do-$stepfname.$BAU_OS"
+    elif test -f "ci/do-$stepfname"
+    then
+       echo "bau: using override ci/do-$stepfname" >&2
+       . "ci/do-$stepfname"
+    fi
+}
+
+do_step() {
+    local step=$1
+    shift
+    load_override "$step"
+    if isFunction do_$step
+    then
+       bau_hook_pre_step "$step" "$@"
+       do_$step "$@"
+    else
+       echo "bau: unknown step $step"
+    fi
+}
+
+# Debug hooks; generally do nothing.
+if test -x "$HOME/bau-global-hooks"
+then
+    . "$HOME/bau-global-hooks"
+else
+    bau_hook_pre_step() {
+       :
+    }
+fi
+
+# Run the desired step(s).
+if test "$BAU_CMD" = list
+then
+    do_do_list
+elif test "$BAU_CMD" = all
+then
+    for step in $(do_do_list)
+    do
+        case "$step" in
+        uninstall_deps|help|upload)
+            echo "bau: skipping step $step"
+            ;;
+        *)
+            step_flag=/tmp/bau-$step.$$.finished
+            rm -f "$step_flag"
+            (
+            do_step "$step" "$@"
+            # some shells might not stop the outer script when a subshell fails, so check explicitly
+            touch "$step_flag"
+            )
+            if test $? != 0 || ! test -f "$step_flag"
+            then
+                rm -f "$step_flag"
+                bs_abort "step $step failed"
+            fi
+            rm -f "$step_flag"
+            unset step_flag
+            ;;
+        esac
+    done
+elif test "$BAU_CMD" = build
+then
+    for step in $BAU_BUILD_STEPS
+    do
+        step_flag=/tmp/bau-$step.$$.finished
+        rm -f "$step_flag"
+        (
+        do_step "$step" "$@"
+        # some shells might not stop the outer script when a subshell fails, so check explicitly
+        touch "$step_flag"
+        )
+        if test $? != 0 || ! test -f "$step_flag"
+        then
+            rm -f "$step_flag"
+            bs_abort "step $step failed"
+        fi
+        rm -f "$step_flag"
+        unset step_flag
+    done
+else
+    do_step "$BAU_CMD" "$@"
+fi
+# Done.

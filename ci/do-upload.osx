@@ -1,0 +1,32 @@
+# See http://formalfriday.club/2015/01/05/creating-your-own-homebrew-tap-and-formula.html
+update_brew() {
+    # Update the brew formula
+    tag=`git describe`
+    rm -f ${tag}.tar.gz
+    wget https://github.com/Oblong/obs/archive/${tag}.tar.gz
+    sum=`shasum -a 256 ${tag}.tar.gz | awk '{print $1}'`
+    rm -rf homebrew-tools
+    git clone git@github.com:Oblong/homebrew-tools.git
+    cd homebrew-tools
+    ls -l $SRC/obs.rb.in
+    sed \
+       -e "s/@tag@/$tag/;s/@sum@/$sum/" \
+       < $SRC/obs.rb.in > obs.rb
+    git add obs.rb
+    git commit -m "Update obs to $tag"
+    git push
+    cd ..
+}
+
+do_upload() {
+    # Normally, do_upload uploads the package for later download by obs,
+    # but on the mac, we use homebrew rather than obs to get obs.
+
+    # Always push...
+    git push git@github.com:Oblong/obs.git master --tags < /dev/null
+
+    # Only do a release if it's tagged.
+    case "$version_patchnum" in
+    0|"") update_brew;;
+    esac
+}

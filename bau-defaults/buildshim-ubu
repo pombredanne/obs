@@ -1,0 +1,558 @@
+# Default buildshim for building a generic project on Ubuntu inside Oblong
+# Before first build:
+#   sh baugen.sh
+# To build:
+#   bau all
+# To get help on bau:
+#   bau --help
+# To get help on this project's bau options:
+#   bau help
+#
+# The default buildshim for $_os is $PATH/bau-defaults/buildshim-$_os
+# Projects may override the whole buildshim by providing file ci/buildshim[.$_os]
+# or override individual steps by providing file ci/do-$stepname[.$_os].
+# Overridden steps can access the variables and functions defined by the default buildshim.
+
+do_help() {
+  cat <<_EOF_
+$_os buildshim for $(bs_get_projname)
+
+Build steps:
+  patch [options]- set options and do any always-needed source tree tweaks
+  install-deps
+  clean          - do this first to wipe out old build
+  package        - configure/compile/build/test
+  lclone         - uberbau: clone --lprojects, init local repo
+  lbuild         - uberbau: build --lprojects against local repo
+  compile-extra  - install packages, then build installed examples (if any)
+  upload [option]- upload built packages (set --no-publish for tries)
+  uninstall-deps - uninstall packages installed during build (on mac, does rm -rf /opt/oblong)
+
+Options:
+  --asan         - alias for -DASAN=on
+  --cef branch   - which version of cef to build against (sticky)
+  --coverage     - alias for -DCOVERAGE=on
+  --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
+  --greenhouse   - alias for -DGREENHOUSE=on -DUSE_STATIC_G_SPEAK=on -DCMAKE_INSTALL_PREFIX=/opt/oblong/greenhouse
+  --g-speak X.Y  - which version of g-speak to build against (sticky)
+  --mezz X.Y     - which version of mezzanine to build against (sticky)
+  --make         - generate Makefiles and build with make
+  --ninja        - generate build.ninja and build with ninja
+  --no-extra     - skip compile_extra step
+  --no-publish   - don't publish artifact in repository
+  --no-tests     - alias for -DBUILD_TESTS=off
+  --prefix DIR   - install to DIR
+  --tsan         - alias for -DTSAN=on
+  --xcode        - generate XCode project and build with XCode
+  -Dfoo=bar      - passed through to cmake
+
+Localbuild options (can use , or space as separators):
+  --lmirror "P,Q"   - Preload built packages P and Q from upstream apt/obs repo during lclone
+  --lprojects "X,Y" - the projects lclone and lbuild will operate on
+_EOF_
+}
+
+# Clear options to default
+# Call from earliest step (e.g. 'patch') before parse_opts
+clear_opts() {
+  rm -f bs-*.dat
+}
+
+# Usage: set_val val file
+# Appends val to file if not already present
+set_val() {
+  if ! test -f "$2" || ! grep -q -e "$1" < "$2"
+  then
+    printf %s "$1" >> "$2"
+  fi
+}
+
+# Parse options
+# Only parse options in steps that need them.
+# Store results in files so the values are available to later steps.
+# Many of these are just short aliases for cmake options.
+parse_opts() {
+  while test "$1"
+  do
+    case "$1" in
+    --asan|--coverage|--debug|--greenhouse|--make|--ninja|--no-tests|--tsan|--xcode|-D*=*)
+        set_val " $1" bs-options.dat
+        ;;
+    --cef)
+        shift
+        set_val " --cef $1" bs-options.dat
+        ;;
+    --env)
+        shift
+        echo "Setting environment variable $1 (e.g. ASAN_OPTIONS)"
+        export "$1"
+        ;;
+    --g-speak)
+        shift
+        set_val " --g-speak $1" bs-options.dat
+        ;;
+    --lmirror)
+        shift
+        # Allow comma or space separators.  Assumes no spaces in package names.
+        printf %s "$1" | tr ',' ' ' > bs-lmirror.dat
+        ;;
+    --lprojects)
+        shift
+        # Allow comma or space separators.  Assumes no spaces in project names.
+        printf %s "$1" | tr ',' ' ' > bs-lprojects.dat
+        ;;
+    --mezz)
+        shift
+        set_val " --mezz $1" bs-options.dat
+        ;;
+    --no-extra)
+        opt_no_extra=true  # only important with 'bau all', so no need to persist
+        ;;
+    --no-publish)
+        # See bs_upload() in bs_funcs.sh
+        export BS_NO_PUBLISH=1
+        ;;
+    --prefix)
+        shift
+        set_val " --prefix $1" bs-options.dat
+        ;;
+    *)
+        bs_abort "$BAU_SHIM: Unknown argument $1"
+        ;;
+    esac
+    shift
+  done
+
+  case "$BAU_VERBOSE" in
+  1) verbose=-v;;
+  esac
+}
+
+do_patch() {
+  bs_kludge_init_submodule_on_try_build
+
+  if test -f .gitattributes && grep lfs .gitattributes > /dev/null
+  then
+    bs_kludge_init_git_lfs
+  fi
+
+  # Clear and accept options in do_patch, as that's the first step
+  # (well, do_uninstall and do_clean could come before, doesn't matter)
+  clear_opts
+  parse_opts "$@"
+
+  local gspeak
+  if test -f bs-options.dat
+  then
+    ob-set-defaults $verbose $(cat bs-options.dat)
+  elif gspeak=$(bs_get_gspeak_version 2>/dev/null) && test "$gspeak" != ""
+  then
+    # No options given.  We want 'bau all' without options to clear
+    # old options such as --asan, but ob-set-defaults won't do that
+    # without at least one option... and if it's defering to a
+    # classic local set-gspeak.sh, the only option that will always
+    # work is --g-speak.
+    # FIXME: get rid of old set-gspeak.sh's, make ob-set-defaults
+    # clear options when run with --none (or something like that;
+    # it shouldn't undo previous --g-speak or --cef options...
+    # or --greenhouse?  That'll take some thought.)
+    ob-set-defaults $verbose --g-speak $gspeak
+  else
+    :
+    # can't get old g-speak version, probably no options to clear
+    # (e.g. no debian/rules file to save them in).  Assume all is well.
+  fi
+}
+
+do_install_deps() {
+  bs_apt_install_deps
+}
+
+do_clean() {
+  # Remove traces of old builds, if any
+  dh clean || true
+  local LB_SRCTOP="$origdir-supertree.tmp"
+  rm -rf \
+     "$btmp" \
+     "$LB_SRCTOP" \
+     ./*.tmp \
+     #
+}
+
+do_package() {
+  bs_stamp_debian_changelog
+  bs_test_env_setup
+
+  # Note: debuild clears the environment, so if we want any environment
+  # variables to have effect, we have to preserve them.
+  # e.g. --preserve-envvar=GTEST_FILTER --preserve-envvar=PATH
+  # but really the only indispensible one is DISPLAY for opengl tests.
+  debuild \
+    --preserve-envvar=DISPLAY \
+    --preserve-envvar=GTEST_FLAGFILE \
+    -b -uc -us -kbuildtools@oblong.com $parallel
+  # We could do
+  #   dpkg-buildpackage -b -uc -us -kbuildtools@oblong.com $parallel
+  # instead, which preserves the environment -- indeed, we have to if we
+  # want to have separate configure/compile/package steps -- but that
+  # requires deprecated flags, and ran into trouble building zelige,
+  # so I fell back to good old kosher debuild.
+
+  # debuild leaves results in parent directory, where users don't think to look,
+  # and where gitlab-ci is not really prepared to upload from.
+  # For lack of a better idea, just move them to the top level of the project.
+  # bs_upload_debs will find them either way.
+  # Note: projects may need some updating to match, e.g.
+  # - we'll want to add *.deb *.build *.changes *.buildinfo to each project's .gitignore, ick.
+  # - If they have a do_compile_extra(), we'll need to adjust where it looks for .debs
+  # - For consistency, we'll want to add the same line to their do_package()
+  bs_move_debs_to .
+
+  bs_test_env_teardown
+  echo "package finished.  (Note: dh remembers that, so to repackage, clean and start over.)"
+}
+
+do_lclone() {
+  parse_opts "$@"
+
+  local projname=$(bs_get_projname)
+  local mirror="$(cat bs-lmirror.dat 2>/dev/null || true)"
+  local bsoptions="$(cat bs-options.dat 2>/dev/null || true)"
+  local projects
+  if ! projects="$(cat bs-lprojects.dat 2>/dev/null)"
+  then
+    bs_warn "lclone: --lprojects not given, skipping"
+    return 0
+  fi
+  local gspeak
+  if ! gspeak=$(bs_get_gspeak_version)
+  then
+    # fixme: default to something sensible?
+    bs_abort "lclone: --g-speak unknown"
+  fi
+
+  # Create local supertree to hold this project and the downstream $projects
+  export LB_SRCTOP="$origdir-supertree.tmp"
+  mkdir -p "$LB_SRCTOP"
+  cd "$LB_SRCTOP"
+
+  # Get access to the already-checked out tree for this project
+  if ! test -L "$projname"
+  then
+    if test -d ../"$projname"
+    then
+      # normal case
+      ln -s ../"$projname" "$projname"
+    else
+      # buildbot
+      ln -s ../build "$projname"
+    fi
+  fi
+
+  uberbau $verbose install_deps
+  uberbau $verbose set-gspeak "$gspeak"
+  # Use the same flags (--greenhouse, --asan, etc.) for all projects we build.  Could work :-)
+  case "$bsoptions" in
+  "") ;;
+  *)  uberbau $verbose set-bsopts $bsoptions;;
+  esac
+
+  # Kludge: there are two ways to mirror packages from upstream:
+  #
+  # 1) 'uberbau nuke pkg...'
+  # This mirrors individual packages.
+  # We use this to handle --lmirror.
+
+  uberbau $verbose nuke "$mirror"
+
+  # 2) 'uberbau mirror project...'
+  # This pulls in all the packages from a given source project,
+  # and has a little magic to pick the right yobuild or g-speak version.
+  # We use this for nobuild, yobuild, and gspeak automatically.
+  # We should consider exposing this like we do --lmirror.
+
+  mirrorgroups="minimal"
+  # depdemo-particle has g-speak in a comment in debian/control to fool ob-set-defaults,
+  # so filter out comments here.
+  # FIXME: That's pretty fragile.... but then, so is this magic at all.
+  if grep -v '^#' "$origdir"/debian/control| grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma'
+  then
+     # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
+     mirrorgroups="nobuild yobuild gspeak"
+  elif grep -v '^#' "$origdir"/debian/control| grep -v cmake | grep -qE 'yobuild'
+  then
+     mirrorgroups="yobuild"
+  fi
+  uberbau $verbose mirror $mirrorgroups
+
+  # finally, clone the downstream $projects
+  uberbau $verbose clone $projects
+  # FIXME: we should clone first and then autodetect what to mirror...?
+}
+
+do_lbuild() {
+  parse_opts "$@"
+
+  local projects
+  if ! projects=$(cat bs-lprojects.dat 2>/dev/null)
+  then
+    bs_warn "lbuild: --lprojects not given, skipping"
+    return 0
+  fi
+
+  # Tell bs_nopublish to allow upload even if you think this is a try build
+  # since each project needs to upload to our local repo for the next to build.
+  BUILDSHIM_LOCAL_ALREADY_RUNNING=1
+  export BUILDSHIM_LOCAL_ALREADY_RUNNING
+
+  export LB_SRCTOP="$origdir-supertree.tmp"
+
+  # Upload what we just built to the local repo
+  # FIXME: upload_debs needs bs_artifactsubdir, but probably shouldn't
+  bs_artifactsubdir=default/1 uberbau $verbose upload_debs
+
+  # Build the downstream projects!
+  cd "$LB_SRCTOP"
+  uberbau $verbose build $projects
+}
+
+do_upload() {
+  parse_opts "$@"
+  if test -f coverage-report.tgz
+  then
+    # Don't push to apt, but do push to manually downloadable artifact area.
+    BS_NO_PUBLISH=true bs_upload_debs
+
+    # Set BS_NO_CLEAN_UPLOAD to avoid nuking the debs we just uploaded.
+    BS_NO_CLEAN_UPLOAD=1 BS_UNPACK_IT=YESPLZ bs_upload fakekind non-free coverage-report.tgz
+    # Freaky - have to unset that transient variable?!
+    unset BS_UNPACK_IT
+    BS_NO_CLEAN_UPLOAD=1 bs_upload fakekind non-free coverage-source.tgz
+  else
+    bs_upload_debs
+  fi
+}
+
+do_uninstall_deps() {
+  bs_apt_uninstall_deps
+}
+
+# Reduce console spew of 'bau all' by telling bau which of the canonical
+# build steps are implemented
+do_list() {
+  echo help clean patch install_deps configure compile package lclone lbuild compile_extra upload uninstall_deps
+}
+
+#--- Helper functions
+# These get the bs prefix because they might be called from an
+# overridden buildshim fragment ci/do-$step or ci/do-$step.$_os
+# and might move to obs_funcs.sh or bs_funcs.sh sometime
+
+bs_get_cmake_options()
+{
+    grep '^EXTRA_CMAKE_OPTIONS=' < "$origdir"/debian/rules | sed 's/EXTRA_CMAKE_OPTIONS=//'
+}
+
+bs_get_g_speak_home()
+{
+    awk -F= '/^G_SPEAK_HOME=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+bs_get_prefix()
+{
+    awk -F= '/^PREFIX=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+# Get the package name (for use with bs_upload)
+bs_get_pkgname() {
+  awk '/Source:/ {print $2};' < "$origdir"/debian/control || echo unknown-until-configure
+}
+
+# Get the git repo name without prefix (for use with uberbau clone x)
+bs_get_projname() {
+  case "$origdir" in
+  */build)
+     # Buildbot checked us out into buildername/build
+     git remote -v | head -n 1 | sed 's,.*/,,;s/\.git.*//'
+     ;;
+  *)
+     # otherwise trust that current directory is named same as project
+     # FIXME: should we just always use git?
+     basename "$origdir"
+     ;;
+  esac
+}
+
+# Output a dummy feld protein for testing
+bs_gen_feld() {
+cat <<"_EOF_"
+!<tag:oblong.com,2009:slaw/protein>
+descrips:
+- visidrome
+- feld-info
+ingests:
+  felds:
+    { main:
+      { window: [0, 0, 1280, 800],
+        screen: main
+      }
+    }
+_EOF_
+}
+
+# Output a dummy screen protein for testing
+bs_gen_screen() {
+cat <<"_EOF_"
+!<tag:oblong.com,2009:slaw/protein>
+descrips:
+- visidrome
+- screen-info
+ingests:
+  screens:
+    { main:
+      { type: basic,
+        cent: [ 0.0, 0.0, -2000.0 ],
+        phys-size: [ 336.0, 210.0 ],
+        norm: [ 0.0, 0.0, 1.0 ],
+        over: [ 1.0, 0.0, 0.0 ],
+        px-size: [ 1280, 800 ],
+        px-origin: [0, 0],
+        eye-dist: 2000.0,
+      }
+    }
+_EOF_
+}
+
+# Initialize test environment
+bs_test_env_setup() {
+  local pkgname
+  pkgname=$(bs_get_pkgname)
+
+  # If project specifies gtest flags, obey them
+  # But see https://github.com/google/googletest/issues/1262 for patch to gtest
+  local flagfile
+  for flagfile in "$origdir/ci/gtest-flags.$BAU_OS" "$origdir/ci/gtest-flags"
+  do
+    if test -f "$flagfile"
+    then
+       GTEST_FLAGFILE="$flagfile"
+       export GTEST_FLAGFILE
+       break
+    fi
+  done
+
+  # If this project uses plasma, set up g-speak test environment
+  # FIXME: yovo's test harness duplicates this, move to cmake?
+  local g_speak_home
+  g_speak_home=$(bs_get_g_speak_home)
+  if test "$g_speak_home" != "" && test -x "$g_speak_home/bin/p-create"
+  then
+    # Would put them in $btmp, but have feeling that would break unix sockets max length
+    test_env_dir=/tmp/$pkgname-check.$$.tmp
+    rm -rf $test_env_dir
+
+    OB_POOLS_DIR=$test_env_dir/pools
+    export OB_POOLS_DIR
+    mkdir -p $OB_POOLS_DIR
+
+    OB_ETC_PATH=$test_env_dir/pools
+    export OB_ETC_PATH
+    mkdir -p $OB_ETC_PATH
+
+    # Fail early if we can't create a pool
+    "$g_speak_home/bin/p-create" blortyblort
+
+    # g-speak itself only requires these two proteins.
+    # App's tests can append to OB_ETC_PATH to add more.
+    bs_gen_feld > $OB_ETC_PATH/feld.protein
+    bs_gen_screen > $OB_ETC_PATH/screen.protein
+  fi
+
+  case "$(bs_get_cmake_options)" in
+  *COVERAGE=on*)
+    # Clear coverage counters
+    if test -x $origdir/bld/coverage.sh
+    then
+      # local override, in case test directories named funny
+      $origdir/bld/coverage.sh start
+    else
+      ob-coverage.sh begin
+    fi;;
+  esac
+
+  # Work around nvidia quirk that breaks some unit tests
+  # by disabling screen blanking; see
+  # https://bugs.oblong.com/show_bug.cgi?id=16685
+  if test "$DISPLAY" != ""
+  then
+    xset dpms force on && xset -dpms && xset s off || true
+  fi
+}
+
+bs_test_env_teardown() {
+  # Let the poor screen blank again
+  # FIXME: can we restore the old settings instead of just guessing blanking was on?
+  if test "$DISPLAY" != ""
+  then
+    xset +dpms && xset s on || true
+  fi
+
+  # delete the directory bs_test_env_setup created, if any
+  if test "$test_env_dir" != ""
+  then
+    rm -rf $test_env_dir
+  fi
+
+  case "$(bs_get_cmake_options)" in
+  *COVERAGE=on*)
+    # Generate a coverage report
+    if test -x $origdir/bld/coverage.sh
+    then
+      # local override, in case test directories are named funny
+      $origdir/bld/coverage.sh end
+    else
+      ob-coverage.sh end
+    fi
+    # Archive it for uploading
+    tar -czf coverage-report.tgz coverage-report
+
+    # Save source and .gcno files from compile, in case we need to run gcov later.
+    # Save .gcda files, too, though they're not as important.
+    tar -czf coverage-source.tgz \
+      $(find . \
+               -name .git       -prune \
+            -o -name "$btmp"    -prune \
+            -o -name debian     -prune \
+            -o -name '*.[Cchm]' -print \
+            -o -name '*.cpp'    -print \
+            -o -name '*.mm'     -print \
+            -o -name '*.gcno'   -print \
+            -o -name '*.gcda'   -print \
+            | grep -v lcov)
+    ;;
+  esac
+}
+
+#--- Global variables used by above functions ---
+# note: bau calls bs_funcs.sh, which also sets a number of globals (e.g. $version*)
+
+# Note: these are currently immutable, so don't set anything that
+# might change during a 'bau all' run (e.g. patch --g-speak X.Y
+# may change gspeak and yoversion, so nothing containing those can
+# be set here... including pkgname)
+
+#--- Shell variables
+# Use lowercase names for unexported variables, please
+
+btmp=obj-$(dpkg-architecture -qDEB_HOST_MULTIARCH) # where debuild puts build tree
+opt_no_extra=false
+origdir="$(pwd)"
+
+#--- Environment variables
+# Use uppercase names for exported variables, please
+
+# Pick up apps from yobuild in case we need them
+# FIXME: this'll be wrong if yoversion changes during 'bau all', e.g. from 'ob-set-defaults --g-speak 4.2'
+# NOTE: and it's also ignored during do_package; debuild clears the environment, so
+# the project's debian/rules has to set PATH itself.
+PATH="/opt/oblong/deps-$(getconf LONG_BIT)-$(bs_yovo2yoversion $(bs_get_gspeak_version))/bin:$PATH"

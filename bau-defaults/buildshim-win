@@ -1,0 +1,631 @@
+# Default buildshim for building a generic project on Windows inside Oblong
+# Before first build:
+#   sh baugen.sh
+# To build:
+#   bau all
+# To get help on bau:
+#   bau --help
+# To get help on this project's bau options:
+#   bau help
+#
+# The default buildshim for $_os is $PATH/bau-defaults/buildshim-$_os
+# Projects may override the whole buildshim by providing file ci/buildshim[.$_os]
+# or override individual steps by providing file ci/do-$stepname[.$_os].
+# Overridden steps can access the variables and functions defined by the default buildshim.
+
+do_help() {
+  cat <<_EOF_
+$_os buildshim for $(bs_get_projname)
+
+Build steps:
+  patch [options]- set options and do any always-needed source tree tweaks
+  install-deps
+  clean          - do this first to wipe out old build
+  configure
+  compile
+  check
+  package
+  lclone         - uberbau: clone --lprojects, init local repo
+  lbuild         - uberbau: build --lprojects against local repo
+  compile-extra  - install packages, then build installed examples (if any)
+  upload [option]- upload built packages (set --no-publish for tries)
+  uninstall-deps - uninstall packages installed during build (on mac, does rm -rf /opt/oblong)
+
+Options:
+  --asan         - alias for -DASAN=on
+  --cef branch   - which version of cef to build against (sticky)
+  --coverage     - alias for -DCOVERAGE=on
+  --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
+  --greenhouse   - alias for -DGREENHOUSE=on -DUSE_STATIC_G_SPEAK=on -DCMAKE_INSTALL_PREFIX=/opt/oblong/greenhouse
+  --g-speak X.Y  - which version of g-speak to build against (sticky)
+  --mezz X.Y     - which version of mezzanine to build against (sticky)
+  --make         - generate Makefiles and build with make
+  --ninja        - generate build.ninja and build with ninja
+  --no-extra     - skip compile_extra step
+  --no-publish   - don't publish artifact in repository
+  --no-tests     - alias for -DBUILD_TESTS=off
+  --prefix DIR   - install to DIR
+  --tsan         - alias for -DTSAN=on
+  --vs           - generate Visual Studio projects and build with msdev
+  --xcode        - generate XCode project and build with XCode
+  -Dfoo=bar      - passed through to cmake
+
+Localbuild options (can use , or space as separators):
+  --lmirror "P,Q"   - Preload built packages P and Q from upstream apt/obs repo during lclone
+  --lprojects "X,Y" - the projects lclone and lbuild will operate on
+_EOF_
+}
+
+# Clear options to default
+# Call from earliest step (e.g. 'patch') before parse_opts
+clear_opts() {
+  rm -f bs-*.dat
+}
+
+# Usage: set_val val file
+# Appends val to file if not already present
+set_val() {
+  if ! test -f "$2" || ! grep -q -e "$1" < "$2"
+  then
+    printf %s "$1" >> "$2"
+  fi
+}
+
+# Parse options
+# Only parse options in steps that need them.
+# Store results in files so the values are available to later steps.
+# Many of these are just short aliases for cmake options.
+parse_opts() {
+  while test "$1"
+  do
+    case "$1" in
+    --asan|--coverage|--debug|--greenhouse|--make|--ninja|--no-tests|--tsan|--xcode|-D*=*)
+        set_val " $1" bs-options.dat
+        ;;
+    --vs)
+        set_val " $1" bs-options.dat
+        # Tell visual studio to generate 64 bit code
+        if test $bits = 64
+        then
+            set_val -DCMAKE_GENERATOR_PLATFORM=x64 bs-options.dat
+        fi
+        ;;
+    --cef)
+        shift
+        set_val " --cef $1" bs-options.dat
+        ;;
+    --env)
+        shift
+        echo "Setting environment variable $1 (e.g. ASAN_OPTIONS)"
+        export "$1"
+        ;;
+    --g-speak)
+        shift
+        set_val " --g-speak $1" bs-options.dat
+        ;;
+    --lmirror)
+        shift
+        # Allow comma or space separators.  Assumes no spaces in package names.
+        printf %s "$1" | tr ',' ' ' > bs-lmirror.dat
+        ;;
+    --lprojects)
+        shift
+        # Allow comma or space separators.  Assumes no spaces in project names.
+        printf %s "$1" | tr ',' ' ' > bs-lprojects.dat
+        ;;
+    --mezz)
+        shift
+        set_val " --mezz $1" bs-options.dat
+        ;;
+    --no-extra)
+        opt_no_extra=true  # only important with 'bau all', so no need to persist
+        ;;
+    --no-publish)
+        # See bs_upload() in bs_funcs.sh
+        export BS_NO_PUBLISH=1
+        ;;
+    --prefix)
+        shift
+        set_val " --prefix $1" bs-options.dat
+        ;;
+    *)
+        bs_abort "$BAU_SHIM: Unknown argument $1"
+        ;;
+    esac
+    shift
+  done
+
+  case "$BAU_VERBOSE" in
+  1) verbose=-v;;
+  esac
+}
+
+do_patch() {
+  bs_kludge_init_submodule_on_try_build
+
+  if test -f .gitattributes && grep lfs .gitattributes > /dev/null
+  then
+    bs_kludge_init_git_lfs
+  fi
+
+  # Clear and accept options in do_patch, as that's the first step
+  # (well, do_uninstall and do_clean could come before, doesn't matter)
+  clear_opts
+  parse_opts "$@"
+
+  local gspeak
+  if test -f bs-options.dat
+  then
+    # Normal case, setting some option.  Yay.  Old non-sticky options get cleared.
+    ob-set-defaults $verbose $(cat bs-options.dat)
+  elif gspeak=$(bs_get_gspeak_version 2>/dev/null) && test "$gspeak" != ""
+  then
+    # No options given.  We want 'bau all' without options to clear
+    # old non-sticky options such as --asan, but ob-set-defaults won't do
+    # that without at least one option... and if it's defering to a
+    # classic local set-gspeak.sh, the only option that will always
+    # work is --g-speak.
+    # FIXME: get rid of old set-gspeak.sh's, make ob-set-defaults
+    # clear options when run with --none (or something like that;
+    # it shouldn't undo previous --g-speak or --cef options...
+    # or --greenhouse?  That'll take some thought.)
+    ob-set-defaults $verbose --g-speak $gspeak
+  else
+    :
+    # can't get old g-speak version, probably no options to clear
+    # (e.g. no debian/rules file to save them in).  Assume all is well.
+  fi
+}
+
+#-- begin really windows specific cruft --
+# Build up path next to code that knows how to install each tool.  Bit ugly, what?
+
+PATH="/cygdrive/c/Program Files/CMake/bin:$PATH"
+install_cmake() {
+  cm="$(which cmake)" || true
+  case "$cm" in
+  *cygdrive*)
+    ;;
+  /usr/local/bin/cmake|/usr/bin/cmake|/bin/cmake)
+    bs_abort "cygwin cmake does not support generating for visual c++"
+    ;;
+  "")
+    # random old version we used at one point
+    scp git.oblong.com:/ob/buildtools/software/cmake/cmake-3.9.4-win64-x64.msi .
+    cmd /c msiexec /i cmake-3.9.4-win64.msi /qn
+    ;;
+  *) bs_abort "huh? cmake is ${cm}?";;
+  esac
+}
+
+PATH="/cygdrive/c/pkg-config-lite/bin:$PATH"
+install_pkg_config() {
+  # FIXME: include pkgconf in windows yobuild, then remove pkg-config-lite
+  if ! test -d /cygdrive/c/pkg-config-lite
+  then
+    # random old version we started with
+    rm -rf pkg-config-lite-0.28-1
+    scp git.oblong.com:/ob/buildtools/software/pkg-config-lite-0.28-1_bin-win32.zip .
+    unzip pkg-config-lite-0.28-1_bin-win32.zip
+    mkdir -p /cygdrive/c/pkg-config-lite/bin
+    cp -a pkg-config-lite-0.28-1/bin/pkg-config.exe /cygdrive/c/pkg-config-lite/bin
+    chmod +x /cygdrive/c/pkg-config-lite/bin/pkg-config.exe
+    rm -rf pkg-config-lite-0.28-1
+  fi
+}
+
+PATH="/cygdrive/c/Ruby24-x64/bin:$PATH"
+install_ruby() {
+  if ! test -d /cygdrive/c/Ruby24-x64
+  then
+    # latest ruby as of this writing
+    scp git.oblong.com:/ob/dumper/windows/rubyinstaller-2.4.2-2-x64.exe .
+    chmod +x rubyinstaller-2.4.2-2-x64.exe
+    cmd /c rubyinstaller-2.4.2-2-x64.exe /verysilent
+  fi
+}
+
+PATH="${PATH}:/bin"
+
+do_install_deps_base() {
+  local gspeak
+  gspeak=$(bs_get_gspeak_version)
+  local yoversion
+  yoversion="$(bs_yovo2yoversion ${gspeak})"
+  local yobuild
+  yobuild="/cygdrive/c/opt/oblong/deps-$(getconf LONG_BIT)-${yoversion}"
+
+  install_cmake
+  install_pkg_config
+  install_ruby
+  zip --version > /dev/null || apt-cyg install zip
+  unzip --version > /dev/null || apt-cyg install unzip
+
+  if ! ninja --version
+  then
+    scp git.oblong.com:/ob/buildtools/software/ninja/ninja-win.zip .
+    unzip ninja-win.zip
+    chmod +x ninja.exe
+    mv ninja.exe /bin/ninja.exe
+  fi
+
+  bs_install yobuild${yoversion}-${opt_toolchain}
+  # Windows 10 requires dlls to be executable, but icu's aren't for some
+  # reason.  FIXME: do this in bs_install in obs_funcs.sh
+  ls -l $yobuild/bin/*.dll
+  chmod +x $yobuild/bin/*.dll
+}
+
+#-- end really windows specific cruft --
+
+do_configure() {
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
+  bs_vcvars $bits
+
+  mkdir -p "$btmp-$buildtype"
+  cd "$btmp-$buildtype"
+
+  # Set CC, CXX, else ninja generator tries to use cc.exe.
+  export CC=cl.exe
+  export CXX=cl.exe
+
+  # Note: CMAKE_INSTALL_PREFIX is a path without drive letter,
+  # relative to c:, using unix slashes instead of backslashes.
+  # This makes it easier to use with DESTDIR during do_package.
+  cmake \
+    -G"$(bs_get_cmake_generator)" \
+    $(bs_get_cmake_options) \
+    -DCMAKE_BUILD_TYPE=${buildtype} \
+    -DCMAKE_INSTALL_PREFIX="$(bs_get_prefix)" \
+    "$origdirw"
+}
+
+do_compile() {
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
+
+  bs_vcvars $bits
+  cd "$btmp-$buildtype"
+  cmake --build . --config $buildtype
+}
+
+do_check() {
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
+
+  if test "$BS_NO_CHECK" != ""
+  then
+      bs_warn "BS_NO_CHECK was set, not testing"
+      return 0
+  fi
+
+  bs_test_env_setup
+  cd "$btmp-$buildtype"
+  ctest -V -C $buildtype $EXCLUDE
+  bs_test_env_teardown
+}
+
+do_package() {
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
+  local pkgname
+  pkgname=$(bs_get_pkgname)
+
+  bs_vcvars $bits
+  rm -rf pkgtmp
+  mkdir pkgtmp
+  export DESTDIR=$(cmd /c cd | tr -d '\015\012')/pkgtmp
+  (
+     cd "$btmp-$buildtype"
+     cmake --build . --config $buildtype --target install
+  )
+  rm -f "$pkgname-$buildtype-$version-$version_patchnum".tar.gz
+  cd pkgtmp
+  tar -C . -czvf "../$pkgname-$buildtype-$version-$version_patchnum".tar.gz *
+  cd ..
+  rm -rf pkgtmp
+}
+
+do_lclone() {
+  set -x
+  parse_opts "$@"
+
+  local projname=$(bs_get_projname)
+  local mirror="$(cat bs-lmirror.dat 2>/dev/null || true)"
+  local bsoptions="$(cat bs-options.dat 2>/dev/null || true)"
+  local projects
+  if ! projects="$(cat bs-lprojects.dat)"
+  then
+    bs_warn "lclone: --lprojects not given, skipping"
+    return 0
+  fi
+  local gspeak
+  if ! gspeak=$(bs_get_gspeak_version)
+  then
+    # fixme: default to something sensible?
+    bs_abort "lclone: --g-speak unknown"
+  fi
+
+  # Create local supertree to hold this project and the downstream $projects
+  export LB_SRCTOP="$origdir-supertree.tmp"
+  mkdir -p "$LB_SRCTOP"
+  cd "$LB_SRCTOP"
+
+  # Get access to the already-checked out tree for this project
+  if ! test -L "$projname"
+  then
+    if test -d ../"$projname"
+    then
+      # normal case
+      ln -s ../"$projname" "$projname"
+    else
+      # buildbot
+      ln -s ../build "$projname"
+    fi
+  fi
+
+  uberbau $verbose install_deps
+  uberbau $verbose set-gspeak "$gspeak"
+  # Use the same flags (--greenhouse, --asan, etc.) for all projects we build.  Could work :-)
+  case "$bsoptions" in
+  "") ;;
+  *)  uberbau $verbose set-bsopts $bsoptions;;
+  esac
+
+  # Kludge: there are two ways to mirror packages from upstream:
+  #
+  # 1) 'uberbau nuke pkg...'
+  # This mirrors individual packages.
+  # We use this to handle --lmirror.
+  # as an argument to nuke, and as an argument to mirror.
+  uberbau $verbose nuke $mirror
+
+  # 2) 'uberbau mirror project...'
+  # This pulls in all the packages from a given source project,
+  # and has a little magic to pick the right yobuild or g-speak version.
+  # We use this for nobuild, yobuild, and gspeak automatically.
+  # We should consider exposing this like we do --lmirror.
+
+  mirrorgroups="minimal"
+  # depdemo-particle has g-speak in a comment in debian/control to fool ob-set-defaults,
+  # so filter out comments here.
+  # FIXME: That's pretty fragile.... but then, so is this magic at all.
+  if grep -v '^#' "$origdir"/debian/control| grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma'
+  then
+     # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
+     mirrorgroups="nobuild yobuild gspeak"
+  elif grep -v '^#' "$origdir"/debian/control| grep -v cmake | grep -qE 'yobuild'
+  then
+     mirrorgroups="yobuild"
+  fi
+  uberbau $verbose mirror $mirrorgroups
+
+  # finally, clone the downstream $projects
+  uberbau $verbose clone $projects
+  # FIXME: we should clone first and then autodetect what to mirror...?
+}
+
+do_lbuild() {
+  parse_opts "$@"
+
+  local projects
+  if ! projects=$(cat bs-lprojects.dat)
+  then
+    bs_warn "lbuild: --projects not given, skipping"
+    return 0
+  fi
+  local pkgname
+  pkgname=$(bs_get_pkgname)
+
+  export LB_SRCTOP="$origdir-supertree.tmp"
+
+  # Upload what we just built to the local repo
+  local f="$pkgname-$version-$version_patchnum".tar.gz
+  uberbau $verbose upload "$pkgname" "$_os" "$version_major.$version_minor" "$version_micro" "$version_patchnum" "$f"
+
+  # Build the downstream projects!
+  cd "$LB_SRCTOP"
+  uberbau $verbose build $projects
+}
+
+do_upload() {
+  parse_opts "$@"
+  local pkgname
+  pkgname=$(bs_get_pkgname)
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
+
+  bs_upload2 "$pkgname-$buildtype" "$_os" "$version_major.$version_minor" \
+    "$version_micro" "$version_patchnum" \
+    "$pkgname-$buildtype-$version-$version_patchnum".tar.gz
+}
+
+do_clean() {
+  # Remove traces of old builds, if any
+  local LB_SRCTOP="$origdir-supertree.tmp"
+  rm -rf \
+     "$btmp"-* \
+     "$LB_SRCTOP" \
+     ./*.tmp \
+     #
+}
+
+do_uninstall_deps() {
+  # Partial, but safe
+  local gspeak
+  gspeak=$(bs_get_gspeak_version)
+  local yoversion
+  yoversion="$(bs_yovo2yoversion ${gspeak})"
+  local yobuild
+  yobuild="/cygdrive/c/opt/oblong/deps-$(getconf LONG_BIT)-${yoversion}"
+  rm -rf "${yobuild}"
+}
+
+# Reduce console spew of 'bau all' by telling bau which of the canonical
+# build steps are implemented
+# (buildbot runs fixed list, e.g. uninstall_deps patch install_deps
+# configure compile check package compile_extra upload clean uninstall_deps)
+# Individual projects can override this with a file ci/do-list or ci/do-list.$_os
+do_list() {
+  echo help clean patch install_deps configure compile check package lclone lbuild compile_extra upload uninstall_deps
+}
+
+#--- Helper functions
+# These get the bs prefix because they might be called from an
+# overridden buildshim fragment ci/do-$step or ci/do-$step.$_os
+# and might move to obs_funcs.sh or bs_funcs.sh sometime
+
+bs_get_cmake_buildtype()
+{
+    if grep -q '^EXTRA_CMAKE_OPTIONS=.*CMAKE_BUILD_TYPE' < "$origdir"/debian/rules
+    then
+        grep '^EXTRA_CMAKE_OPTIONS=' < "$origdir"/debian/rules | sed 's/CMAKE_BUILD_TYPE=//;s/ .*//'
+    else
+        # FIXME: get from CMakeLists.txt or oblong.cmake?!
+        echo RelWithDebInfo
+    fi
+}
+
+bs_get_cmake_options()
+{
+    grep '^EXTRA_CMAKE_OPTIONS=' < "$origdir"/debian/rules | sed 's/EXTRA_CMAKE_OPTIONS=//'
+}
+
+bs_get_cmake_generator()
+{
+    awk -F= '/^CMAKE_GENERATOR=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+bs_get_g_speak_home()
+{
+    awk -F= '/^G_SPEAK_HOME=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+bs_get_prefix()
+{
+    awk -F= '/^PREFIX=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+# Get the package name (for use with bs_upload)
+bs_get_pkgname() {
+  awk '/Source:/ {print $2};' < "$origdir"/debian/control || echo unknown-until-configure
+}
+
+# Get the git repo name without prefix (for use with uberbau clone x)
+bs_get_projname() {
+  case "$origdir" in
+  */build)
+     # Buildbot checked us out into buildername/build
+     git remote -v | head -n 1 | sed 's,.*/,,;s/\.git.*//'
+     ;;
+  *)
+     # otherwise trust that current directory is named same as project
+     # FIXME: should we just always use git?
+     basename "$origdir"
+     ;;
+  esac
+}
+
+# Return old package name suffix for things linked against this version of g-speak
+# i.e. -gh3.31 for static link to g-speak 3.31 for greenhouse,
+# 3.31 for normal g-speak 3.31
+# Looks in source tree to detect whether greenhouse version should be used
+bs_short_pkg_suffix()
+{
+    local gs=$1
+    # If -gh appears anywhere in a non-commented line in debian/control, assume greenhouse
+    if grep -q -e '^[^#]*-gh' debian/control
+    then
+        printf %s "-gh$gs"
+    else
+        echo "$gs"
+    fi
+}
+
+# Output a dummy feld protein for testing
+bs_gen_feld() {
+cat <<"_EOF_"
+!<tag:oblong.com,2009:slaw/protein>
+descrips:
+- visidrome
+- feld-info
+ingests:
+  felds:
+    { main:
+      { window: [0, 0, 1280, 800],
+        screen: main
+      }
+    }
+_EOF_
+}
+
+# Output a dummy screen protein for testing
+bs_gen_screen() {
+cat <<"_EOF_"
+!<tag:oblong.com,2009:slaw/protein>
+descrips:
+- visidrome
+- screen-info
+ingests:
+  screens:
+    { main:
+      { type: basic,
+        cent: [ 0.0, 0.0, -2000.0 ],
+        phys-size: [ 336.0, 210.0 ],
+        norm: [ 0.0, 0.0, 1.0 ],
+        over: [ 1.0, 0.0, 0.0 ],
+        px-size: [ 1280, 800 ],
+        px-origin: [0, 0],
+        eye-dist: 2000.0,
+      }
+    }
+_EOF_
+}
+
+# Initialize test environment
+bs_test_env_setup() {
+  bs_warn "FIXME: Work around bug 12337, which causes tests to fail randomly every time"
+  export GTEST_FILTER="-EaseSoftTest.*"
+
+  bs_warn "FIXME: work around bug 12597 (pingpong test fails randomly, stress_test fails repeatably)."
+  EXCLUDE="--exclude-regex pingpong_test|stress_tests|await_test"
+}
+
+bs_test_env_teardown() {
+  :
+}
+
+#--- Global variables used by above functions ---
+# note: bau calls bs_funcs.sh, which also sets a number of globals (e.g. $version*)
+
+# Note: these are currently immutable, so don't set anything that
+# might change during a 'bau all' run (e.g. patch --g-speak X.Y
+# may change gspeak and yoversion, so nothing containing those can
+# be set here... including pkgname)
+
+#--- Shell variables
+# Use lowercase names for unexported variables, please
+
+opt_no_extra=false
+origdir="$(pwd)"
+origdirw="$(cygpath -w "$origdir")"
+
+# Work around windows path length limit
+case $(basename "$origdir") in
+build) dir=$(dirname "$origdir");;
+*) dir="$origdir";;
+esac
+dir=$(basename "$dir")
+btmp=/cygdrive/c/builds/"$dir"
+
+# FIXME: parse this from args?
+opt_toolchain=$(bs_detect_toolchain)
+
+#--- Environment variables
+# Use uppercase names for exported variables, please
+bits=$(getconf LONG_BIT)
+
+# Pick up any tools we need from yobuild
+# FIXME: this'll be wrong if yoversion changes during 'bau all'
+PATH="/cygdrive/c/opt/oblong/deps-${bits}-$(bs_yovo2yoversion $(bs_get_gspeak_version))/bin:$PATH"

@@ -34,7 +34,7 @@
   case $(cat /etc/os-release) in
   *14.04*) gspeak=3.30;;
   *16.04*) gspeak=4.0;;
-  *17.10*) gspeak=4.1;;
+  *17.10*) gspeak=4.2;;
   esac
   yoversion=$(obs yovo2yoversion $gspeak)
 

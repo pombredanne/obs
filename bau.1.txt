@@ -1,0 +1,141 @@
+BAU(1)
+======
+:doctype: manpage
+
+
+NAME
+----
+bau - install build dependencies and build a package
+
+
+SYNOPSIS
+--------
+*bau* 'COMMAND|STEP' ['OPTIONS']
+
+
+DESCRIPTION
+-----------
+The bau(1) command runs the steps needed to build the project
+in the current directory and produce packages for the current
+operating system type.
+
+The default steps are defined by /usr/bin/bau-defaults/buildshim-*
+Your project can override these by providing a file
+ci/buildshim-$ostype, where ostype is ubu, osx, or win.
+
+For backwards compatibility, bau will search for a legacy
+buildshim, e.g. in ~/src/ob-repobot/projname, before using
+the default.
+
+It also provides the shell library /usr/bin/bs_funcs.sh
+needed by buildshims.
+
+bau uses the same set of build steps as Oblong's buildbot, and
+always runs them in the order
+
+patch install_deps configure compile check package compile_extra upload clean uninstall_deps
+
+Each step is defined by a shell function do_STEPNAME in the buildshim.
+
+If the shell function do_list is present in the buildshim,
+it lists the subset of steps needed for this project.  This is solely
+to reduce console spew.
+
+COMMANDS
+--------
+
+Except for 'all', these are all steps implemented by do_FOO in
+the buildshim that bau finds.  (It's not an error to run a
+step that isn't in the buildshim; bau just says 'unrecognized step'.)
+They are always run in the order given below, starting with
+patch and ending with uninstall_deps.
+
+*all*::
+    run all the steps except for upload, clean, and uninstall_deps
+
+*build*::
+    run just the patch, configure, compile, check, and package steps
+
+*list*::
+    lists the steps bau knows about for your project
+
+*patch*::
+    runs ob-set-defaults with the given options, and does any
+    tweaks to the source tree the project needs before building.
+
+*install_deps*::
+    installs any packages needed to build the project
+
+*configure*::
+    runs the configure script, e.g. cmake
+
+*compile*::
+    does the build, with e.g. make
+
+*check*::
+    runs tests
+
+*package*::
+    runs the packaging tool to produce the .deb or tarball.
+    On Ubuntu, the configure/compile/check steps are usually empty, since
+    the system command for building the deb usually does a clean configure and build.
+
+*compile_extra*::
+    post-build check, e.g. verify that the package can build its samples
+
+*upload*::
+    upload artifacts to Oblong's apt or obs server, as well
+    as to Oblong's builds archive (that's where buildbot artifacts links go)
+
+*clean*::
+    remove the temporary build directory
+
+*uninstall_deps*::
+    remove any packages that were installed during install_deps
+
+
+OPTIONS
+-------
+*--g-speak* 'VERSION'::
+    Used by 'patch' (whether you invoke patch directly or via 'all');
+    controls which version of g-speak to build against (e.g. 3.29)
+
+*--no-publish*::
+    Used by 'upload'; if given, disables upload to the package repository.
+
+Other options may be implemented by individual buildshims.
+In particular, since 'patch' passes all arguments through to
+ob-set-defaults, it supports any options the default ob-set-defaults
+(or the project's set-gspeak.sh) offers (like --greenhouse for yovo, staging,
+greenhouse, etc. and --cef for webthing).
+
+See the "params" fields in ob-repobot/g-speak/master.json for an overview
+of options that are currently in use.
+
+
+ENVIRONMENT VARIABLES
+---------------------
+
+Mostly for buildshim authors.
+
+Functions in bs_funcs.sh called by build steps obey a thicket of
+environment variables.  Mostly these are set by e.g. the do_upload()
+shell function in the build shim.  A few examples:
+
+*BS_KEEP_IT*::
+    Used by bs_upload; if set to a nonblank value, doesn't delete the artifacts after uploading.
+
+*BS_UNPACK_IT*::
+    Used by bs_upload; if set to a nonblank value, untars the artifact on the remote machine.
+
+*BS_NUKE_TARBALL*::
+    Used by bs_upload; ignored unless BS_UNPACK_IT was given.  If set to a nonblank value, deletes the artifact on the remote machine.
+
+*apt_codename*::
+    Used by bs_upload and other functions; if set to an ubuntu version name like
+    'precise' or 'xenial', uploads the artifacts to that apt repo instead of the
+    one for the operating system you're running.
+
+There are others lurking... you'll know when you need one, and if you go looking
+in existing buildshims or bs_funcs.sh, you may find what you need is already there.
+If you add a new one, please prefix it with BS_ to make them easier to search for.
