@@ -33,6 +33,7 @@ obs get-cef-version         - show version of cef the current project expects
 obs get-changenum-git       - get number of changes since last heavyweight tag on current project
 obs get-gspeak-version      - show version of g-speak the current project expects
 obs get-major-version-git   - get major version number of current project from heavyweight git tags
+obs get-minor-version-git   - get minor version number of current project from heavyweight git tags
 obs get-version-git         - get version number of current project from heavyweight git tags
 obs get-gspeak-home         - show path to g-speak this project builds against currently
 obs get-yobuild-home [GSH]  - show path to yobuild this project [or given G_SPEAK_HOME] builds against
@@ -105,6 +106,7 @@ get_changenum_git)     bs_get_changenum_git;;
 get_gspeak_home)       bs_get_gspeak_home;;
 get_gspeak_version)    bs_get_gspeak_version;;
 get_major_version_git) bs_get_major_version_git;;
+get_minor_version_git) bs_get_minor_version_git;;
 get_pkgname)           bs_get_pkgname;;
 get_prefix)            bs_get_prefix;;
 get_version_git)       bs_get_version_git;;

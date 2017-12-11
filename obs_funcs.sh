@@ -301,6 +301,13 @@ bs_get_major_version_git() {
     git describe --long | sed 's/\..*//;s/.*-//'
 }
 
+# Echo the minor version number of this project as given by git
+# Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the numeric part after the first dot
+# Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
+bs_get_minor_version_git() {
+    git describe --long | sed 's/.*\.\([0-9]*\).*/\1/'
+}
+
 # Echo the change number since the start of this branch as given by git
 bs_get_changenum_git() {
     # git describe --long's output looks like

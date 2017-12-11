@@ -45,6 +45,7 @@
     # Download a package and its dependencies
     # (but first uninstall them, and remove all cached previously installed
     # packages, or the trick doesn't work)
+    sudo apt-get update
     sudo apt remove oblong-loam${gspeak} oblong-loam++${gspeak} || true
     sudo apt-get clean
     obs apt-pkg-get-transitive oblong-loam++${gspeak}
@@ -331,6 +332,7 @@
   ./obs detect_ncores
   ./obs detect_os
   ./obs get_major_version_git
+  ./obs get_minor_version_git
   ./obs get_version_git
   ./obs get_changenum_git
   ./obs yovo2cefversion 4.0
