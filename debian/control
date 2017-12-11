@@ -3,18 +3,29 @@ Section: non-free
 Priority: extra
 Maintainer: Dan Kegel <dank@oblong.com>
 Build-Depends: build-essential,
+   asciidoc,
 # Depend on bats, but only on new enough systems
    bats | libc6 (<< 2.20),
+   build-essential,
    debhelper (>= 8.0.0),
    devscripts,
+   docbook-xml,
    gnupg,
+   libxml2-utils,
    reprepro,
    util-linux,
+   xsltproc,
 Standards-Version: 3.9.4
 
 Package: oblong-obs
 Architecture: all
+Replaces: oblong-bau
+Provides: oblong-bau
 Depends: ${misc:Depends},
+   lcov,
+   dpkg-dev,
+   debhelper (>= 8.0.0),
+   devscripts,
 Description: Oblong-specific build tools
  Oblong bootstrap scripts.
  Simple, low level build/install/uninstall plumbing which works
