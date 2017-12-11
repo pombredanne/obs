@@ -4,6 +4,35 @@
 BS_GNUPGHOME=/tmp/obs_localbuild_gpghome_$(LOGNAME).alt.tmp
 export BS_GNUPGHOME
 
+# Following bit of boilerplate just here so 'bau all --no-tests' works
+
+#--- Begin lines edited by ob-set-defaults ---
+# ob-set-defaults is the tool to use to change G_SPEAK_HOME, YOBUILD,
+# PREFIX, and package names suffix etc. properly, such that
+# 'debuild -b' would produce a valid debian package.
+# See "ob-set-defaults --help" (and, if this project has it, ci/ob-set-defaults.conf).
+
+# PREFIX is where this project should be installed.
+# By default, it's the same as G_SPEAK_HOME.
+# To change it independently, do e.g.
+#   ob-set-defaults --g-speak 3.28 --prefix /opt/a-better-place
+# or set PREFIX in ci/ob-set-defaults.conf.
+PREFIX=/opt/oblong/g-speak4.2
+
+# G_SPEAK_HOME is the directory where the g-speak SDK we link against is found.
+# To change the project to link against e.g. g-speak 3.28, do e.g.
+#   ob-set-defaults --g-speak 3.28
+G_SPEAK_HOME=/opt/oblong/g-speak4.2
+
+# YOBUILD is where updated system-y libraries for this version of g-speak live.
+# ob-set-defaults sets this based on the g-speak version.
+YOBUILD=/opt/oblong/deps-64-12
+
+# Cmake options passed to ob-set-defaults (careful, quoting is treacherous here)
+CMAKE_GENERATOR=Ninja
+EXTRA_CMAKE_OPTIONS=
+#--- End lines edited by ob-set-defaults
+
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 

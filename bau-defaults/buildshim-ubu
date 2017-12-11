@@ -181,7 +181,14 @@ do_clean() {
 
 do_package() {
   bs_stamp_debian_changelog
-  bs_test_env_setup
+
+  if bs_should_run_tests
+  then
+    bs_test_env_setup
+  else
+    DEB_BUILD_OPTIONS="$DEB_BUILD_OPTIONS nocheck"
+    export DEB_BUILD_OPTIONS
+  fi
 
   # Note: debuild clears the environment, so if we want any environment
   # variables to have effect, we have to preserve them.
@@ -208,7 +215,10 @@ do_package() {
   # - For consistency, we'll want to add the same line to their do_package()
   bs_move_debs_to .
 
-  bs_test_env_teardown
+  if bs_should_run_tests
+  then
+    bs_test_env_teardown
+  fi
   echo "package finished.  (Note: dh remembers that, so to repackage, clean and start over.)"
 }
 
@@ -347,6 +357,12 @@ do_list() {
 # These get the bs prefix because they might be called from an
 # overridden buildshim fragment ci/do-$step or ci/do-$step.$_os
 # and might move to obs_funcs.sh or bs_funcs.sh sometime
+
+# True if tests should be run.
+bs_should_run_tests()
+{
+    ! grep -q '^EXTRA_CMAKE_OPTIONS=.*BUILD_TESTS=off' < "$origdir"/debian/rules
+}
 
 bs_get_cmake_options()
 {
