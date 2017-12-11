@@ -3,148 +3,15 @@
 # argument of an if statement.  Error checking should be explicit.
 # See http://unix.stackexchange.com/questions/65532/why-does-set-e-not-work-inside
 
-# Some of the variables and functions previously defined in bs_funcs.sh, e.g.
-# Variables:
-#  bs_install_host
-#  bs_install_root
-#  bs_install_sshspec
-#  bs_repotop
-#  bs_upload_user
-#  MASTER
-# Functions:
-#  bs_abort()
-#  bs_apt_list_installed_deps()
-#  bs_apt_uninstall_deps()
-#  bs_create_empty_dir_on_master()
-#  bs_deps_clear()
-#  bs_deps_hook()
-#  bs_detect_os()
-#  bs_detect_ncores()
-#  bs_get_builder_name()
-#  bs_get_package_name()
-#  bs_get_project_buildtype_override()
-#  bs_get_version_git()
-#  bs_install()
-#  bs_intuit_buildtype()
-#  bs_intuit_buildtype_deps()
-#  bs_is_try_build()
-#  bs_no_publish()
-#  bs_upload2()
-#  bs_version_is_dev()
-#  bs_warn()
-#  bs_yovo2cefversion()
-#  bs_yovo2yoversion()
-# have been hoisted out into a separate, sanitized package called obs.
-# Load that (installing it first if needed).
+# Note: this file contains a number of older or less useful functions
+# The useful and well-done ones have been hoisted out into obs_funcs.sh.
+# Please keep obs_funcs.sh tidy and well-reviewed,
+# clean up useful stuff and move it into obs_funcs.sh once it's tidy,
+# and delete stuff in bs_funcs.sh once it no longer has uses.
+# Scripts that currently source bs_funcs.sh should switch
+# to sourcing obs_funcs.sh if possible.
 
-#---- Begin Bootstrap ----
-# Following functions needed to make sure obs exists and is up to date
-# so we can source obs_funcs.sh and get at its bounty of helper functions
-# and/or run.  baugen.sh in some projects contains similar bootstrapping code.
-
-bs_is_mac() {
-   test "$(uname)" = Darwin
-}
-
-bs_is_win() {
-   test "$OS" = Windows_NT
-}
-
-bs_is_ubuntu() {
-   grep -qi ubuntu /etc/issue
-}
-
-# Return true if obs exists and is up to date
-bs_check_obs() {
-    # Required version.  Uppercase to match spelling in obs.
-    local OBS_VERSIONOID=105
-
-    # make sure latest supported g-speak has right versions
-    obs --version > /dev/null 2>&1 &&
-     test "$(obs --version | awk '/obs versionoid/ {print $3}')" -ge $OBS_VERSIONOID
-}
-
-# Get access to the repositories we need to install obs
-bs_bootstrap_enable_repo() {
-    if bs_is_mac
-    then
-        if ! echo "$PATH" | grep /usr/local/bin > /dev/null
-        then
-            # osx 10.11 systemd doesn't put /usr/local/bin on path
-            PATH=/usr/local/bin:$PATH
-        fi
-
-        if ! brew --version
-        then
-            /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        fi
-    elif bs_is_ubuntu
-    then
-        # Do we need this so early?  Seems like 'bau install-deps' should be in charge of this.
-        if ! test -s /etc/apt/sources.list.d/oblong.list && ! ls /etc/apt/sources.list.d/repobot*.list > /dev/null 2>&1
-        then
-            sudo rm -f oblong-repo_1.7_all.deb /etc/apt/sources.list.d/oblong.list
-            wget -q http://buildhost4.oblong.com/oblong-repo/oblong-repo_1.7_all.deb
-            for tries in 1 2 3
-            do
-                if sudo dpkg --force-confnew -i oblong-repo_1.7_all.deb
-                then
-                    break
-                fi
-                sleep 5
-            done
-            rm -f oblong-repo_1.7_all.deb
-            if grep 17.10 /etc/os-release
-            then
-                echo "KLUDGE: Turning off buildhost4 signature checking until we switch to a secure signing buildtools@oblong.com key"
-                sudo sed -i 's/\[arch=amd64\]/[arch=amd64 trusted=true]/' /etc/apt/sources.list.d/oblong.list
-            fi
-        fi
-    fi
-}
-
-# Make sure obs is up to date
-bs_bootstrap_obs() {
-    if ! bs_check_obs
-    then
-        bs_bootstrap_enable_repo
-        if bs_is_mac
-        then
-            brew tap oblong/tools
-            brew upgrade obs || brew install obs
-        elif bs_is_win
-        then
-            rm -rf obs-git
-            git clone git@gitlab.oblong.com:platform/obs.git obs-git
-            cd obs-git
-            make install
-            cd ..
-            rm -rf obs-git
-        elif bs_is_ubuntu
-        then
-            for tries in 1 2 3
-            do
-                # This hangs on the buildbot in state T unless output redirected?
-                if sudo apt-get $apt_quiet update && sudo apt-get install $apt_quiet -y oblong-obs > /tmp/obs-bootstrap.log 2>&1 < /dev/null
-                then
-                    break
-                fi
-                sleep 5
-            done
-        else
-           echo "ob_bootstrap: what os is this?"
-           exit 1
-        fi
-        if ! bs_check_obs
-        then
-           echo "bs_bootstrap_obs: Could not bootstrap an up-to-date oblong-obs"
-           exit 1
-        fi
-    fi
-}
-bs_bootstrap_obs
 . obs_funcs.sh
-#---- End Bootstrap ----
 
 # OB_DUMPER_HOST is where to upload very final public things that humans or ob-machine-setup.pl depend on
 # It should be the hostname of machine with the global NFS-mounted /ob/dumper tree
