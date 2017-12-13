@@ -1,5 +1,32 @@
 #!/usr/bin/env bats
 
+@test "obs-get-gspeak-version" {
+  # Get access to uncommitted obs and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  rm -rf tests/mezzver/debian
+  cd tests/mezzver
+  cp -a debian-mezz588-gs399 debian
+  # Test normally
+  if test $(obs get_gspeak_version) != 3.99
+  then
+     echo "bs_get_gspeak_version failed the easy test"
+     exit 1
+  fi
+  # Test when cd'd somewhere else
+  sh -c '. obs_funcs.sh; \
+   cd /tmp; \
+   ver=$(bs_get_gspeak_version); \
+   if test "$ver" != 3.99; \
+   then \
+     echo "bs_get_gspeak_version failed to remember pwd"; \
+     exit 1; \
+   fi \
+  '
+  cd ../..
+  rm -rf tests/mezzver/debian
+}
+
 @test "obs-apt-pkg-get-transitive" {
   # Get access to uncommitted ob-set-default and obs_funcs.sh
   PATH="$(pwd):$PATH"

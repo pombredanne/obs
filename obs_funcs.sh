@@ -143,7 +143,7 @@ bs_detect_toolchain()
 # Look at source tree to see what version of cef this project builds against currently
 # Returns same kinds of values as bs_yovo2cefversion
 bs_get_cef_version() {
-    egrep 'webthing-cef' debian/control 2>/dev/null | sed 's/.*webthing-cef/cef/;s/-.*//' | head -n1
+    egrep 'webthing-cef' "${bs_origdirslash}debian/control" 2>/dev/null | sed 's/.*webthing-cef/cef/;s/-.*//' | head -n1
 }
 
 # Look at source tree to see what version of g-speak this project builds against currently
@@ -152,25 +152,25 @@ bs_get_gspeak_version() {
     # sed's regular expressions are a bit ugly
     #  egrep: (abc)?
     #  sed:   \(abc\)\{0,1\}
-    if test -f debian/control && egrep -q 'g-speak(-gh)?[0-9]' debian/control
+    if test -f "${bs_origdirslash}debian/control" && egrep -q 'g-speak(-gh)?[0-9]' "${bs_origdirslash}debian/control"
     then
-        egrep 'g-speak(-gh)?[0-9]' debian/control | head -n 1 | sed 's/.*g-speak\(-gh\)\{0,1\}//;s/[^0-9.].*//'
-    elif test -f debian/control && egrep -q 'gs(-gh)?[0-9.]+x' debian/control
+        egrep 'g-speak(-gh)?[0-9]' "${bs_origdirslash}debian/control" | head -n 1 | sed 's/.*g-speak\(-gh\)\{0,1\}//;s/[^0-9.].*//'
+    elif test -f "${bs_origdirslash}debian/control" && egrep -q 'gs(-gh)?[0-9.]+x' "${bs_origdirslash}debian/control"
     then
-        egrep 'gs(-gh)?[0-9.]+x' debian/control | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
-    elif test -f debian/control && egrep -q -e '-gs[0-9.]+' debian/control
+        egrep 'gs(-gh)?[0-9.]+x' "${bs_origdirslash}debian/control" | head -n 1 | sed 's/^.*gs\(-gh\)\{0,1\}\([1-9][0-9.]*\)x.*$/\2/'
+    elif test -f "${bs_origdirslash}debian/control" && egrep -q -e '-gs[0-9.]+' "${bs_origdirslash}debian/control"
     then
-        egrep -e '-gs[0-9.]+' debian/control | head -n 1 | sed 's/^.*gs\([1-9][0-9.]*\)[^0-9.].*$/\1/'
-    elif test -f debian/control && egrep -q 'oblong-plasma-ruby' debian/control
+        egrep -e '-gs[0-9.]+' "${bs_origdirslash}debian/control" | head -n 1 | sed 's/^.*gs\([1-9][0-9.]*\)[^0-9.].*$/\1/'
+    elif test -f "${bs_origdirslash}debian/control" && egrep -q 'oblong-plasma-ruby' "${bs_origdirslash}debian/control"
     then
-        egrep 'oblong-plasma-ruby' debian/control | sed 's/.*ruby//;s/,.*//'
+        egrep 'oblong-plasma-ruby' "${bs_origdirslash}debian/control" | sed 's/.*ruby//;s/,.*//'
     elif test -f bs-options.dat && grep -q g-speak bs-options.dat
     then
         # ob-set-defaults leaves this behind.  Useful for non-g-speak projects trickling down to g-speak projects.
         grep g-speak bs-options.dat | sed 's/.*--g-speak //;s/ .*//'
-    elif test -f debian/rules && egrep -q '^G_SPEAK_HOME=' debian/rules
+    elif test -f "${bs_origdirslash}debian/rules" && egrep -q '^G_SPEAK_HOME=' "${bs_origdirslash}debian/rules"
     then
-        awk -F= '/G_SPEAK_HOME=/ {print $2}' debian/rules | sed 's/.*speak//'
+        awk -F= '/G_SPEAK_HOME=/ {print $2}' "${bs_origdirslash}debian/rules" | sed 's/.*speak//'
     else
         bs_warn "bs_get_gspeak_version: cannot find g-speak version" >&2
     fi
@@ -178,9 +178,9 @@ bs_get_gspeak_version() {
 
 # Look at source tree to see what g-speak it builds against currently
 bs_get_gspeak_home() {
-    if test -f debian/rules && egrep -q '^G_SPEAK_HOME=' debian/rules
+    if test -f "${bs_origdirslash}debian/rules" && egrep -q '^G_SPEAK_HOME=' "${bs_origdirslash}debian/rules"
     then
-        awk -F= '/^G_SPEAK_HOME=/ {print $2}' debian/rules
+        awk -F= '/^G_SPEAK_HOME=/ {print $2}' "${bs_origdirslash}debian/rules"
     else
         # Would like to do this:
         #echo /opt/oblong/g-speak$(bs_get_gspeak_version)
@@ -223,10 +223,10 @@ bs_get_yoversion() {
 # Look at source tree to see what yobuild this project builds against currently
 # Optional arg: G_SPEAK_HOME
 bs_get_yobuild_home() {
-    if test -f debian/rules && egrep -q '^YOBUILD=' debian/rules
+    if test -f "${bs_origdirslash}debian/rules" && egrep -q '^YOBUILD=' "${bs_origdirslash}debian/rules"
     then
         # First try: get from debian/rules
-        awk -F= '/^YOBUILD=/ {print $2}' debian/rules
+        awk -F= '/^YOBUILD=/ {print $2}' "${bs_origdirslash}debian/rules"
     elif ob-version | awk 'BEGIN { err=1 } /ob_yobuild_dir/ { print $3; err=0 } END { exit err }'
     then
         # Second try: ask ob-version
@@ -250,9 +250,9 @@ bs_get_yobuild_home() {
 
 # Look at source tree to see where this project will be installed
 bs_get_prefix() {
-    if test -f debian/rules && egrep -q '^PREFIX=' debian/rules
+    if test -f "${bs_origdirslash}debian/rules" && egrep -q '^PREFIX=' "${bs_origdirslash}debian/rules"
     then
-        awk -F= '/^PREFIX=/ {print $2}' debian/rules
+        awk -F= '/^PREFIX=/ {print $2}' "${bs_origdirslash}debian/rules"
     else
         bs_get_gspeak_home
     fi
@@ -260,7 +260,7 @@ bs_get_prefix() {
 
 # Get the package name (for use with bs_upload)
 bs_get_pkgname() {
-    awk 'BEGIN { status=1; }; /Source:/ {print $2; status=0;}; END {exit(status);}' < debian/control
+    awk 'BEGIN { status=1; }; /Source:/ {print $2; status=0;}; END {exit(status);}' < "${bs_origdirslash}debian/control"
 }
 
 # Echo the version number of this project as given by git
@@ -1053,11 +1053,11 @@ bs_get_artifact_subdir() {
     then
         # See ob-repobot/common/SimpleConfig.py
         cat ../bs-artifactsubdir
-    elif test "$bs_origdir" && test -f "$bs_origdir/../bs-artifactsubdir"
+    elif test -f "${bs_origdirslash}../bs-artifactsubdir"
     then
         # obs_funcs.sh sets bs_origdir when sourced
         # This matters on windows buildbots, which change to a short directory before building deeply nested things
-        cat "$bs_origdir/../bs-artifactsubdir"
+        cat "${bs_origdirslash}../bs-artifactsubdir"
     elif test "$CI_PROJECT_PATH_SLUG" != ""
     then
         # See https://docs.gitlab.com/ee/ci/variables/
@@ -1089,7 +1089,7 @@ bs_get_builder_name() {
 
 # Retrieve source package name from debian directory
 bs_get_package_name() {
-    awk '/Source:/ {print $2};' < debian/control
+    awk '/Source:/ {print $2};' < "${bs_origdirslash}debian/control"
 }
 
 # List the packages installed by the last run of bs_apt_install_deps
@@ -1390,6 +1390,7 @@ bs_upload_user=${bs_upload_user:-buildbot}
 bs_install_host=$MASTER
 bs_install_root=$bs_repotop/tarballs
 bs_origdir="$(pwd)"
+bs_origdirslash="$bs_origdir/"
 
 # Allow user to download as a different user
 bs_get_install_sshspec() {
