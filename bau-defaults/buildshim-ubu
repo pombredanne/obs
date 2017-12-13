@@ -369,16 +369,6 @@ bs_get_cmake_options()
     grep '^EXTRA_CMAKE_OPTIONS=' < "$origdir"/debian/rules | sed 's/EXTRA_CMAKE_OPTIONS=//'
 }
 
-bs_get_g_speak_home()
-{
-    awk -F= '/^G_SPEAK_HOME=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
-}
-
-bs_get_prefix()
-{
-    awk -F= '/^PREFIX=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
-}
-
 # Get the package name (for use with bs_upload)
 bs_get_pkgname() {
   awk '/Source:/ {print $2};' < "$origdir"/debian/control || echo unknown-until-configure
@@ -460,7 +450,7 @@ bs_test_env_setup() {
   # If this project uses plasma, set up g-speak test environment
   # FIXME: yovo's test harness duplicates this, move to cmake?
   local g_speak_home
-  g_speak_home=$(bs_get_g_speak_home)
+  g_speak_home=$(bs_get_gspeak_home)
   if test "$g_speak_home" != "" && test -x "$g_speak_home/bin/p-create"
   then
     # Would put them in $btmp, but have feeling that would break unix sockets max length

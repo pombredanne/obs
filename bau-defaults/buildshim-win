@@ -228,12 +228,10 @@ install_ruby() {
 PATH="${PATH}:/bin"
 
 do_install_deps_base() {
-  local gspeak
-  gspeak=$(bs_get_gspeak_version)
   local yoversion
-  yoversion="$(bs_yovo2yoversion ${gspeak})"
+  yoversion="$(bs_get_yoversion)"
   local yobuild
-  yobuild="/cygdrive/c/opt/oblong/deps-$(getconf LONG_BIT)-${yoversion}"
+  yobuild="/cygdrive/c/$(bs_get_yobuild_home)"
 
   install_cmake
   install_pkg_config
@@ -259,6 +257,9 @@ do_install_deps_base() {
 #-- end really windows specific cruft --
 
 do_configure() {
+  # cmake now finds FindOblong.cmake via PATH
+  PATH="/cygdrive/c/$(bs_get_gspeak_home)/bin:$PATH"
+
   local buildtype
   buildtype="$(bs_get_cmake_buildtype)"
   bs_vcvars $bits
@@ -453,13 +454,11 @@ do_clean() {
 
 do_uninstall_deps() {
   # Partial, but safe
-  local gspeak
-  gspeak=$(bs_get_gspeak_version)
-  local yoversion
-  yoversion="$(bs_yovo2yoversion ${gspeak})"
   local yobuild
-  yobuild="/cygdrive/c/opt/oblong/deps-$(getconf LONG_BIT)-${yoversion}"
-  rm -rf "${yobuild}"
+  yobuild="$(bs_get_yobuild_home)"
+  case "$yobuild" in
+  /opt*) rm -rf "/cygdrive/c/${yobuild}";;
+  esac
 }
 
 # Reduce console spew of 'bau all' by telling bau which of the canonical
@@ -495,16 +494,6 @@ bs_get_cmake_options()
 bs_get_cmake_generator()
 {
     awk -F= '/^CMAKE_GENERATOR=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
-}
-
-bs_get_g_speak_home()
-{
-    awk -F= '/^G_SPEAK_HOME=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
-}
-
-bs_get_prefix()
-{
-    awk -F= '/^PREFIX=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
 }
 
 # Get the package name (for use with bs_upload)
@@ -628,4 +617,4 @@ bits=$(getconf LONG_BIT)
 
 # Pick up any tools we need from yobuild
 # FIXME: this'll be wrong if yoversion changes during 'bau all'
-PATH="/cygdrive/c/opt/oblong/deps-${bits}-$(bs_yovo2yoversion $(bs_get_gspeak_version))/bin:$PATH"
+PATH="/cygdrive/c/$(bs_get_yobuild_home)/bin:$PATH"

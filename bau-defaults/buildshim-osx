@@ -170,6 +170,9 @@ do_patch() {
 
 
 do_configure() {
+  # cmake now finds FindOblong.cmake via PATH
+  PATH="$(bs_get_gspeak_home)/bin:$PATH"
+
   # Note: this is an incremental configure.  Do 'bau clean' if you want clean start.
   mkdir -p "$btmp"
   cd "$btmp"
@@ -401,11 +404,6 @@ bs_get_cmake_generator()
     awk -F= '/^CMAKE_GENERATOR=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
 }
 
-bs_get_g_speak_home()
-{
-    awk -F= '/^G_SPEAK_HOME=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
-}
-
 bs_get_prefix()
 {
     awk -F= '/^PREFIX=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
@@ -507,7 +505,7 @@ bs_test_env_setup() {
   # If this project uses plasma, set up g-speak test environment
   # FIXME: yovo's test harness duplicates this, move to cmake?
   local g_speak_home
-  g_speak_home=$(bs_get_g_speak_home)
+  g_speak_home=$(bs_get_gspeak_home)
   if test "$g_speak_home" != "" && test -x "$g_speak_home/bin/p-create"
   then
     # Would put them in $btmp, but have feeling that would break unix sockets max length
@@ -612,4 +610,4 @@ origdir="$(pwd)"
 
 # Pick up a newer cmake (say, from oblong-yobuild11-cmake)
 # FIXME: this'll be wrong if yoversion changes during 'bau all', e.g. from 'ob-set-defaults --g-speak 4.2'
-PATH="/opt/oblong/deps-$(getconf LONG_BIT)-$(bs_yovo2yoversion $(bs_get_gspeak_version))/bin:$PATH"
+PATH="$(bs_get_yobuild_home)/bin:$PATH"
