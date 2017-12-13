@@ -203,7 +203,7 @@ bs_get_gspeak_home() {
 # See what version of yobuild this project builds against currently
 # Optional arg: G_SPEAK_HOME
 bs_get_yoversion() {
-    if ob-version | awk 'BEGIN { err=1 } /yobuild version/ { print $4; err=0 } END { exit err }' > /tmp/yover.dat.$$
+    if ob-version | awk 'BEGIN { err=1 } /yobuild version : [^u]/ { print $4; err=0 } END { exit err }' > /tmp/yover.dat.$$
     then
         sed 's/\..*//' < /tmp/yover.dat.$$
         rm -rf  /tmp/yover.dat.$$
