@@ -188,15 +188,16 @@ bs_get_gspeak_home() {
         # instead (which by default does not output a newline) so we can concatenate
         # the two strings without losing the exit status from bs_get_gspeak_version.
         printf /opt/oblong/g-speak
-        # Annoyingly, some code (e.g. bau-defaults/buildshim-ubu_
+        # Annoyingly, some code (e.g. bau-defaults/buildshim-ubu)
         # relies on bs_get_gspeak_version not aborting on error,
-        # so just test if it's empty here.
+        # so just test if it's empty here.  Same code (bs_test_env_setup)
+        # wants this function to return empty on failure, sigh.
         local ver
         ver=$(bs_get_gspeak_version)
         case "$ver" in
-        "") bs_abort "bs_get_gspeak_home: can't get g-speak version";;
+        "") bs_warn "bs_get_gspeak_home: can't get g-speak version" >&2;;
+        *) echo $ver;;
         esac
-        echo $ver
     fi
 }
 
