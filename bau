@@ -36,7 +36,7 @@ isFunction() {
 # So increment BAU_VERSIONOID when there's a fix in bau or bs_funcs.sh
 # that might interest them.
 # Must be integer
-BAU_VERSIONOID=53
+BAU_VERSIONOID=55
 
 # Parse options
 BAU_VERBOSE=0
