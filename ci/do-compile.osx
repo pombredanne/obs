@@ -1,3 +1,4 @@
 do_compile() {
-  :
+  export XML_CATALOG_FILES=/usr/local/etc/xml/catalog
+  make
 }
