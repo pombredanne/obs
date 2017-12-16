@@ -67,7 +67,7 @@ OBS_VERSIONOID=@VERSIONOID@
 SRCFILE="$(readlink "$0" 2>/dev/null || echo "$0")"
 case "$SRCFILE" in
 ../obs) . ../obs_funcs.sh;;
-./obs) . ./obs_funcs.sh;;
+./obs|./obs.in) . ./obs_funcs.sh;;
 *)     . obs_funcs.sh;;
 esac
 
