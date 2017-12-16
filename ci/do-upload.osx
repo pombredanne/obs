@@ -19,6 +19,13 @@ update_brew() {
 }
 
 do_upload() {
+    if bs_no_publish
+    then
+        echo "Try build, not publishing"
+        # FIXME: should push tarball up to repo for use in platform installer
+        return
+    fi
+
     # Normally, do_upload uploads the package for later download by obs,
     # but on the mac, we use homebrew rather than obs to get obs.
 
