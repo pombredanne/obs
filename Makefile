@@ -8,7 +8,7 @@ all: bau.1 bau obs
 
 #VERSION := $(shell obs get-version)
 # Integer version
-VERSIONOID := $(shell echo $$(( $$(obs get-major-version-git) * 1000 + $$(obs get-minor-version-git) )) )
+VERSIONOID := $(shell echo $$(( $$(sh ./obs.in get-major-version-git) * 1000 + $$(sh ./obs.in get-minor-version-git) )) )
 
 # gnu make double-colon means only applies if dependency exists
 %:: %.in
