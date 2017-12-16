@@ -1,10 +1,20 @@
 PREFIX = /usr
 
-all: bau.1
+all: bau.1 bau obs
 
 %.1: %.1.txt
 	# don't fail if manpage can't be formatted, e.g. on windows
 	a2x --doctype manpage --format manpage $*.1.txt || touch $*.1
+
+#VERSION := $(shell obs get-version)
+# Integer version
+VERSIONOID := $(shell echo $$(( $$(obs get-major-version-git) * 1000 + $$(obs get-minor-version-git) )) )
+
+# gnu make double-colon means only applies if dependency exists
+%:: %.in
+	echo VERSIONOID is $(VERSIONOID)
+	sed 's/@VERSIONOID@/$(VERSIONOID)/' < $< > $@
+	chmod +x $@
 
 check: check-bau check-obs
 
@@ -67,4 +77,4 @@ uninstall-obs:
            #
 
 clean:
-	rm -rf *.tmp bau.1
+	rm -rf *.tmp bau.1 obs bau

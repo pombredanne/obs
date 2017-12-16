@@ -33,10 +33,8 @@ isFunction() {
 # Yovo, greenhouse, and possibly other projects have a script baugen.sh
 # that installs a new version of bau if $(bau --version) outputs a number
 # that is too low for its taste.
-# So increment BAU_VERSIONOID when there's a fix in bau or bs_funcs.sh
-# that might interest them.
 # Must be integer
-BAU_VERSIONOID=55
+BAU_VERSIONOID=@VERSIONOID@
 
 # Parse options
 BAU_VERBOSE=0

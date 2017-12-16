@@ -59,11 +59,8 @@ _EOF_
 # Yovo, greenhouse, and possibly other projects have a script baugen.sh
 # that installs a new version of obs if `obs --version` outputs a number
 # that is too low for its taste.
-# So increment OBS_VERSIONOID when there's a fix in obs or obs_funcs.sh
-# that might interest them.
-# FIXME: consider generating this automatically from 'git describe'
 # Must be integer
-OBS_VERSIONOID=108
+OBS_VERSIONOID=@VERSIONOID@
 
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
