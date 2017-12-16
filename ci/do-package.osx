@@ -1,0 +1,17 @@
+do_package() {
+    local pkgname
+    pkgname=$(bs_get_pkgname)
+    rm -rf pkgtmp || true
+    mkdir pkgtmp
+    DESTDIR=`cd pkgtmp; pwd`
+    make PREFIX=/usr/local DESTDIR=$DESTDIR install-bau
+    cd $DESTDIR
+    tarball=../$pkgname-$version-$version_patchnum.tar.gz
+    # Alas, fakeroot sh -c "cmd1; cmd2" is not reliable, so make a shell script.
+    script=/tmp/$pkgname.maketar.$$.sh
+    echo "chown -R root:wheel *; tar -czvf $tarball *" > $script
+    fakeroot sh $script
+    rm $script
+    cd ..
+    rm -rf pkgtmp
+}
