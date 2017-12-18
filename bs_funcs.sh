@@ -640,7 +640,7 @@ bs_upload() {
             obs apt-pkg-add $apt_name-$apt_codename $apt_codename $builds_dest/*.deb
             ;;
         *)
-            ssh -n -o StrictHostKeyChecking=no $bs_upload_user@$MASTER "cd $builds_dest && bs_repotop=$bs_repotop obs apt-pkg-add '$apt_name'-'$apt_codename' '$apt_codename' '$apt_section' *.deb"
+            ssh -n -o StrictHostKeyChecking=no $bs_upload_user@$MASTER "cd $builds_dest && bs_repotop=$bs_repotop obs apt-pkg-add '$apt_name'-'$apt_codename' '$apt_codename' *.deb"
             ;;
         esac
 
