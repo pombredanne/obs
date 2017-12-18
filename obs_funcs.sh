@@ -201,6 +201,11 @@ bs_get_gspeak_home() {
     fi
 }
 
+# FIXME: Some buildshims (greenhouse) use old name for above function
+bs_get_g_speak_home() {
+    bs_get_gspeak_home "$@"
+}
+
 # See what version of yobuild this project builds against currently
 # Optional arg: G_SPEAK_HOME
 bs_get_yoversion() {
