@@ -318,13 +318,6 @@ fi
 # yobuild and cef version number parsing:
 # [1-9][0-9]* means 'match version numbers which are whole numbers greater than zero'
 #
-# About STOP-SUBSTITUTION:
-# The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
-# so that it will uninstall the old mezzanine before a new one is installed.
-# set-gspeak.sh and set-mezzanine.sh should not replace those version numbers.
-# There is a special line in mezzanine/debian/control with the string
-# STOP-SUBSTITUTION which tells sed below to stop there.
-#
 # About ${SKIP-SUBSTITUTION}:
 # We want to be able to substitute g-speak versions
 # across many places but we also want to leave it alone
@@ -335,60 +328,57 @@ fi
 # Breaks: liboblong-sidereal-dev,
 #         liboblong-sidereal-gs3.27x0-dev, ${SKIP-SUBSTITUTION},
 # forces ob-set-defaults to not change the g-speak reference on that line.
-#
-# Handling both STOP-SUBSTITUTION and SKIP-SUBSTITUTION with sed
-# requires the {} feature of gnu sed, whee!
 
 # Tell shellcheck to not complain about possible spaces in output of $(ls debian...)
 # shellcheck disable=2046
 
 $sed -i \
-    -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g}" \
-    -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g}" \
-    -e "1,/STOP-SUBSTITUTION/ {/SKIP-SUBSTITUTION/! s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g}" \
-    -e "1,/STOP-SUBSTITUTION/ s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/g-speak-gst-plugins\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-media\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-samples\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
-    -e "1,/STOP-SUBSTITUTION/ s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
-    -e "1,/STOP-SUBSTITUTION/ s/-cef[1-9][0-9]*/-${cefbranch}/g" \
-    -e "1,/STOP-SUBSTITUTION/ s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
-    -e "1,/STOP-SUBSTITUTION/ s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
-    -e "1,/STOP-SUBSTITUTION/ s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
-    -e "1,/STOP-SUBSTITUTION/ s,^PREFIX=.*,PREFIX=$PREFIX," \
-    -e "1,/STOP-SUBSTITUTION/ s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
-    -e "1,/STOP-SUBSTITUTION/ s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
+    -e "/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
+    -e "/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
+    -e "/SKIP-SUBSTITUTION/! s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
+    -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
+    -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
+    -e "s/g-speak-gst-plugins\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
+    -e "s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
+    -e "s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
+    -e "s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
+    -e "s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
+    -e "s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
+    -e "s/oblong-media\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
+    -e "s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
+    -e "s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
+    -e "s/oblong-samples\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
+    -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
+    -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
+    -e "s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
+    -e "s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
+    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+    -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
+    -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
+    -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
+    -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
+    -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
+    -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
     debian/control \
     $(ls \
@@ -556,13 +546,6 @@ then
     oblong-whiteboard2.7
   "
 
-  # About STOP-SUBSTITUTION:
-  # The oblong-mezzanine-updaterX.Y package includes a long list of Breaks/Replaces
-  # so that it will uninstall the old mezzanine before a new one is installed.
-  # set-gspeak.sh and set-mezzanine.sh should not replace those version numbers.
-  # There is a special line in debian/control with the string STOP-SUBSTITUTION
-  # which tells sed below to stop there.
-
   # Assume we don't need to handle -dbg packages separately
   for package in $packages
   do
@@ -571,7 +554,7 @@ then
       from=$(echo "$package" | $sed 's/2.7/[1-9].[0-9][0-9]*/')
       to=$(echo "$package" | $sed "s/2.7/$mezz_version/")
       $sed -i \
-          -e "1,/STOP-SUBSTITUTION/ s/$from/$to/g" \
+          -e "s/$from/$to/g" \
           debian/control debian/rules debian/changelog debian/.gitignore \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
           #
