@@ -269,8 +269,15 @@ then
 else
     gspeak_specified=true
 fi
-YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
-YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
+if test "$gspeak_version" = ""
+then
+    YOVERSION=$(bs_get_yoversion)
+    YOBUILD=$(bs_get_yobuild_home)
+else
+    YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
+    # FIXME: doesn't work in general case
+    YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
+fi
 if test "$YOVERSION" = ""
 then
     bs_abort "ob-set-defaults: YOVERSION is empty?"
