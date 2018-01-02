@@ -18,7 +18,7 @@ VERSIONOID := 1005
 	sed 's/@VERSIONOID@/$(VERSIONOID)/' < $< > $@
 	chmod +x $@
 
-check: check-bau check-obs
+check: check-bau check-uberbau check-obs check-ob-set-defaults
 
 check-bau:
 	#if test "`which bats`" != ""; then bats .; fi
@@ -26,6 +26,7 @@ check-bau:
 	sh -xe bau-test.sh
 	rm bau-test.sh
 
+check-uberbau:
 	egrep -v '{|}' < uberbau.bats > uberbau-test.sh
 	sh -xe uberbau-test.sh
 	rm uberbau-test.sh
@@ -35,6 +36,12 @@ check-obs:
 	egrep -v '@test|^}$$' < obs.bats > obs-test.sh
 	sh -xe obs-test.sh
 	rm obs-test.sh
+
+check-ob-set-defaults:
+	#if test "`which bats`" != ""; then bats .; fi
+	egrep -v '@test|^}$$' < ob-set-defaults.bats > ob-set-defaults-test.sh
+	sh -xe ob-set-defaults-test.sh
+	rm ob-set-defaults-test.sh
 
 install: install-bau install-obs
 
