@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+YOBUILD=/opt/oblong/deps-64-12
+PKGNAME=oblong-yobuild12-cef3282
+
+%:
+	dh  $@
+
+override_dh_shlibdeps:
+	# Suppress error on Ubuntu 14.04:
+	# dpkg-shlibdeps: error: no dependency information found for /lib/x86_64-linux-gnu/libudev.so.0 (used by libcef.so)
+	dh_shlibdeps -- --ignore-missing-info
+
+override_dh_fixperms:
+	# chrome-sandbox needs to stay setuid root
+	dh_fixperms -X chrome-sandbox
+
+override_dh_strip:
+	echo "stripping caused a strange problem, so don't do it"

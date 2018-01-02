@@ -1,0 +1,27 @@
+#!/bin/sh
+# prerm script for oblong-mezzanine-plymouth
+#
+# see: dh_installdeb(1)
+
+set -x
+set -e
+
+remove_file ()
+{
+  if [ -e $1 ] || [ -h $1 ]
+  then
+    rm $1
+  fi
+}
+
+case "$1" in
+    remove|deconfigure)
+        /usr/bin/mezzanine-plymouth-restore.sh
+        remove_file /etc/init.d/plymouth-show-ip
+        ;;
+    *) ;;
+esac
+
+exit 0
+
+# end of file

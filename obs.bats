@@ -1,5 +1,40 @@
 #!/usr/bin/env bats
 
+@test "genericversion" {
+  echo "Verify ob-set-defaults on non-g-speak projects"
+
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+
+  cd oblong-cef-ver
+
+  rm -rf debian
+  cp -a yb12-cef3239 debian
+  ob-set-defaults --g-speak 4.4 --cef 3239
+  if ! diff -ur yb12-cef3239 debian
+  then
+    echo "ob-set-defaults --g-speak 4.4 --cef 3239 did not give expected results on oblong-cef"
+    exit 1
+  fi
+
+  rm -rf debian
+  cp -a yb12-cef3282 debian
+  ob-set-defaults --g-speak 4.4 --cef 3282
+  if ! diff -ur yb12-cef3282 debian
+  then
+    echo "ob-set-defaults --g-speak 4.4 --cef 3282 did not give expected results on oblong-cef"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+
+  cd ..
+}
+
+
 @test "obs-get-gspeak-version" {
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
@@ -77,6 +112,15 @@
   cd tests
 
   cd mezzver
+
+  rm -rf debian
+  cp -a debian-plymouth-mz3.27 debian
+  ob-set-defaults --g-speak 4.0 --mezz 3.28
+  if ! diff -ur debian-plymouth-mz3.28 debian
+  then
+    echo "ob-set-defaults --g-speak 4.0 --mezz 3.28 did not give expected result on admin-web"
+    exit 1
+  fi
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian

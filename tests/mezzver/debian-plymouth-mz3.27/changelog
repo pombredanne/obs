@@ -1,0 +1,5 @@
+oblong-mezzanine-plymouth3.27 (3.22) xenial; urgency=low
+
+  * initial native debian packaging
+
+ -- Walter Sosa <wasosa@oblong.com>  Fri, 11 Sep 2015 19:04:02 -0700
