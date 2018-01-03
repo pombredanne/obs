@@ -141,6 +141,7 @@ gspeak_version=""
 mezz_version=""
 G_SPEAK_HOME=""
 PREFIX=""
+YOBUILD=""
 cefbranch=""
 extra_cmake_options=""
 opt_generator="Ninja"
@@ -272,11 +273,8 @@ fi
 if test "$gspeak_version" = ""
 then
     YOVERSION=$(bs_get_yoversion)
-    YOBUILD=$(bs_get_yobuild_home)
 else
     YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
-    # FIXME: doesn't work in general case
-    YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
 fi
 if test "$YOVERSION" = ""
 then
@@ -355,6 +353,41 @@ then
       2>/dev/null || true
 fi
 
+#-------------------- YOBUILD -----------------------
+# This is the only section that changes yobuild install prefix.
+
+if test "$YOBUILD" = ""
+then
+    # KLUDGE: g-speak implies yobuild
+    if test "$gspeak_version" != ""
+    then
+        # FIXME: doesn't work in general case
+        YOBUILD=$(bs_get_yobuild_home "$gspeak_version")
+    fi
+fi
+
+if test "$YOBUILD" != ""
+then
+   find \
+        debian/control \
+        debian/rules \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q '/opt/oblong|YOBUILD=' \{} \; \
+      -exec $sed -i \
+            -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
+            -e "s,/opt/oblong/deps-[0-9]*-[0-9]*,$YOBUILD," \
+            \{} \; \
+      2>/dev/null || true
+fi
+
 #------------------------------------------------------
 
 # Set g-speak version number, and major version number for this project, in debian/* files.
@@ -423,7 +456,6 @@ $sed -i \
     -e "s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
     -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
-    -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
     -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
