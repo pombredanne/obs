@@ -286,10 +286,6 @@ if test "$G_SPEAK_HOME" = ""
 then
     G_SPEAK_HOME=/opt/oblong/g-speak$gspeak_version
 fi
-if test "$PREFIX" = ""
-then
-    PREFIX=$G_SPEAK_HOME
-fi
 if test "$cefbranch" = ""
 then
     # --cef not specified.
@@ -314,6 +310,52 @@ else
     # Allow multiple major versions of this package to coexist in repo by using major version number as suffix on package name
     version_major=$(bs_get_major_version_git)
 fi
+
+#-------------------- PREFIX --------------------------
+# This is the only section that changes install prefix.
+
+if test "$PREFIX" = ""
+then
+    PREFIX="$G_SPEAK_HOME"    # FIXME: use bs_get_prefix ?
+fi
+
+if test "$PREFIX" != ""
+then
+   # Replace PREFIX= with the right value in all files that contain it
+   # Note: debian/install and debian/*.install do not belong in this list
+   find \
+        debian/rules \
+        debian/control \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q 'PREFIX=' \{} \; \
+      -exec $sed -i \
+            -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
+            \{} \; \
+      2>/dev/null || true
+
+   # Special case for debian/install and debian/*.install
+   # Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
+   PREFIX_NOSLASH="$(echo $PREFIX | sed 's,^/,,')"
+   find \
+        debian/install \
+        debian/*.install \
+      -exec egrep -q 'opt/oblong' \{} \; \
+      -exec $sed -i \
+            -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
+            -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
+            \{} \; \
+      2>/dev/null || true
+fi
+
+#------------------------------------------------------
 
 # Set g-speak version number, and major version number for this project, in debian/* files.
 # This sed should catch all Oblong projects.
@@ -383,7 +425,6 @@ $sed -i \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
     -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
     -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
-    -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
@@ -401,17 +442,6 @@ $sed -i \
       debian/*.upstart \
       2>/dev/null) \
     #
-
-# Special case for greenhouse-ish paths in files with bare paths
-# Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
-PREFIX_NOSLASH=$(echo $PREFIX | sed 's,^/,,')
-$sed -i \
-    -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
-    -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
-    $(ls \
-      debian/*.install \
-      2>/dev/null) \
-    || true
 
 # Only want to change 1st line of changelog
 $sed -i \
