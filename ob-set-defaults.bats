@@ -28,7 +28,7 @@ set -ex
   if ! diff -ur debian-plymouth-mz3.28 debian
   then
     echo "ob-set-defaults --mezz 3.28 did not give expected result on debian-plymouth"
-    #exit 1    # Make nonfatal until we fix it
+    exit 1
   fi
 
   rm -rf debian

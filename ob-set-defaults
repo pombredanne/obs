@@ -275,16 +275,6 @@ if test "$G_SPEAK_HOME" = ""
 then
     G_SPEAK_HOME=/opt/oblong/g-speak$gspeak_version
 fi
-if test "$cefbranch" = ""
-then
-    # --cef not specified.
-    # Keep old version, if any, as this is a sticky option
-    # But switch to default version if no old version, or if --g-speak was given
-    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = "" || $gspeak_specified
-    then
-        cefbranch=$(bs_yovo2cefversion "$gspeak_version" || true)
-    fi
-fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
 projname=$(echo "$pkgname" | $sed 's/-gs.*//;s/-gh//;')
@@ -421,6 +411,52 @@ then
       2>/dev/null || true
 fi
 
+#-------------------- cefbranch -----------------------
+# This is almost the only section that changes cefbranch.
+# (The renames several pages down also do, and rely on the value of cefbranch set here,
+#  but are careful to not edit cefbranch if it's not set.)
+
+if test "$cefbranch" = ""
+then
+    # --cef not specified.
+    # Keep old version, if any, as this is a sticky option
+    # But switch to default version if no old version, or if --g-speak was given
+    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = ""
+    then
+        if $gspeak_specified
+        then
+            cefbranch=$(bs_yovo2cefversion "$gspeak_version")
+        fi
+    fi
+fi
+
+if test "$cefbranch" != ""
+then
+   find \
+        debian/rules \
+        debian/control \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q -e '-cef[1-9]' \{} \; \
+      -exec $sed -i \
+            -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+            \{} \; \
+      2>/dev/null || true
+
+    # Only want to change 1st line of changelog
+    $sed -i \
+        -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+        debian/changelog \
+        #
+fi
+
 #------------------------------------------------------
 
 # Set g-speak version number, and major version number for this project, in debian/* files.
@@ -485,7 +521,6 @@ $sed -i \
     -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
     -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
-    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
     -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
@@ -510,7 +545,6 @@ $sed -i \
 $sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "1s/-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/-gs$suffix${gspeak_version}/g" \
-    -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "1s/oblong-rtsp-viddle-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
     -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix${gspeak_version}/g" \
@@ -585,9 +619,15 @@ do
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*\\([^x0-9]\\)/-gs${suffix}${gspeak_version}\\2/" \
            -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
-           -e "s/-cef[1-9][0-9]*/-${cefbranch}/" \
           #
         )"
+        if test "$cefbranch" != ""
+        then
+            to="$(echo "$to" | $sed \
+               -e "s/-cef[1-9][0-9]*/-${cefbranch}/" \
+               #
+            )"
+        fi
         if test "$YOVERSION" != ""
         then
             to="$(echo "$to" | $sed \
