@@ -295,7 +295,10 @@ fi
 
 if test "$PREFIX" = ""
 then
-    PREFIX="$G_SPEAK_HOME"    # FIXME: use bs_get_prefix ?
+    if $gspeak_specified
+    then
+        PREFIX="$G_SPEAK_HOME"    # FIXME: use bs_get_prefix ?
+    fi
 fi
 
 if test "$PREFIX" != ""
@@ -314,7 +317,9 @@ then
         debian/*.prerm \
         debian/*.service \
         debian/*.upstart \
-      -exec egrep -q 'PREFIX=' \{} \; \
+      -exec egrep -q \
+            -e "^PREFIX=" \
+            \{} \; \
       -exec $sed -i \
             -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
             \{} \; \
@@ -326,7 +331,9 @@ then
    find \
         debian/install \
         debian/*.install \
-      -exec egrep -q 'opt/oblong' \{} \; \
+      -exec egrep -q \
+            -e 'opt/oblong' \
+            \{} \; \
       -exec $sed -i \
             -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
             -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
@@ -361,11 +368,15 @@ then
         debian/*.prerm \
         debian/*.service \
         debian/*.upstart \
-      -exec egrep -q -e '-yb[0-9]|deps-[0-9]+-[0-9]+|oblong-yobuild' \{} \; \
+      -exec egrep -q \
+            -e 'deps-[0-9]+-[0-9]+' \
+            -e '-yb[0-9]' \
+            -e '-yobuild' \
+            \{} \; \
       -exec $sed -i \
-            -e "s/-yb[0-9]*/-yb$YOVERSION/" \
-            -e "s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
-            -e "s/-yobuild[0-9]*/-yobuild$YOVERSION/" \
+            -e "s,deps-[0-9]*-[0-9]*,deps-$BITS-$YOVERSION," \
+            -e "s,-yb[0-9]*,-yb$YOVERSION," \
+            -e "s,-yobuild[0-9]*,-yobuild$YOVERSION," \
             \{} \; \
       2>/dev/null || true
 
@@ -391,11 +402,14 @@ fi
 
 if test "$YOBUILD" != ""
 then
+   YOBUILD_NOSLASH="$(echo "$YOBUILD" | sed 's,^/,,')"
    find \
         debian/control \
+        debian/install \
         debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
+        debian/*.install \
         debian/*.lintian-overrides \
         debian/*.postinst \
         debian/*.postrm \
@@ -403,10 +417,13 @@ then
         debian/*.prerm \
         debian/*.service \
         debian/*.upstart \
-      -exec egrep -q '/opt/oblong|YOBUILD=' \{} \; \
+      -exec egrep -q \
+            -e "opt/oblong" \
+            -e "^YOBUILD=" \
+            \{} \; \
       -exec $sed -i \
+            -e "s,opt/oblong/deps-[0-9]*-[0-9]*,$YOBUILD_NOSLASH," \
             -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
-            -e "s,/opt/oblong/deps-[0-9]*-[0-9]*,$YOBUILD," \
             \{} \; \
       2>/dev/null || true
 fi
@@ -415,6 +432,10 @@ fi
 # This is almost the only section that changes cefbranch.
 # (The renames several pages down also do, and rely on the value of cefbranch set here,
 #  but are careful to not edit cefbranch if it's not set.)
+# Note: for poor historical reasons, the cefbranch variable in some
+# scripts as well as the output of bs_yovo2cefversion include
+# the literal prefix "cef".  They probably shouldn't anymore.
+# Other scripts don't already.  It's a bit confusing.
 
 if test "$cefbranch" = ""
 then
@@ -432,11 +453,14 @@ fi
 
 if test "$cefbranch" != ""
 then
+   barecefbranch=$(echo $cefbranch | sed 's/cef//')
    find \
         debian/rules \
         debian/control \
+        debian/install \
         debian/.gitignore \
         debian/*.alternatives \
+        debian/*.install \
         debian/*.lintian-overrides \
         debian/*.postinst \
         debian/*.postrm \
@@ -444,9 +468,17 @@ then
         debian/*.prerm \
         debian/*.service \
         debian/*.upstart \
-      -exec egrep -q -e '-cef[1-9]' \{} \; \
+      -exec egrep -q \
+            -e "-cef[1-9]" \
+            -e "/cef[1-9]" \
+            -e "^cefbranch=[1-9]" \
+            -e "^cefbranch=cef[1-9]" \
+            \{} \; \
       -exec $sed -i \
+            -e "s,/cef[1-9][0-9]*,/${cefbranch},g" \
             -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+            -e "s,^cefbranch=[1-9][0-9]*,cefbranch=$barecefbranch," \
+            -e "s,^cefbranch=cef[1-9][0-9]*,cefbranch=$cefbranch," \
             \{} \; \
       2>/dev/null || true
 

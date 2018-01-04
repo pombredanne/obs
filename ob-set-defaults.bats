@@ -59,19 +59,23 @@ set -ex
 
   rm -rf debian
   cp -a yb12-cef3239 debian
+  ob-set-defaults -v --cef 3282
+  if ! diff -ur yb12-cef3282 debian
+  then
+    echo "ob-set-defaults --cef 3282 did not give expected results on oblong-cef"
+    exit 1
+  fi
   ob-set-defaults -v --g-speak 4.4 --cef 3239
   if ! diff -ur yb12-cef3239 debian
   then
     echo "ob-set-defaults --g-speak 4.4 --cef 3239 did not give expected results on oblong-cef"
     exit 1
   fi
-
-  rm -rf debian
-  cp -a yb12-cef3282 debian
-  ob-set-defaults -v --g-speak 4.4 --cef 3282
-  if ! diff -ur yb12-cef3282 debian
+  # changing g-speak implicitly changes cef and yobuild
+  ob-set-defaults -v --g-speak 3.31
+  if ! diff -ur yb11-cef2704 debian
   then
-    echo "ob-set-defaults --g-speak 4.4 --cef 3282 did not give expected results on oblong-cef"
+    echo "ob-set-defaults --g-speak 3.31 did not give expected results on oblong-cef"
     exit 1
   fi
 

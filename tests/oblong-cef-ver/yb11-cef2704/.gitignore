@@ -1,0 +1,7 @@
+debhelper-build-stamp
+*.debhelper.log
+files
+oblong-yobuild11-cef2704
+oblong-yobuild11-cef2704-debug
+*.substvars
+tmp
