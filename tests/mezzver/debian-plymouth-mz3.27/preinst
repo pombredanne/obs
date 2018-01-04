@@ -1,0 +1,30 @@
+#!/bin/sh
+# preinst script for oblong-mezzanine-plymouth
+#
+# see: dh_installdeb(1)
+
+set -x
+set -e
+
+case "$1" in
+    upgrade|install)
+        if test -z "$2" && ! dpkg -l | grep -q oblong-mezzanine-plymouth
+        then
+            # In the old days, there was no package for our
+            # plymouth theme ... nuke old theme out of the way
+            rm -rf /lib/plymouth/themes/mezzanine \
+               /etc/init.d/plymouth-show-ip \
+               /usr/share/initramfs-tools/scripts/init-top/getip
+        fi
+        ;;
+    abort-upgrade)
+        ;;
+    *)
+        echo "preinst called with unknown argument \`$1'" >&2
+        exit 1
+    ;;
+esac
+
+exit 0
+
+# end of file

@@ -1,0 +1,30 @@
+Source: oblong-yobuild12-cef3239
+Section: non-free/devel
+Priority: extra
+Maintainer: Oblong Industries, Inc <buildtools@oblong.com>
+Build-Depends: debhelper (>= 7),
+ gcc,
+ libasound2-dev,
+ libcap-dev,
+ libgconf-2-4,
+ libgtkglext1-dev,
+ libnspr4,
+ libnss3,
+ libudev-dev,
+ libxss-dev,
+ libxtst-dev,
+ ninja-build,
+ cmake,
+ p7zip-full,
+Standards-Version: 3.8.3
+Homepage: http://oblong.com
+
+Package: oblong-yobuild12-cef3239
+Architecture: any
+Description: Oblong's packaging of the Chromium Embedded Framework (branch 3112)
+Depends: libnspr4, libnss3, libgtkglext1, ${shlibs:Depends}
+
+Package: oblong-yobuild12-cef3239-debug
+Architecture: any
+Description: Oblong's packaging of the Chromium Embedded Framework (branch 3112) debug build
+Depends: libnspr4, libnss3, libgtkglext1, ${shlibs:Depends}

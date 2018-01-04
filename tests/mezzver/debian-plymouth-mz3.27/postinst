@@ -1,0 +1,46 @@
+#!/bin/sh
+# postinst script for oblong-mezzanine-plymouth
+#
+# see: dh_installdeb(1)
+
+set -x
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <postinst> `abort-remove'
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see http://www.debian.org/doc/debian-policy/ or
+# the debian-policy package
+
+create_link ()
+{
+  if [ ! -e $2 ]
+  then
+    ln -s $1 $2
+  fi
+}
+
+major=$( lsb_release -sr | cut -d"." -f1 )
+major_with_systemd=15
+
+case "$1" in
+    configure)
+        # Make sure this doesn't exist, otherwise 16.04 will complain.
+        rm -f /etc/init.d/plymouth-show-ip
+        if test $major -lt $major_with_systemd
+        then
+            create_link /etc/init.d/mz/plymouth-show-ip /etc/init.d/plymouth-show-ip
+        fi
+        /usr/bin/mezzanine-plymouth-configure.sh auto ;;
+    *) ;;
+esac
+
+exit 0
+
+# end of file

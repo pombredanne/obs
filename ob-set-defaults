@@ -141,6 +141,8 @@ gspeak_version=""
 mezz_version=""
 G_SPEAK_HOME=""
 PREFIX=""
+YOBUILD=""
+YOVERSION=""
 cefbranch=""
 extra_cmake_options=""
 opt_generator="Ninja"
@@ -269,29 +271,9 @@ then
 else
     gspeak_specified=true
 fi
-YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
-YOBUILD=/opt/oblong/deps-$BITS-$YOVERSION
-if test "$YOVERSION" = ""
-then
-    bs_abort "ob-set-defaults: YOVERSION is empty?"
-fi
 if test "$G_SPEAK_HOME" = ""
 then
     G_SPEAK_HOME=/opt/oblong/g-speak$gspeak_version
-fi
-if test "$PREFIX" = ""
-then
-    PREFIX=$G_SPEAK_HOME
-fi
-if test "$cefbranch" = ""
-then
-    # --cef not specified.
-    # Keep old version, if any, as this is a sticky option
-    # But switch to default version if no old version, or if --g-speak was given
-    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = "" || $gspeak_specified
-    then
-        cefbranch=$(bs_yovo2cefversion "$gspeak_version" || true)
-    fi
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
@@ -307,6 +289,207 @@ else
     # Allow multiple major versions of this package to coexist in repo by using major version number as suffix on package name
     version_major=$(bs_get_major_version_git)
 fi
+
+#-------------------- PREFIX --------------------------
+# This is the only section that changes install prefix.
+
+if test "$PREFIX" = ""
+then
+    if $gspeak_specified
+    then
+        PREFIX="$G_SPEAK_HOME"    # FIXME: use bs_get_prefix ?
+    fi
+fi
+
+if test "$PREFIX" != ""
+then
+   # Replace PREFIX= with the right value in all files that contain it
+   # Note: debian/install and debian/*.install do not belong in this list
+   find \
+        debian/rules \
+        debian/control \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q \
+            -e "^PREFIX=" \
+            \{} \; \
+      -exec $sed -i \
+            -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
+            \{} \; \
+      2>/dev/null || true
+
+   # Special case for debian/install and debian/*.install
+   # Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
+   PREFIX_NOSLASH="$(echo $PREFIX | sed 's,^/,,')"
+   find \
+        debian/install \
+        debian/*.install \
+      -exec egrep -q \
+            -e 'opt/oblong' \
+            \{} \; \
+      -exec $sed -i \
+            -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
+            -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
+            \{} \; \
+      2>/dev/null || true
+fi
+
+#-------------------- YOVERSION -----------------------
+# This is almost the only section that changes yobuild version number.
+# (The renames several pages down also do, and rely on the value of YOVERSION set here,
+#  but are careful to not edit YOVERSION if it's not set.)
+
+if test "$YOVERSION" = ""
+then
+    if test "$gspeak_version" != ""
+    then
+        YOVERSION=$(bs_yovo2yoversion "$gspeak_version")
+    fi
+fi
+
+if test "$YOVERSION" != ""
+then
+   find \
+        debian/rules \
+        debian/control \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q \
+            -e 'deps-[0-9]+-[0-9]+' \
+            -e '-yb[0-9]' \
+            -e '-yobuild' \
+            \{} \; \
+      -exec $sed -i \
+            -e "s,deps-[0-9]*-[0-9]*,deps-$BITS-$YOVERSION," \
+            -e "s,-yb[0-9]*,-yb$YOVERSION," \
+            -e "s,-yobuild[0-9]*,-yobuild$YOVERSION," \
+            \{} \; \
+      2>/dev/null || true
+
+    # Only want to change 1st line of changelog
+    $sed -i \
+        -e "1s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
+        debian/changelog \
+        #
+fi
+
+#-------------------- YOBUILD -----------------------
+# This is the only section that changes yobuild install prefix.
+
+if test "$YOBUILD" = ""
+then
+    # KLUDGE: g-speak implies yobuild
+    if test "$gspeak_version" != ""
+    then
+        # FIXME: doesn't work in general case
+        YOBUILD=$(bs_get_yobuild_home "$gspeak_version")
+    fi
+fi
+
+if test "$YOBUILD" != ""
+then
+   YOBUILD_NOSLASH="$(echo "$YOBUILD" | sed 's,^/,,')"
+   find \
+        debian/control \
+        debian/install \
+        debian/rules \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.install \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q \
+            -e "opt/oblong" \
+            -e "^YOBUILD=" \
+            \{} \; \
+      -exec $sed -i \
+            -e "s,opt/oblong/deps-[0-9]*-[0-9]*,$YOBUILD_NOSLASH," \
+            -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
+            \{} \; \
+      2>/dev/null || true
+fi
+
+#-------------------- cefbranch -----------------------
+# This is almost the only section that changes cefbranch.
+# (The renames several pages down also do, and rely on the value of cefbranch set here,
+#  but are careful to not edit cefbranch if it's not set.)
+# Note: for poor historical reasons, the cefbranch variable in some
+# scripts as well as the output of bs_yovo2cefversion include
+# the literal prefix "cef".  They probably shouldn't anymore.
+# Other scripts don't already.  It's a bit confusing.
+
+if test "$cefbranch" = ""
+then
+    # --cef not specified.
+    # Keep old version, if any, as this is a sticky option
+    # But switch to default version if no old version, or if --g-speak was given
+    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = ""
+    then
+        if $gspeak_specified
+        then
+            cefbranch=$(bs_yovo2cefversion "$gspeak_version")
+        fi
+    fi
+fi
+
+if test "$cefbranch" != ""
+then
+   barecefbranch=$(echo $cefbranch | sed 's/cef//')
+   find \
+        debian/rules \
+        debian/control \
+        debian/install \
+        debian/.gitignore \
+        debian/*.alternatives \
+        debian/*.install \
+        debian/*.lintian-overrides \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+        debian/*.service \
+        debian/*.upstart \
+      -exec egrep -q \
+            -e "-cef[1-9]" \
+            -e "/cef[1-9]" \
+            -e "^cefbranch=[1-9]" \
+            -e "^cefbranch=cef[1-9]" \
+            \{} \; \
+      -exec $sed -i \
+            -e "s,/cef[1-9][0-9]*,/${cefbranch},g" \
+            -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+            -e "s,^cefbranch=[1-9][0-9]*,cefbranch=$barecefbranch," \
+            -e "s,^cefbranch=cef[1-9][0-9]*,cefbranch=$cefbranch," \
+            \{} \; \
+      2>/dev/null || true
+
+    # Only want to change 1st line of changelog
+    $sed -i \
+        -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
+        debian/changelog \
+        #
+fi
+
+#------------------------------------------------------
 
 # Set g-speak version number, and major version number for this project, in debian/* files.
 # This sed should catch all Oblong projects.
@@ -370,13 +553,8 @@ $sed -i \
     -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
     -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
-    -e "s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
-    -e "s/deps-[0-9]*-[0-9]*/deps-$BITS-$YOVERSION/" \
-    -e "s/-cef[1-9][0-9]*/-${cefbranch}/g" \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
-    -e "s,^YOBUILD=.*,YOBUILD=$YOBUILD," \
     -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
-    -e "s,^PREFIX=.*,PREFIX=$PREFIX," \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
@@ -395,23 +573,10 @@ $sed -i \
       2>/dev/null) \
     #
 
-# Special case for greenhouse-ish paths in files with bare paths
-# Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
-PREFIX_NOSLASH=$(echo $PREFIX | sed 's,^/,,')
-$sed -i \
-    -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
-    -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
-    $(ls \
-      debian/*.install \
-      2>/dev/null) \
-    || true
-
 # Only want to change 1st line of changelog
 $sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "1s/-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/-gs$suffix${gspeak_version}/g" \
-    -e "1s/-cef[1-9][0-9]*/-${cefbranch}/g" \
-    -e "1s/oblong-yobuild[0-9]*/oblong-yobuild$YOVERSION/" \
     -e "1s/oblong-rtsp-viddle-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
     -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix${gspeak_version}/g" \
@@ -486,9 +651,22 @@ do
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*\\([^x0-9]\\)/-gs${suffix}${gspeak_version}\\2/" \
            -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
-           -e "s/-cef[1-9][0-9]*/-${cefbranch}/;s/yobuild[0-9]*/yobuild$YOVERSION/" \
           #
         )"
+        if test "$cefbranch" != ""
+        then
+            to="$(echo "$to" | $sed \
+               -e "s/-cef[1-9][0-9]*/-${cefbranch}/" \
+               #
+            )"
+        fi
+        if test "$YOVERSION" != ""
+        then
+            to="$(echo "$to" | $sed \
+               -e "s/yobuild[0-9]*/yobuild$YOVERSION/" \
+               #
+            )"
+        fi
         if test "$from" != "$to"
         then
             # Leave GITCMD empty when just building, set it to git when renaming in anger
@@ -556,7 +734,7 @@ then
       to=$(echo "$package" | $sed "s/2.7/$mezz_version/")
       $sed -i \
           -e "s/$from/$to/g" \
-          debian/control debian/rules debian/changelog debian/.gitignore \
+          debian/control debian/rules debian/changelog \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
           #
   done

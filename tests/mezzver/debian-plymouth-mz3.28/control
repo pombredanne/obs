@@ -1,0 +1,23 @@
+Source: oblong-mezzanine-plymouth3.28
+Section: non-free/misc
+Priority: extra
+Maintainer: buildtools <buildtools@oblong.com>
+Build-Depends: debhelper (>= 7),
+   build-essential,
+   plymouth,
+   plymouth-label,
+   plymouth-theme-ubuntu-logo,
+   pciutils,
+   udev,
+Standards-Version: 3.8.3
+
+Package: oblong-mezzanine-plymouth3.28
+Architecture: any
+Depends: ${misc:Depends},
+   plymouth,
+   plymouth-label,
+   plymouth-theme-ubuntu-logo,
+   pciutils,
+   hwinfo,
+   v86d,
+Description: Mezzanine theme for plymouth

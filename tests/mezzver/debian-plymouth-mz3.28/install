@@ -1,0 +1,11 @@
+splash/* lib/plymouth/themes/mezzanine
+scripts/getip usr/share/initramfs-tools/scripts/init-top
+startup/plymouth-show-ip etc/init.d/mz
+startup/mezzanine-plymouth-starting.conf etc/init/oblong
+startup/plymouth-show-network.service lib/systemd/system
+startup/plymouth-show-ip.service lib/systemd/system
+startup/mezzanine-plymouth-starting.service lib/systemd/system
+tools/mezzanine-plymouth-configure.sh usr/bin
+tools/mezzanine-plymouth-restore.sh usr/bin
+tools/mezzanine-plymouth-common.sh etc/oblong
+grub.d/00_ob_plymouth.cfg etc/default/grub.d
