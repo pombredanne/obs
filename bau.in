@@ -57,7 +57,12 @@ done
 BAU_CMD=$(printf %s "$1" | tr '-' '_'); shift
 
 # Locate and source shell library
-BAU_SELF="$(readlink $0 2>/dev/null || echo $0)"
+if test "`which greadlink`" != ""
+then
+   BAU_SELF="$(greadlink -f "$0")"
+else
+   BAU_SELF="$(readlink -f "$0")"
+fi
 BAU_BIN="$(dirname "$BAU_SELF")"
 BAU_BIN="$(cd "$BAU_BIN"; pwd)"
 # Add bau to PATH so 'bau patch --g-speak 3.29 --downstream staging'
