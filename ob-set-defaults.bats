@@ -1,6 +1,11 @@
 #!/usr/bin/env bats
 set -ex
 
+# Kludge: pass on raspberry pi; tiptoe around mac's sed, too
+BITS=$(getconf LONG_BIT)
+sed -i.bak "s/deps-64-/deps-${BITS}-/" tests/*/*/*
+rm -f tests/*/*/*.bak
+
 # FIXME: make this data-driven and shorter
 
 @test "no-yobuild" {
@@ -59,20 +64,20 @@ set -ex
 
   rm -rf debian
   cp -a yb12-cef3239 debian
-  ob-set-defaults -v --cef 3282
+  ob-set-defaults --cef 3282
   if ! diff -ur yb12-cef3282 debian
   then
     echo "ob-set-defaults --cef 3282 did not give expected results on oblong-cef"
     exit 1
   fi
-  ob-set-defaults -v --g-speak 4.4 --cef 3239
+  ob-set-defaults --g-speak 4.4 --cef 3239
   if ! diff -ur yb12-cef3239 debian
   then
     echo "ob-set-defaults --g-speak 4.4 --cef 3239 did not give expected results on oblong-cef"
     exit 1
   fi
   # changing g-speak implicitly changes cef and yobuild
-  ob-set-defaults -v --g-speak 3.31
+  ob-set-defaults --g-speak 3.31
   if ! diff -ur yb11-cef2704 debian
   then
     echo "ob-set-defaults --g-speak 3.31 did not give expected results on oblong-cef"
@@ -91,10 +96,6 @@ set -ex
 
   # Get access to uncommitted ob-set-default and obs_funcs.sh
   PATH="$(pwd):$PATH"
-
-  # Kludge: pass on raspberry pi
-  BITS=$(getconf LONG_BIT)
-  sed -i "s/deps-64-/deps-${BITS}-/" tests/*/*/rules
 
   cd tests
 
