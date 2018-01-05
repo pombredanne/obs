@@ -912,13 +912,14 @@ bs_apt_pkg_add() {
         rm /tmp/reprepro.log.$$
         bs_abort "Repeat upload failed.  You can only upload a rel package once.  Maybe you meant to give this package a dev- tag?"
     fi
-    rm /tmp/reprepro.log.$$
     echo $status > subshell.status.tmp
     if test $status -ne 0
     then
         cat /tmp/reprepro.log.$$
+        rm /tmp/reprepro.log.$$
         bs_abort "Upload failed, see message above."
     fi
+    rm /tmp/reprepro.log.$$
 
     ) 9>$LOCKFILE
     #echo "Released lock $LOCKFILE... time is `date`"
