@@ -166,6 +166,7 @@ do
         suffix="-gh"
         # everybody's set-gspeak took --greenhouse to mean G_SPEAK_HOME=/opt/oblong/greenhouse PREFIX=/opt/oblong/greenhouse
         G_SPEAK_HOME=/opt/oblong/greenhouse
+        PREFIX=/opt/oblong/greenhouse
         # yovo and staging's cmake needed -DGREENHOUSE=on; everyone else's cmake needs -DUSE_STATIC_G_SPEAK=on
         extra_cmake_options="$extra_cmake_options -DUSE_STATIC_G_SPEAK=on -DGREENHOUSE=on"
         ;;
