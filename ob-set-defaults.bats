@@ -221,10 +221,10 @@ rm -f tests/*/*/*.bak
 
   rm -rf debian
   cp -a greenhouse-gs41 debian
-  ob-set-defaults --g-speak 4.1 --greenhouse
+  ob-set-defaults --greenhouse
   if ! diff -ur greenhouse-gs41-gh debian
   then
-    echo "ob-set-defaults --g-speak 4.1 --greenhouse did not give expected result on greenhouse"
+    echo "ob-set-defaults --greenhouse did not give expected result on greenhouse"
     exit 1
   fi
 
