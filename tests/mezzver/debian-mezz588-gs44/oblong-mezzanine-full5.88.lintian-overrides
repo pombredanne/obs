@@ -1,0 +1,8 @@
+# sadly most of our binaries have no manpages. May as well not hear lintian remind me of it
+binary-without-manpage
+# We install some things into /opt.  So there.
+dir-or-file-in-opt
+# We install some binaries which use our libraries in /opt.  So there.
+binary-or-shlib-defines-rpath
+# Nobody puts /var on its own partition anymore.  Well, at least we don't.
+init.d-script-missing-dependency-on-local_fs

@@ -1,0 +1,14 @@
+usr/bin/lightbox
+usr/bin/lightbox.dir
+usr/bin/lightbox.dir/chrome-sandbox
+usr/bin/lightbox.dir/icudtl.dat
+usr/bin/lightbox.dir/natives_blob.bin
+usr/bin/lightbox.dir/lightbox
+usr/bin/lightbox.dir/snapshot_blob.bin
+
+projects/lightbox/etc /
+
+../../projects/mezzanine/systemd/oblong-lightbox.service                          lib/systemd/system
+../../projects/mezzanine/systemd/oblong-lightbox-worker@.service                  lib/systemd/system
+../../projects/mezzanine/systemd/oblong-lightbox-worker@.service.d/watchdog.conf  opt/oblong/mezzanine/systemd-drop-ins/oblong-lightbox-worker@.service.d
+../../projects/mezzanine/systemd/oblong-lightbox-worker@.service.d/radeon.conf    opt/oblong/mezzanine/systemd-drop-ins/oblong-lightbox-worker@.service.d
