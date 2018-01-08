@@ -165,6 +165,17 @@ rm -f tests/*/*/*.bak
     exit 1
   fi
 
+  # Make sure specifying g-speak implies a particular cef by default
+  rm -rf debian
+  cp -a debian-mezz322-gs330 debian
+  ob-set-defaults --mezz 5.88
+  ob-set-defaults --g-speak 4.4
+  if ! diff -ur debian-mezz588-gs44 debian
+  then
+    echo "ob-set-defaults --mezz 5.88; ob-set-defaults --g-speak 4.4 did not give expected result on mezzanine"
+    exit 1
+  fi
+
   rm -rf debian
   cd ..
 

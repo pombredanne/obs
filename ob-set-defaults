@@ -441,14 +441,10 @@ fi
 if test "$cefbranch" = ""
 then
     # --cef not specified.
-    # Keep old version, if any, as this is a sticky option
-    # But switch to default version if no old version, or if --g-speak was given
-    if ! cefbranch=$(bs_get_cef_version) || test "$cefbranch" = ""
+    # Switch to default version if --g-speak was given
+    if $gspeak_specified
     then
-        if $gspeak_specified
-        then
-            cefbranch=$(bs_yovo2cefversion "$gspeak_version")
-        fi
+        cefbranch=$(bs_yovo2cefversion "$gspeak_version")
     fi
 fi
 
