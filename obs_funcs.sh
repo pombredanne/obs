@@ -666,15 +666,6 @@ bs_apt_server_add() {
         _apt_codename=${bs_apt_codename:-"$(awk -F= '/VERSION_CODENAME/{print $2}' /etc/os-release)"}
     fi
 
-    # FIXME: transition repos to SHA256 keys and remove this section
-    # Ubuntu 1710 does not trust repos signed with SHA1 keys.
-    # Until all repos we want to add have transitioned to SHA256 keys, be insecure there.
-    # See https://wiki.ubuntu.com/SecurityTeam/GPGMigration
-    local livedangerously
-    case $_apt_codename in
-    artful) livedangerously="trusted=true";;
-    esac
-
     local dpkgarch=$(dpkg --print-architecture)
     local dir
     local line
@@ -684,10 +675,10 @@ bs_apt_server_add() {
         sdir="$(echo $dir | tr '/' '-')"
         case "$host" in
         localhost)
-            line="deb [arch=$dpkgarch $livedangerously] file:$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch] file:$dir $_apt_codename main non-free"
             ;;
         *)
-            line="deb [arch=$dpkgarch $livedangerously] http://$host/$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch] http://$host/$dir $_apt_codename main non-free"
             ;;
         esac
         echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list" > /dev/null
