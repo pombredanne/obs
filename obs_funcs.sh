@@ -494,34 +494,54 @@ bs_install() {
 
 # If $1 isn't in file $2, append it
 bs_append_to_file() {
-   if ! grep -e "$1" "$2"
+   if ! fgrep -e "$1" "$2" 2>/dev/null
    then
       printf "# Appended by obs\n%s\n" "$1" >> "$2"
    fi
 }
 
+# Set variable bs_gpg with command to invoke gpg2
+bs_gpg_init() {
+    mkdir -p -m700 "$GNUPGHOME"
+    case "$bs_gpg" in
+    "")
+        if test -x /usr/bin/gpg2
+        then
+            bs_gpg=gpg2
+        else
+            bs_gpg=gpg
+        fi
+
+        ;;
+    esac
+    # horrible kludge to allow loopback on ubuntu 16.04, which still has gpg 2.11
+    local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
+    if $bs_gpg --version | head -n 1 | grep ' 2\.1\.11' > /dev/null
+    then
+        bs_append_to_file allow-loopback-pinentry $gpgagent_conf
+    fi
+}
+
 # Set up $GNUPGHOME for insecure but fast unattended key generation
-bs_gnupg_init_insecure_unattended() {
+bs_gpg_init_insecure_unattended() {
     case "$GNUPGHOME" in
-    $HOME|"") bs_abort "bs_gnupg_init_insecure_unattended: GNUPGHOME must be set to a short non-HOME path";;
+    $HOME|"") bs_abort "bs_gpg_init_insecure_unattended: GNUPGHOME must be set to a short non-HOME path";;
     esac
     local gpgconf="$GNUPGHOME"/gpg.conf
     # Delete mercilessly now because rm -rf $bs_repotop doesn't delete $GNUPGHOME
     gpgconf --kill gpg-agent || true
     rm -rf "$GNUPGHOME"
-    cp -a "$HOME"/.gnupg "$GNUPGHOME" || mkdir -m700 "$GNUPGHOME"
+    mkdir -p -m700 "$GNUPGHOME"
     bs_append_to_file no-tty "$gpgconf"
     bs_append_to_file batch  "$gpgconf"
-    # Select quick but insecure RNG (for gpg2, select on commandline)
-    #if gpg --quick-random --version >/dev/null 2>&1 ; then
-    #    bs_append_to_file quick-random       "$gpgconf"
-    #fi
+    bs_gpg_init
 }
 
 # Generate a fake key; APT_CONFIG and GNUPGHOME are used to avoid
 # contaminating real environment (somewhat)
 bs_apt_key_gen() {
-    if gpg -k | grep -C 1 Kwik-Expiring
+    bs_gpg_init
+    if $bs_gpg -k | grep -C 1 Kwik-Expiring
     then
        bs_abort "Fake key already exists; do 'obs apt-key-rm' to remove."
     fi
@@ -541,7 +561,7 @@ Dir::Etc::Trusted "$bs_repotop/etc/trusted.gpg";
 Dir::Etc::TrustedParts "$bs_repotop/etc/trusted.gpg.d";
 _EOF_
        # Init gpg environment
-       bs_gnupg_init_insecure_unattended
+       bs_gpg_init_insecure_unattended
     fi
 
     # Generate a repo key that lasts long enough for one build
@@ -559,71 +579,34 @@ Name-Email: $keyemail
 Expire-Date: $days
 _EOF_
 
-    # We don't usually like installing these on the fly, but it makes bootstrapping easier.
-    # Guess what?  On bare ubuntu 16.04, gpg2 is not installed until you install reprepro.
-    # "make check" will fail without this here, even though reprepro itself isn't
-    # used until later.
-    # We could add a runtime dependency on reprepro in debian/control, but then
-    # the bootstrap check in bs_funcs.sh would need to do apt-get install -f.
-    if ! reprepro --version > /dev/null 2>&1
-    then
-        sudo apt-get install -q -y reprepro
-    fi
-
-    if gpg --version | head -n 1 | grep ' 2\.' > /dev/null
-    then
-        # gpg 2 needs agent, and we don't want to use the desktop's
-        gpg-agent --debug-quick-random --daemon -- \
-        gpg -q --pinentry-mode loopback --passphrase '' --personal-digest-preferences SHA256 --gen-key gpg.in.tmp
-    else
-        # Older gpg that does not need agent
-        gpg -q --passphrase '' --gen-key --quick-random gpg.in.tmp < /dev/null
-
-        # Extra step only needed for ubuntu 16.04 (which has both gpg and gpg2)
-        if test -x /usr/bin/gpg2
-        then
-            gpg -q --passphrase '' --armor --export-secret-keys $keyemail \
-            | gpg-agent --daemon -- \
-              gpg2 -q --passphrase '' --import -
-        fi
-    fi
+    $bs_gpg -q --pinentry-mode loopback --passphrase '' --personal-digest-preferences SHA256 --gen-key gpg.in.tmp
     rm gpg.in.tmp
 
     local keyfile
     keyfile=$bs_repotop/repo.pubkey
-    gpg --armor --export $keyemail > $keyfile
+    $bs_gpg --armor --export $keyemail > $keyfile
 
-    #echo "Generated local repo's fake key $keyfile, contents:"
-    #gpg --with-fingerprint $keyfile
-    #echo "We only need it for one build, so it expires in $days days."
+    echo "Generated local repo's fake key $keyfile, contents:"
+    $bs_gpg --with-fingerprint $keyfile
+    echo "We only need it for one build, so it expires in $days days."
 }
 
 bs_apt_key_rm() {
+    bs_gpg_init
+
     local keyfile
     keyfile=$bs_repotop/repo.pubkey
 
     if true
     then
         # guess what?  Easiest way to go to nuke it from orbit.
-        bs_gnupg_init_insecure_unattended
+        bs_gpg_init_insecure_unattended
     else
         # The gentle way.  Bit fragile though.
         local keyemail="temp-repo@example.com"
         local fingerprint
         fingerprint=$(gpg -k --with-colons $keyemail | awk -F: '/^fpr:/ {print $10}' | head -n 1)
-        if gpg --version | head -n 1 | grep ' 2\.' > /dev/null
-        then
-            # gpg 2 needs agent, and we don't want to use the desktop's
-            gpg-agent --daemon -- \
-            gpg -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
-        else
-            gpg -q --passphrase '' --delete-secret-and-public-key "$fingerprint"
-            if test -x /usr/bin/gpg2
-            then
-                gpg-agent --daemon -- \
-                gpg2 -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
-            fi
-        fi
+        $bs_gpg -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
     fi
 
     rm -f $keyfile
@@ -755,6 +738,7 @@ bs_apt_server_init() {
     local apt_repokey="$1"
     shift
     local apt_suites="$*"
+    bs_gpg_init
 
     if test "$apt_suites" = ""
     then
@@ -764,7 +748,7 @@ bs_apt_server_init() {
     if test -f "$apt_repokey"
     then
         # Extract first public key fingerprint from a public key file
-        apt_repokey=$(gpg --with-colons "$apt_repokey" | awk -F: '/^pub:/ {print $5}' | head -n 1)
+        apt_repokey=$($bs_gpg --with-colons "$apt_repokey" | awk -F: '/^pub:/ {print $5}' | head -n 1)
     fi
 
     local apt_archive_root="$bs_repotop/$apt_subdir/apt"
@@ -807,7 +791,6 @@ _EOF_
     then
         sudo apt-get install -q -y reprepro
     fi
-    #gpg -k || true
     # Now upload a dummy package to every section of every suite so "apt-get update" doesn't error out
     for section in $apt_sections
     do
@@ -893,7 +876,6 @@ bs_apt_pkg_add() {
     esac
 
     # Note: Remove the --ask-passphrase once you've configured a key without one, or configured an agent, or something
-    #gpg -k || true
     set +e
     LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
     status=$?

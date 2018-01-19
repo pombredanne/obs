@@ -5,8 +5,8 @@
  if test $(uname) = Linux
  then
   echo "=== Begin test obs-apt"
-  #obs="./obs -v"
-  obs="./obs"
+  obs="./obs -v"
+  #obs="./obs"
 
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
