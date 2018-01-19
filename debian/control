@@ -11,6 +11,8 @@ Build-Depends: build-essential,
    devscripts,
    docbook-xml,
    gnupg2|gnupg,
+# possibly controversial - entropy magnifier to avoid build hangs due to lack of entropy
+   haveged,
    libxml2-utils,
    reprepro,
    util-linux,
