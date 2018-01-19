@@ -18,27 +18,29 @@ VERSIONOID := 1007
 	sed 's/@VERSIONOID@/$(VERSIONOID)/' < $< > $@
 	chmod +x $@
 
-check: check-bau check-uberbau check-obs check-ob-set-defaults
+check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau
 
-check-bau:
-	#if test "`which bats`" != ""; then bats .; fi
-	egrep -v '{|}' < bau.bats > bau-test.sh
+check-apt: obs
+	egrep -v '@test|^}$$' < apt.bats > apt-test.sh
+	sh -xe apt-test.sh
+	rm apt-test.sh
+
+check-bau: obs bau
+	egrep -v '@test|^}$$' < bau.bats > bau-test.sh
 	sh -xe bau-test.sh
 	rm bau-test.sh
 
-check-uberbau:
-	egrep -v '{|}' < uberbau.bats > uberbau-test.sh
-	sh -xe uberbau-test.sh
-	rm uberbau-test.sh
-
-check-obs:
-	#if test "`which bats`" != ""; then bats .; fi
+check-obs: obs
 	egrep -v '@test|^}$$' < obs.bats > obs-test.sh
 	sh -xe obs-test.sh
 	rm obs-test.sh
 
+check-uberbau: obs bau
+	egrep -v '@test|^}$$' < uberbau.bats > uberbau-test.sh
+	sh -xe uberbau-test.sh
+	rm uberbau-test.sh
+
 check-ob-set-defaults:
-	#if test "`which bats`" != ""; then bats .; fi
 	egrep -v '@test|^}$$' < ob-set-defaults.bats > ob-set-defaults-test.sh
 	sh -xe ob-set-defaults-test.sh
 	rm ob-set-defaults-test.sh
