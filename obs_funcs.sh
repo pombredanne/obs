@@ -641,7 +641,8 @@ bs_apt_server_add() {
         ;;
     esac
 
-    $maybesudo rm -f $sources_list_d/repobot-$host-*.list
+    $maybesudo rm -f "$sources_list_d"/"$host"-*.list
+    $maybesudo rm -f "$sources_list_d"/repobot-"$host"-*.list   # transitional
     local _apt_codename
     if test -f /etc/lsb-release
     then
@@ -665,7 +666,7 @@ bs_apt_server_add() {
             line="deb [arch=$dpkgarch] http://$host/$dir $_apt_codename main non-free"
             ;;
         esac
-        echo "$line" | $maybesudo tee "$sources_list_d/repobot-$host-$sdir-$_apt_codename.list" > /dev/null
+        echo "$line" | $maybesudo tee "$sources_list_d/$host-$sdir.list" > /dev/null
     done
 
     if test "$key" != "none"
@@ -686,11 +687,13 @@ bs_apt_server_rm() {
     case $MASTER in
     localhost)
         sources_list_d=${bs_repotop}/etc/sources.list.d
-        rm -f "$sources_list_d"/repobot-"$host"-*.list
+        rm -f "$sources_list_d"/repobot-"$host"-*.list  # remove soon
+        rm -f "$sources_list_d"/"$host"-*.list
         ;;
     *)
         sources_list_d=/etc/apt/sources.list.d
-        sudo rm -f "$sources_list_d"/repobot-"$host"-*.list
+        sudo rm -f "$sources_list_d"/repobot-"$host"-*.list  # remove soon
+        sudo rm -f "$sources_list_d"/"$host"-*.list
         ;;
     esac
     sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q clean
