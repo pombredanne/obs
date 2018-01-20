@@ -666,18 +666,19 @@ bs_apt_server_add() {
     local signedby
     if test "$key" != "none"
     then
-        local keyrings
-        
-        # Save it into our own little 'keyrings' directory
-        # FIXME: is this the right place?
-        case "$GNUPGHOME" in
-        "") keyrings=/usr/share/keyrings; sudo install -D -m644 "$key" $keyrings/$MASTER.gpg;;
-        * ) keyrings=/tmp/obs_localbuild_keyrings_$LOGNAME.tmp/keyrings; install -D -m644 "$key" $keyrings/$MASTER.gpg;;
-        esac
+        local keyrings=/usr/share/keyrings
+
+        if grep -q "BEGIN PGP PUBLIC KEY BLOCK" < "$key"
+        then
+            # can't use an armored key directly... well, we could with apt-1.4 if it were named .asc rather than gpg
+            $bs_gpg --dearmor < "$key" > /tmp/obs-key-$LOGNAME.$$.tmp
+            key=/tmp/obs-key-$LOGNAME.$$.tmp
+        fi
+        sudo install -D -m644 "$key" $keyrings/$MASTER.gpg
+        rm -f /tmp/obs-key-$LOGNAME.$$.tmp
         # Make the sources.lists.d entry point to that key
         signedby="signed-by=$keyrings/$MASTER.gpg"
     fi
-    rm -f /tmp/key.tmp.$$
 
     local dpkgarch=$(dpkg --print-architecture)
     local dir
