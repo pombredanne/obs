@@ -1,4 +1,5 @@
-# (C) 2014,2015,2015,2016 Oblong
+# (C) 2014,2015,2015,2016,2017,2018 Oblong
+# No shebang because this is not executed, it is included.
 # Shell functions used in oblong build scripts
 # Shipped along with platform, so can be used in customer-facing samples
 # NOTE: out of date versions of this package can be very confusing indeed to developers
@@ -196,7 +197,7 @@ bs_get_gspeak_home() {
         ver=$(bs_get_gspeak_version)
         case "$ver" in
         "") bs_warn "bs_get_gspeak_home: can't get g-speak version" >&2;;
-        *) echo $ver;;
+        *) echo "$ver";;
         esac
     fi
 }
@@ -221,12 +222,12 @@ bs_get_yoversion() {
     elif test -n "$1"
     then
         # guess based on supplied g-speak version 
-        bs_yovo2yoversion $1
+        bs_yovo2yoversion "$1"
     else
         # guess based on detected g-speak version 
         local ver
         ver=$(bs_get_gspeak_version)
-        bs_yovo2yoversion $ver
+        bs_yovo2yoversion "$ver"
     fi
 }
 
@@ -251,10 +252,10 @@ bs_get_yobuild_home() {
         # Can't use echo, or it will clear status after bs_abort sets it
         # Also, can't nest function calls, have to save intermediaries as variables
         # Also, can't declare and set local variable in same statement, or it ignores status
-        printf /opt/oblong/deps-$(getconf LONG_BIT)-
+        printf /opt/oblong/deps-%s- "$(getconf LONG_BIT)"
         local ver
         ver=$(bs_get_gspeak_version)
-        bs_yovo2yoversion $ver
+        bs_yovo2yoversion "$ver"
     fi
 }
 
@@ -447,7 +448,7 @@ bs_untar_restricted() {
     # Detect destination.  Tarballs often start with the top level directories.
     # Choose the third entry, that should be /x/y/z/  (or /x/y/z/foo, depending on tar version)
     # Handle whacky tarball qwt532.tar.gz whose paths start with ./
-    dest="/$(tar -tf $1 | head -n2 | tail -n1)"
+    dest="/$(tar -tf "$1" | head -n2 | tail -n1)"
     case "$dest" in
     /usr/local/*) dest="/usr/local"; depth=2;;
     /opt/*) dest="/opt"; depth=1;;
@@ -463,7 +464,7 @@ bs_untar_restricted() {
     fi
 
     $SUDO mkdir -p "$dest"
-    $SUDO tar -o --strip-components=$depth -C "$dest" -xf $1 2>&1
+    $SUDO tar -o --strip-components=$depth -C "$dest" -xf "$1" 2>&1
 }
 
 # Usage: bs_install package ...
@@ -472,21 +473,21 @@ bs_install() {
     bs_download_dest=bs_install.tmp
     rm -rf ${bs_download_dest}
     mkdir ${bs_download_dest}
-    bs_download $@
+    bs_download "$@"
 
     # Remember what's been installed; will be used in bs_deps_hook
     # Keep it in /opt/oblong because that's the only place that's cleared at start of install_deps
     # FIXME: /opt/oblong doesn't always exist; caused trouble on win & linux
     if test -d /opt/oblong
     then
-        echo $@ | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
+        echo "$@" | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
     fi
 
     # And now the scary part.  First, check for file (not directory) overwrites.
     for tarball in bs_install.tmp/*.tar.*z*
     do
         # FIXME: add a postinstall step to e.g. install things into /etc/oblong, like old yobuild had?
-        bs_untar_restricted $tarball
+        bs_untar_restricted "$tarball"
     done
 
     rm -rf bs_install.tmp
@@ -518,7 +519,7 @@ bs_gpg_init() {
     local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
     if $bs_gpg --version | head -n 1 | grep ' 2\.1\.11' > /dev/null
     then
-        bs_append_to_file allow-loopback-pinentry $gpgagent_conf
+        bs_append_to_file allow-loopback-pinentry "$gpgagent_conf"
     fi
 }
 
@@ -566,7 +567,7 @@ _EOF_
 
     # Generate a repo key that lasts long enough for one build
     local days=30
-    local realname="$(getent passwd $LOGNAME | cut -d: -f5 | cut -d, -f1)"
+    local realname="$(getent passwd "$LOGNAME" | cut -d: -f5 | cut -d, -f1)"
     local keyname="Kwik-Expiring Development-Only Key ($realname)"
     local keyemail="temp-repo@example.com"
     cat > gpg.in.tmp <<_EOF_
@@ -584,10 +585,10 @@ _EOF_
 
     local keyfile
     keyfile=$bs_repotop/repo.pubkey
-    $bs_gpg --armor --export $keyemail > $keyfile
+    $bs_gpg --armor --export $keyemail > "$keyfile"
 
     echo "Generated local repo's fake key $keyfile, contents:"
-    $bs_gpg --with-fingerprint $keyfile
+    $bs_gpg --with-fingerprint "$keyfile"
     echo "We only need it for one build, so it expires in $days days."
 }
 
@@ -595,7 +596,7 @@ bs_apt_key_rm() {
     bs_gpg_init
 
     local keyfile
-    keyfile=$bs_repotop/repo.pubkey
+    keyfile="$bs_repotop"/repo.pubkey
 
     if true
     then
@@ -609,7 +610,7 @@ bs_apt_key_rm() {
         $bs_gpg -q --pinentry-mode loopback --passphrase '' --yes --delete-secret-and-public-key "$fingerprint"
     fi
 
-    rm -f $keyfile
+    rm -f "$keyfile"
 }
 
 # Make a signed apt server available to the apt command
@@ -669,7 +670,7 @@ bs_apt_server_add() {
 
     if test "$key" != "none"
     then
-        sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add $key
+        sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add "$key"
     fi
 
     sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q -q update
@@ -685,11 +686,11 @@ bs_apt_server_rm() {
     case $MASTER in
     localhost)
         sources_list_d=${bs_repotop}/etc/sources.list.d
-        rm -f $sources_list_d/repobot-$host-*.list
+        rm -f "$sources_list_d"/repobot-"$host"-*.list
         ;;
     *)
         sources_list_d=/etc/apt/sources.list.d
-        sudo rm -f $sources_list_d/repobot-$host-*.list
+        sudo rm -f "$sources_list_d"/repobot-"$host"-*.list
         ;;
     esac
     sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q clean
@@ -763,12 +764,12 @@ bs_apt_server_init() {
     local suite
     for suite in $apt_suites
     do
-        mkdir -p "$apt_archive_root"/dists/$suite   # just so we can do sanity checks before uploading
+        mkdir -p "$apt_archive_root"/dists/"$suite"   # just so we can do sanity checks before uploading
     done
     local section
     for section in $apt_sections
     do
-        mkdir -p "$apt_archive_root"/pool/$section
+        mkdir -p "$apt_archive_root"/pool/"$section"
     done
     mkdir -p "$apt_archive_root"/conf
     > "$apt_archive_root"/conf/distributions
@@ -797,7 +798,7 @@ _EOF_
         bs_apt_pkg_gen obs-hello-${section} 0.0.1 $section
         for suite in $apt_suites
         do
-            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb $suite obs-hello-${section}_0.0.1_*.deb > /tmp/reprepro.log.$$ 2>&1
+            if ! reprepro --silent --ask-passphrase -S $section -Vb "$apt_archive_root" includedeb "$suite" obs-hello-"${section}"_0.0.1_*.deb > /tmp/reprepro.log.$$ 2>&1
             then
                cat /tmp/reprepro.log.$$
                bs_abort "reprepro includedeb failed"
@@ -819,15 +820,15 @@ bs_apt_pkg_add() {
 
     local apt_archive_root="$bs_repotop/$apt_subdir/apt"
 
-    if ! test -d $apt_archive_root/dists
+    if ! test -d "$apt_archive_root"/dists
     then
         bs_abort "1st arg $apt_subdir looks wrong; no such directory $apt_archive_root/dists."
     fi
-    if test -f $apt_suite
+    if test -f "$apt_suite"
     then
         bs_abort "2nd arg should not be a .deb, it should be a suite name, like precise or quantal."
     fi
-    if ! test -d $apt_archive_root/dists/$apt_suite
+    if ! test -d "$apt_archive_root"/dists/"$apt_suite"
     then
         bs_abort "2nd arg (codename aka suite) $apt_suite does not exist in this apt repository."
     fi
@@ -838,12 +839,12 @@ bs_apt_pkg_add() {
 
     for arg in $apt_pkgs
     do
-        test -f $arg || bs_abort "Package $arg is not a file."
+        test -f "$arg" || bs_abort "Package $arg is not a file."
     done
 
     local pkgnames
-    pkgarch=`echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//'`
-    for arg in $@
+    pkgarch=$(echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//')
+    for arg in "$@"
     do
         # remove first _ and everything after it, and first / and everything before it, yielding the package name
         pkgname=${arg%%_*}
@@ -894,7 +895,7 @@ bs_apt_pkg_add() {
     fi
     rm /tmp/reprepro.log.$$
 
-    ) 9>$LOCKFILE
+    ) 9>"$LOCKFILE"
     #echo "Released lock $LOCKFILE... time is `date`"
     local status
     status=$(cat subshell.status.tmp)
@@ -923,12 +924,12 @@ bs_apt_pkg_rm() {
         bs_abort "2nd arg (codename aka suite) $apt_suite does not exist in this apt repository."
     fi
 
-    local LOCKFILE=$apt_archive_root/reprepro.lock
+    local LOCKFILE="$apt_archive_root"/reprepro.lock
 
     #echo "Acquiring lock $LOCKFILE... time is `date`"
     (
     reprepro -Vb $apt_archive_root remove $apt_suite $@
-    ) 9>$LOCKFILE
+    ) 9>"$LOCKFILE"
     #echo "Released lock $LOCKFILE... time is `date`"
 }
 
