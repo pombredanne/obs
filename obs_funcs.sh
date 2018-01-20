@@ -503,7 +503,6 @@ bs_append_to_file() {
 
 # Set variable bs_gpg with command to invoke gpg2
 bs_gpg_init() {
-    mkdir -p -m700 "$GNUPGHOME"
     case "$bs_gpg" in
     "")
         if test -x /usr/bin/gpg2
@@ -515,10 +514,16 @@ bs_gpg_init() {
 
         ;;
     esac
+
     # horrible kludge to allow loopback on ubuntu 16.04, which still has gpg 2.11
-    local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
     if $bs_gpg --version | head -n 1 | grep ' 2\.1\.11' > /dev/null
     then
+        # Grumble.
+        case "$GNUPGHOME" in
+        "") GNUPGHOME=$HOME/.gnupghome;;
+        esac
+        mkdir -p -m700 "$GNUPGHOME"
+        local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
         bs_append_to_file allow-loopback-pinentry "$gpgagent_conf"
     fi
 }
