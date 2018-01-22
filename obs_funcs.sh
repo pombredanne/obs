@@ -503,7 +503,6 @@ bs_append_to_file() {
 
 # Set variable bs_gpg with command to invoke gpg2
 bs_gpg_init() {
-    mkdir -p -m700 "$GNUPGHOME"
     case "$bs_gpg" in
     "")
         if test -x /usr/bin/gpg2
@@ -515,10 +514,16 @@ bs_gpg_init() {
 
         ;;
     esac
+
     # horrible kludge to allow loopback on ubuntu 16.04, which still has gpg 2.11
-    local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
     if $bs_gpg --version | head -n 1 | grep ' 2\.1\.11' > /dev/null
     then
+        # Grumble.
+        case "$GNUPGHOME" in
+        "") GNUPGHOME=$HOME/.gnupghome;;
+        esac
+        mkdir -p -m700 "$GNUPGHOME"
+        local gpgagent_conf="$GNUPGHOME"/gpg-agent.conf
         bs_append_to_file allow-loopback-pinentry "$gpgagent_conf"
     fi
 }
@@ -556,6 +561,7 @@ bs_apt_key_gen() {
        mkdir -p "$bs_repotop/etc/sources.list.d"
        # Start off trusting everything we trusted before
        cp -a /etc/apt/trusted.gpg* "$bs_repotop/etc"
+       # Add Debug::Acquire::gpgv "true"; if needed
        cat > $APT_CONFIG <<_EOF_
 Dir::Etc::sourceparts "$bs_repotop/etc/sources.list.d";
 Dir::Etc::Trusted "$bs_repotop/etc/trusted.gpg";
@@ -585,11 +591,11 @@ _EOF_
 
     local keyfile
     keyfile=$bs_repotop/repo.pubkey
-    $bs_gpg --armor --export $keyemail > "$keyfile"
+    $bs_gpg --export $keyemail > "$keyfile"
 
-    echo "Generated local repo's fake key $keyfile, contents:"
-    $bs_gpg --with-fingerprint "$keyfile"
-    echo "We only need it for one build, so it expires in $days days."
+    #echo "Generated local repo's fake key $keyfile, contents:"
+    #$bs_gpg --with-fingerprint "$keyfile"
+    #echo "We only need it for one build, so it expires in $days days."
 }
 
 bs_apt_key_rm() {
@@ -620,8 +626,12 @@ bs_apt_key_rm() {
 # e.g.
 #   bs_apt_server_add localhost dummy.key /var/apt/repo
 #   bs_apt_server_add foo.com none /ubuntu
+# As called by bs_use_package_repo:
+#   bs_apt_server_add buildhost4.oblong.com /tmp/repo.key.3335 repobot/dev-xenial/apt repobot/rel-xenial/apt
+# where /tmp/repo.key.nnnn was downloaded from http://buildhost4.oblong.com/oblong.key.
 # To sneakly download a different OS's packages, set bs_apt_codename first (e.g. to xenial)
 bs_apt_server_add() {
+    bs_gpg_init
     local host=$1
     shift
     local key=$1
@@ -651,6 +661,25 @@ bs_apt_server_add() {
         _apt_codename=${bs_apt_codename:-"$(awk -F= '/VERSION_CODENAME/{print $2}' /etc/os-release)"}
     fi
 
+    # Avoid calling apt-key; instead, use explicit signed-by attribute on sources.list entry
+    # Compare with oblong-repo/Makefile's handling of keys
+    local signedby
+    if test "$key" != "none"
+    then
+        local keyrings=/usr/share/keyrings
+
+        if grep -q "BEGIN PGP PUBLIC KEY BLOCK" < "$key"
+        then
+            # can't use an armored key directly... well, we could with apt-1.4 if it were named .asc rather than gpg
+            $bs_gpg --dearmor < "$key" > /tmp/obs-key-$LOGNAME.$$.tmp
+            key=/tmp/obs-key-$LOGNAME.$$.tmp
+        fi
+        sudo install -D -m644 "$key" $keyrings/$MASTER.gpg
+        rm -f /tmp/obs-key-$LOGNAME.$$.tmp
+        # Make the sources.lists.d entry point to that key
+        signedby="signed-by=$keyrings/$MASTER.gpg"
+    fi
+
     local dpkgarch=$(dpkg --print-architecture)
     local dir
     local line
@@ -660,19 +689,14 @@ bs_apt_server_add() {
         sdir="$(echo $dir | tr '/' '-')"
         case "$host" in
         localhost)
-            line="deb [arch=$dpkgarch] file:$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch $signedby] file:$dir $_apt_codename main non-free"
             ;;
         *)
-            line="deb [arch=$dpkgarch] http://$host/$dir $_apt_codename main non-free"
+            line="deb [arch=$dpkgarch $signedby] http://$host/$dir $_apt_codename main non-free"
             ;;
         esac
         echo "$line" | $maybesudo tee "$sources_list_d/$host-$sdir.list" > /dev/null
     done
-
-    if test "$key" != "none"
-    then
-        sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-key add "$key"
-    fi
 
     sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q -q update
 }
