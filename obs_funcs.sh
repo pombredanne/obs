@@ -698,6 +698,9 @@ bs_apt_server_add() {
         echo "$line" | $maybesudo tee "$sources_list_d/$host-$sdir.list" > /dev/null
     done
 
+    echo "bs_apt_server_add: debug: /etc/apt/sources.list.d entries:"
+    grep . /etc/apt/sources.list.d/*.list || true
+
     sudo GNUPGHOME="$GNUPGHOME" APT_CONFIG="$APT_CONFIG" apt-get -q -q update
 }
 
