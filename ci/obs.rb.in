@@ -4,6 +4,7 @@ class Obs < Formula
   desc "Oblong Bootstrap Scripts"
   homepage "https://github.com/Oblong/obs"
   depends_on "asciidoc"
+  depends_on "coreutils"
 
   url "https://github.com/Oblong/obs/archive/@tag@.tar.gz"
   sha256 "@sum@"
