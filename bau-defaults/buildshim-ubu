@@ -437,7 +437,7 @@ bs_test_env_setup() {
   # If project specifies gtest flags, obey them
   # But see https://github.com/google/googletest/issues/1262 for patch to gtest
   local flagfile
-  for flagfile in "$origdir/ci/gtest-flags.$BAU_OS" "$origdir/ci/gtest-flags"
+  for flagfile in "$origdir/ci/gtest-flags.$_os" "$origdir/ci/gtest-flags.$BAU_OS" "$origdir/ci/gtest-flags"
   do
     if test -f "$flagfile"
     then
