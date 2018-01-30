@@ -715,9 +715,6 @@ mirror_minimal() {
         mirror_one obs-$_os-master                                    apt   rel
         mirror_one ob-repobot-$_os-master                             apt   rel
         ;;
-    osx*)
-        mirror_one ob-repobot-$_os-master                             oblong-bau                          rel
-        ;;
     esac
 }
 
@@ -725,35 +722,28 @@ mirror_minimal() {
 mirror_nobuild() {
     mirror_minimal
 
+    # argument to mirror_one is the buildbot builder name, should be a subdir of UPSTREAM_MASTER:/var/repobot/rel/builds/
+
+    # obsolete-ish stuff
     case $_os in
-    ubu1204|ubu1404)
-        mirror_one nodejs-$_os-master   apt rel
-        mirror_one liblbfgs-$_os-debian apt rel
-        ;;
-    esac
-    case $_os in
-    ubu1204) ;;
-    ubu*)
-        # Only needed by ir_inertial, which doesn't run on 12.04
-        mirror_one ceres-backport-$_os-master apt rel
-        # Not supported on 12.04
-        mirror_one qt531-$_os-master                                  qt531 rel   # this one's pretty hacky, needed by screencast
-        ;;
-    esac
-    case $_os in
-    ubu*)
-        # argument to mirror_one is the buildbot builder name, should be a subdir of UPSTREAM_MASTER:/var/repobot/rel/builds/
+    ubu1604)
         mirror_one blackmagic-$_os-master    apt rel  # desktopvideo.  Should we even?
         mirror_one decklink-sdk-$_os-master  apt rel
-        mirror_one rubygems-deps-$_os-master apt rel
-        mirror_one westar-$_os-master        apt rel
+        mirror_one gst-oblong-$_os-rel-2.2-gst-yobuild$YOVERSION      apt   rel
         mirror_one oblong-qt-$_os-master     apt rel
         mirror_one oblong-qwt-$_os-master    apt rel
+        mirror_one qt531-$_os-master                                  qt531 rel   # needed by screencast & old ir-*
+        mirror_one westar-$_os-master        apt rel
+        ;;
+    esac
+
+    case $_os in
+    ubu*)
+        mirror_one ceres-backport-$_os-master apt rel
         mirror_one oblong-cef-$_os-${CEFBRANCHNAME}-yobuild$YOVERSION apt rel
         mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            apt rel
-        # shoot me
-        mirror_one gst-oblong-$_os-rel-2.2-gst-yobuild$YOVERSION      apt   rel
         mirror_one obmcp-$_os-master                                  apt   rel
+        mirror_one rubygems-deps-$_os-master apt rel
         ;;
     osx*)
         echo "Guessing about these versions..."
@@ -763,11 +753,13 @@ mirror_nobuild() {
         mirror_one qt532-$_os-master                                  qt532                               rel
         # this one's pretty hacky, needed by ir-inertial-bootloader-host
         mirror_one qt551-$_os-master                                  qt551                               rel
+        # trying to migrate to this one
+        mirror_one qt59-$_os-master                                   qt59                                rel
         # this one's pretty hacky, needed by ir-inertial-tracking-tools
-        mirror_one oblong-qwt-$_os-master                             qwt532                              rel
+        mirror_one oblong-qwt-$_os-master                             qwt539                              rel
         ;;
-    cygwin)
-        echo "WTF"
+    *)
+        bs_abort "unknown OS"
         ;;
     esac
 }
