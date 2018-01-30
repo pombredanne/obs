@@ -46,7 +46,7 @@ BAU_VERBOSE=0
 while true
 do
     case "$1" in
-    -v)        set -x; BAU_VERBOSE=1;;
+    -v)        set -x; BAU_VERBOSE=1; export BAU_VERBOSE;;
     --version) echo "bau versionoid $BAU_VERSIONOID"; exit 0;;
     -h|--help) usage; exit 0;;
     ""|-*)     usage; exit 1;;
