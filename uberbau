@@ -728,7 +728,6 @@ mirror_nobuild() {
     case $_os in
     ubu1604)
         mirror_one blackmagic-$_os-master    apt rel  # desktopvideo.  Should we even?
-        mirror_one decklink-sdk-$_os-master  apt rel
         mirror_one gst-oblong-$_os-rel-2.2-gst-yobuild$YOVERSION      apt   rel
         mirror_one oblong-qt-$_os-master     apt rel
         mirror_one oblong-qwt-$_os-master    apt rel
@@ -740,6 +739,7 @@ mirror_nobuild() {
     case $_os in
     ubu*)
         mirror_one ceres-backport-$_os-master apt rel
+        mirror_one decklink-sdk-$_os-master  apt rel
         mirror_one oblong-cef-$_os-${CEFBRANCHNAME}-yobuild$YOVERSION apt rel
         mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            apt rel
         mirror_one obmcp-$_os-master                                  apt   rel
