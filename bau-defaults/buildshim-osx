@@ -177,7 +177,7 @@ do_configure() {
   mkdir -p "$btmp"
   cd "$btmp"
   cmake \
-    -G"$(bs_get_cmake_generator)" \
+    -G"$(bs_get_cmake_generator_with_default)" \
     $(bs_get_cmake_options) \
     -DCMAKE_INSTALL_PREFIX="$(bs_get_prefix)" \
     ..
@@ -186,7 +186,7 @@ do_configure() {
 do_compile() {
   cd "$btmp"
   # bau (well, bs_pkg_init in bs_funcs.sh) sets $ncores to 4 or whatever
-  case "$(bs_get_cmake_generator)" in
+  case "$(bs_get_cmake_generator_with_default)" in
   Xcode) parallel=IDEBuildOperationMaxNumberOfConcurrentCompileTasks=$ncores;;
   *) parallel=-j$ncores;;
   esac
@@ -402,6 +402,15 @@ bs_get_cmake_options()
 bs_get_cmake_generator()
 {
     awk -F= '/^CMAKE_GENERATOR=/ { print $2 }' < "$origdir"/debian/rules | sed 's/^  *//;s/  *$//'
+}
+
+bs_get_cmake_generator_with_default()
+{
+    local gen=$(bs_get_cmake_generator)
+    case "$gen" in
+    "") gen=Ninja;;
+    esac
+    echo $gen
 }
 
 bs_get_prefix()

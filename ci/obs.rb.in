@@ -5,6 +5,7 @@ class Obs < Formula
   homepage "https://github.com/Oblong/obs"
   depends_on "asciidoc"
   depends_on "coreutils"
+  depends_on "gnu-sed"
 
   url "https://github.com/Oblong/obs/archive/@tag@.tar.gz"
   sha256 "@sum@"
