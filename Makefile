@@ -47,9 +47,10 @@ check-ob-set-defaults:
 
 install: install-bau install-obs
 
-install-bau: bau.1
+install-bau: bau.1 bau baugen.sh
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 755 bau $(DESTDIR)$(PREFIX)/bin
+	install -m 755 baugen.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-coverage.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 uberbau $(DESTDIR)$(PREFIX)/bin
 	install -m 755 -d $(DESTDIR)$(PREFIX)/share/man/man1
@@ -61,7 +62,7 @@ install-bau: bau.1
 	install -m 644 bau-defaults/buildshim-win $(DESTDIR)$(PREFIX)/bin/bau-defaults/buildshim-win
 	install -m 644 bs_funcs.sh $(DESTDIR)$(PREFIX)/bin
 
-install-obs:
+install-obs: obs 
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 644 obs_funcs.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-set-defaults $(DESTDIR)$(PREFIX)/bin
