@@ -1,0 +1,140 @@
+#!/bin/bash
+# Michele Bini, the author of this script, disclaims copyright to it
+# thus placing it in the public domain.
+# ldd path added by Dan Kegel, also public domain
+# From https://wiki.ubuntu.com/Debug%20Symbol%20Packages
+
+progname=`basename "$0"`
+
+explain() {
+    cat <<EOF
+Usage: $progname [-adtl] [-p pid]|[executable]
+
+You must specify a pid (-p) or an executable name/path.
+
+This script lists the debug symbols packages you need to install for a complete
+dump of the given executable (which must be a full pathname). Already installed
+symbols packages are not shown.
+
+Options are:
+  -p pid  uses the running process with the given pid to get the list.
+          If specified, you may omit the executable name.
+  -a      show all the required symbol packages (not only the not-installed
+          ones)
+  -d      prefer XXX-dbg symbol packages over XXX-dbgsym ones
+  -t      terse: print the packages names only (no package description).
+          Useful to pass output directly to apt-get install.
+  -l      use ldd instead of gdb (ignores -a, but may work better)
+
+NOTE: in some cases $progname may report already installed
+packages. This currently happens with binaries using libpthread.so as
+libc6-i686-dbgsym apparently doesn't contain debug symbols for it.
+
+To examine a running server process by pid, you will need to run this script
+using sudo.
+EOF
+    exit -1
+# Hidden option:  -g      enable debugging output for the script
+}
+
+all=false
+preferred="dbgsym dbg"
+debug=false
+terse=false
+pid=
+use_ldd=false
+while getopts :adglp:t opt; do
+    case $opt in
+        a)
+            all=true
+            ;;
+        d)
+            preferred="dbg dbgsym"
+            ;;
+        g)
+            debug=true
+            ;;
+        l)
+            use_ldd=true
+            ;;
+        p)
+            pid="$OPTARG"
+            binary=$(readlink /proc/$pid/exe)
+            [ -z "$binary" ] && echo "Unable to get binary path for pid $pid" && exit -1
+            ;;
+        t)
+            terse=true
+            ;;
+        \?)
+            explain
+            ;;
+    esac
+done
+
+if [ -z "$binary" ]; then
+    shift $(( $OPTIND - 1 ))
+    [ $# -ne 1 ] && explain
+    binary="$1"
+    [ ! -x "$binary" -a `basename @"$binary"` = @"$binary" -a -n "`which $binary`" ] && binary=`which $binary`
+fi
+
+find-debug() {
+    while read i; do
+        for ext in $preferred; do
+            i=$(echo "$i"|cut -f 1 -d:) #remove the architecture suffix
+            apt-cache search "^$i-$ext\$"
+        done | head -1
+    done |
+      sort -u |
+      if $terse; then sed -e 's/ - .*$//'; else cat; fi
+}
+
+find-packages-gdb() {
+    # On some versions of gdb, need to search for (*) instead?
+    echo q| gdb "$@" |
+      grep 'Reading symbols from '| \
+      if $all; then cat; else grep '(\*)'; fi |
+      sed -e 's/^Reading symbols from \(.*\)\.\.\.\((\|Reading \).*$/\1/' | \
+      sed -e 's/.* //' |
+      while read i; do
+        # dpkg doesn't like it if you feed it symbolic links? So if it fails, resolve link and retry
+        #dpkg -S "$i" |while read j; do if $debug; then echo '!' $i '-->' $j 1>&2; fi; echo $j; done
+        ( if ! dpkg -S "$i" 2>/dev/null; then [ -L "$i" ] && dpkg -S `readlink "$i"`; fi ) |
+        while read j; do
+          if $debug; then
+              echo '!' $i '-->' $j 1>&2
+          fi
+          echo $j
+        done
+      done |
+      sed -e 's/^\(.*\): .*$/\1/' |
+      sort -u 
+}
+
+# This path doesn't know if symbols exist, so it acts as if -a was always given
+find-packages-ldd() {
+    # ldd: List dynamic dependencies
+    #   sed: extract path to shared library
+    #   dpkg-query: find containing package
+    #   sed: extract name of package
+    ldd "$1" |
+      sed 's/ (.*//;s/.* //' |
+      sort -u |
+      xargs dpkg-query -S 2> /dev/null |
+      sed 's/:.*//' |
+      sort -u
+}
+
+if [ ! -z "$pid" ]; then
+   find-packages-gdb "--pid=$pid" | find-debug
+else
+   if $use_ldd; then
+     # Works, but less featureful
+     find-packages-ldd "$binary"  | find-debug
+   else
+     # Does not work for me on Ubuntu 16.04 or 17.10; where does it work?
+     find-packages-gdb "$binary" | find-debug
+     # Also experimented with this, with no luck
+     #find-packages-gdb --batch -ex "break main" -ex "run" -ex "info shared" "$binary" | find-debug
+   fi
+fi
