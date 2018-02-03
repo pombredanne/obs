@@ -21,20 +21,20 @@
   # Test with uncommitted changes
   ln -s .. ob-repobot
   PATH=$(cd ..; pwd):$PATH
-  ../uberbau --help
-  #../uberbau set-gspeak 3.28
-  ../uberbau install_deps
+  uberbau --help
+  #uberbau set-gspeak 3.28
+  uberbau install_deps
   if test -d /Applications
   then
     # mac
-    ../uberbau nuke
+    uberbau nuke
   else
     # on Ubuntu, have to mirror oblong-spruce now that depdemo depends on it... 'bau all --lclone' gets it by mirroring all of nobuild.
-    ../uberbau nuke oblong-spruce
+    uberbau nuke oblong-spruce
   fi
-  ../uberbau clone depdemo-particle depdemo-proton
-  ../uberbau build depdemo-particle depdemo-proton
-  #../uberbau -v mirror gspeak
+  uberbau clone depdemo-particle depdemo-proton
+  uberbau build depdemo-particle depdemo-proton
+  #uberbau -v mirror gspeak
 
   cd ..
   rm -rf "$LB_SRCTOP"
