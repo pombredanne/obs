@@ -446,7 +446,7 @@ bs_short_pkg_suffix()
 {
     local gs=$1
     # If -gh appears anywhere in a non-commented line in debian/control, assume greenhouse
-    if grep -q -e '^[^#]*-gh' debian/control
+    if grep -q -e '^[^#]*-gh[0-9]' debian/control
     then
         printf %s "-gh$gs"
     else
