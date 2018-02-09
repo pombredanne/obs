@@ -1,0 +1,749 @@
+Source: g-speak-gh4.5
+Section: non-free/devel
+Priority: extra
+Maintainer: Oblong Industries, Inc <buildtools@oblong.com>
+# See bld/ob-machine-setup.pl for build dependencies
+Build-Depends: debhelper (>= 7),
+## Boilerplate build dependencies first, in alphabetical order
+##  If ubuntu >= 15.04, pull in dh-systemd
+   dh-systemd (>= 1.20) | libc6 (<< 2.20),
+## lcov only needed if you configure with -DCOVERAGE
+   lcov,
+##  If ubuntu >= 16.04, pull in spruce, for precommit hook
+   oblong-spruce | libc6 (<< 2.23),
+##  Prefer yobuild's cmake, but accept system's cmake if new enough
+   oblong-yobuild12-cmake | cmake (>= 3.5.1),
+##  We default to building with ninja
+   ninja-build,
+##  If ubuntu >= 16.04, pull in strip-nondeterminism, for reproducible builds
+   strip-nondeterminism | libc6 (<< 2.23),
+# Project-specific build dependencies, in alphabetical order:
+   libasound2-dev,
+   libavahi-client-dev,
+   libepoxy-dev (>= 1.3.1),
+   libfaac-dev,
+   libfaad-dev,
+   libffi-dev,
+   libfontconfig1-dev,
+   libfreetype6-dev,
+   libgl1-mesa-dev,
+   libglu1-mesa-dev,
+   libicu-dev,
+   libjpeg-dev,
+   libpango1.0-dev,
+# libpng12-dev for ubuntu 16.04, libpng-dev for ubuntu 17.10 and up
+   libpng12-dev | libpng-dev,
+   libselinux1-dev,
+# libmysql optional but needed to fully build projects/ted
+   libmysqlclient-dev,
+   libssl-dev,
+   libtiff4-dev|libtiff5-dev,
+   libudev-dev,
+   libx11-dev,
+   libxcomposite-dev,
+   libxml2-dev,
+   libxrandr-dev,
+   libxrender-dev,
+   libyaml-dev,
+   mesa-common-dev,
+# Some things aren't available on Raspberry Pi, and aren't needed there anyway...
+   oblong-decklink-sdk-static | libraspberrypi-bin,
+   oblong-yobuild12-boost,
+   oblong-yobuild12-curl | libcurl4-openssl-dev,
+# use system gnutls if new enough; see yobuild12/yobuild-ubu12-example.sh
+   oblong-yobuild12-gnutls | libgnutls-dev (>= 3.3) | libgnutls28-dev,
+   oblong-yobuild12-graphicsmagick | libgraphicsmagick++1-dev (>= 1.3.24),
+   oblong-yobuild12-gst-plugins-base,
+   oblong-yobuild12-gstreamer,
+# use system libusb if new enough; see yobuild/yobuild-ubu12-example.sh
+   oblong-yobuild12-libusb | libusb-1.0-0-dev (>= 2:1.0.19),
+# FIXME: nettle is pulled in by yobuild12 if yobuild's nettle is used, but not if system nettle is used.
+   oblong-yobuild12-nettle | nettle-dev (>= 3.1.1),
+# FIXME: gnutls.pc requires.private two more packages on ubu15.10, not sure why
+   oblong-yobuild12-nettle | libtasn1-6-dev,
+   oblong-yobuild12-nettle | libp11-kit-dev,
+   oblong-yobuild12-vars,
+   ruby (>= 1:1.9.3.4) | rubygems,
+   ruby-dev,
+   rubygem-json,
+   ttf-bitstream-vera,
+   ttf-dejavu-extra,
+# xset needed to unblank screen so VFImageRecorder can pass
+   x11-xserver-utils,
+Standards-Version: 3.8.3
+Homepage: http://oblong.com
+
+# Packages that follow the new naming convention, in alphabetical order
+
+Package: oblong-gs4.5-gh-boom
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: boom
+
+Package: oblong-gs4.5-gh-boom-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-boom(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for boom
+
+Package: oblong-gs4.5-gh-pix
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: pix
+
+Package: oblong-gs4.5-gh-pix-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-pix(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for pix
+
+Package: oblong-gs4.5-gh-noodoo2
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ libpango1.0-dev,
+Description: noodoo2
+
+Package: oblong-gs4.5-gh-noodoo2-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-noodoo2(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for noodoo2
+
+Package: oblong-gs4.5-gh-resource
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: resource
+
+Package: oblong-gs4.5-gh-resource-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-resource(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for resource
+
+Package: oblong-gs4.5-gh-splotch
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: splotch
+
+Package: oblong-gs4.5-gh-splotch-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-splotch(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for splotch
+
+Package: oblong-gs4.5-gh-twillig2
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: twillig2
+
+Package: oblong-gs4.5-gh-twillig2-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-gs4.5-gh-twillig2(= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for twillig2
+
+# Packages that follow the old naming convention
+
+Package: oblong-loam-gh4.5
+Architecture: any
+Description: loam
+Depends:
+    ${misc:Depends}, ${shlibs:Depends},
+    oblong-yobuild12-vars,
+
+Package: oblong-loam-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-loam-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for loam
+
+Package: oblong-loam++-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-loam-gh4.5 (= ${binary:Version}),
+ oblong-yobuild12-boost,
+ libicu-dev
+Description: loam++
+
+Package: oblong-loam++-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-loam++-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for loam++
+
+Package: oblong-plasma-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-loam-gh4.5 (= ${binary:Version}),
+ libssl-dev,
+ libyaml-dev,
+ libyaml-0-2
+Description: plasma
+
+Package: oblong-plasma-server-gh4.5
+Architecture: any
+Depends:
+    oblong-plasma-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: Plasma server startup script
+ Its init scripts read optional environment vars (e.g. OB_POOLS_DIR=/var/ob/pools)
+ and options (e.g. TCP_POOL_SERVER_OPTS=--foo)
+ from /etc/oblong/plasma.conf (instead of /etc/oblong/pool-tcp-server.conf).
+ Previous similar packages (e.g. oblong-poolserver) are now mildly deprecated.
+
+Package: oblong-plasma-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-plasma-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for plasma
+
+Package: oblong-plasma++-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-loam++-gh4.5 (= ${binary:Version}),
+ oblong-plasma-gh4.5 (= ${binary:Version})
+Description: plasma++
+
+Package: oblong-plasma++-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-plasma++-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for plasma++
+
+Package: g-speak-core-gh4.5
+Architecture: any
+Depends: oblong-plasma++-gh4.5 (= ${binary:Version})
+Description: Core g-speak libraries, binaries and headers
+
+Package: g-speak-core-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-loam-gh4.5-dbg (= ${binary:Version}),
+    oblong-loam++-gh4.5-dbg (= ${binary:Version}),
+    oblong-plasma-gh4.5-dbg (= ${binary:Version}),
+    oblong-plasma++-gh4.5-dbg (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for g-speak-core
+
+Package: oblong-plasma-zeroconf-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ g-speak-core-gh4.5 (= ${binary:Version}),
+Description: Announce oblong-plasma-server services via zeroconf
+ Its init scripts read optional environment vars (e.g. OB_POOLS_DIR=/var/ob/pools) and
+ options (e.g. POOL_ZEROCONF_SERVER_OPTS=--foo) from /etc/oblong/plasma-zeroconf.conf.
+
+Package: oblong-plasma-zeroconf-server-gh4.5
+Architecture: any
+Depends:
+    oblong-plasma-zeroconf-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: Plasma zeroconf server startup script
+
+Package: oblong-plasma-zeroconf-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-plasma-zeroconf-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for plasma-zeroconf
+
+Package: oblong-plasma-ruby-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ g-speak-core-gh4.5 (= ${binary:Version}),
+Description: plasma-ruby
+
+Package: oblong-plasma-ruby-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-plasma-ruby-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for plasma-ruby
+
+Package: oblong-basement-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ g-speak-core-gh4.5 (= ${binary:Version}),
+Description: basement
+
+Package: oblong-basement-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-basement-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for basement
+
+Package: oblong-impetus-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+Description: impetus
+
+Package: oblong-impetus-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-impetus-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for impetus
+
+Package: oblong-afferent-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-impetus-gh4.5 (= ${binary:Version}),
+Description: afferent
+
+Package: oblong-afferent-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-afferent-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for afferent
+
+# use system glib and gnutls if new enough; see yobuild12/yobuild-ubu12-example.sh
+Package: oblong-media-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+ oblong-plasma-gstreamer-gh4.5 (= ${binary:Version}),
+ oblong-yobuild12-glib | libglib2.0-dev (>= 2.46.2),
+ oblong-yobuild12-gnutls | libgnutls-dev (>= 3.3) | libgnutls28-dev,
+ oblong-yobuild12-gst-alphamask,
+ oblong-yobuild12-gst-libav,
+ oblong-yobuild12-gst-plugins-bad,
+ oblong-yobuild12-gst-plugins-base,
+ oblong-yobuild12-gst-plugins-good,
+ oblong-yobuild12-gstreamer,
+Description: media
+
+Package: oblong-media-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-media-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for media
+
+Package: oblong-plasma-gstreamer-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-plasma-gh4.5 (= ${binary:Version}),
+ oblong-yobuild12-gstreamer
+Description: plasma-gstreamer
+
+Package: oblong-plasma-gstreamer-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: ${misc:Depends},
+    oblong-plasma-gstreamer-gh4.5 (= ${binary:Version})
+Description: debugging symbols for plasma-gstreamer
+
+Package: oblong-noodoo-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-impetus-gh4.5 (= ${binary:Version}),
+Description: noodoo
+
+Package: oblong-noodoo-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-noodoo-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for noodoo
+
+Package: oblong-twillig-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-noodoo-gh4.5 (= ${binary:Version}),
+Description: twillig
+
+Package: oblong-twillig-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-twillig-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for twillig
+
+Package: oblong-projects-ganglia-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-impetus-gh4.5 (= ${binary:Version}),
+Description: ganglia
+
+Package: oblong-projects-ganglia-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-ganglia-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for ganglia
+
+Package: oblong-projects-ouija-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-noodoo-gh4.5 (= ${binary:Version}),
+ oblong-afferent-gh4.5 (= ${binary:Version}),
+Description: ouija
+
+Package: oblong-projects-ouija-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-ouija-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for ouija
+
+Package: oblong-projects-ventriloquy-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+Description: ventriloquy
+
+Package: oblong-projects-ventriloquy-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-ventriloquy-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for ventriloquy
+
+Package: oblong-projects-cthulhu-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-projects-ouija-gh4.5 (= ${binary:Version}),
+ oblong-twillig-gh4.5 (= ${binary:Version}),
+ oblong-afferent-gh4.5 (= ${binary:Version}),
+Description: cthulhu
+
+Package: oblong-projects-cthulhu-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-cthulhu-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for cthulhu
+
+Package: oblong-projects-quartermaster-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-media-gh4.5 (= ${binary:Version}),
+ oblong-noodoo-gh4.5 (= ${binary:Version}),
+Description: quartermaster
+
+Package: oblong-projects-quartermaster-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-quartermaster-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for quartermaster
+
+Package: oblong-projects-event-slurper-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-media-gh4.5 (= ${binary:Version}),
+Description: event-slurperm
+
+Package: oblong-projects-event-slurper-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-event-slurper-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for event-slurper
+
+Package: oblong-projects-video-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+Description: video
+
+Package: oblong-projects-video-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-video-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for video
+
+Package: oblong-projects-netfetch-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+Description: netfetch
+
+Package: oblong-projects-netfetch-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-netfetch-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for netfetch
+
+Package: oblong-projects-tile-daemon-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+Description: tile-daemon
+
+Package: oblong-projects-tile-daemon-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-tile-daemon-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for tile-daemon
+
+#if HAVE_INOGENI
+Package: oblong-projects-inogeni-gh4.5
+Architecture: any
+Depends:
+# use system libusb if new enough; see yobuild/yobuild-ubu12-example.sh
+ oblong-yobuild12-libusb | libusb-1.0-0-dev (>= 2:1.0.19),
+Description: inogeni
+
+Package: oblong-projects-inogeni-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-projects-inogeni-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for inogeni
+#endif HAVE_INOGENI
+
+Package: oblong-system-protist-gh4.5
+Architecture: any
+Depends:
+ ${misc:Depends}, ${shlibs:Depends},
+ oblong-basement-gh4.5 (= ${binary:Version}),
+Description: protist
+
+Package: oblong-system-protist-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    oblong-system-protist-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for protist
+
+Package: oblong-samples-gh4.5
+Architecture: any
+Description: samples
+
+# FIXME: once mezzanine stops depending on this, remove it
+Package: g-speak-deps-gh4.5
+Architecture: any
+Depends:   libicu-dev,
+ libyaml-dev,
+ libyaml-0-2,
+ libc6 (>= 2.11),
+ libgcc1 (>= 1:4.1.1),
+ libice6 (>= 1:1.0.0),
+ libsm6,
+ libstdc++6 (>= 4.4.0),
+ libx11-6 (>= 0),
+ libxcomposite1 (>= 1:0.3-1),
+ libxext6,
+ libxml2 (>= 2.6.27),
+ libxrender1,
+ zlib1g (>= 1:1.1.4),
+ libx11-dev,
+ libxcomposite-dev,
+ libxrender-dev,
+ mesa-common-dev,
+ libasound2-dev,
+ libxml2-dev,
+ libavahi-client3 (>= 0.6.16),
+ libavahi-common3 (>= 0.6.16),
+ libavahi-client-dev,
+ libpci3,
+ ruby (>= 1:1.9.3.4) | rubygems,
+ ruby-dev,
+ rubygem-json,
+ oblong-yobuild12-boost,
+ oblong-yobuild12-curl | libcurl4-openssl-dev,
+ oblong-yobuild12-graphicsmagick | libgraphicsmagick++1-dev (>= 1.3.24),
+# use system libusb if new enough; see yobuild/yobuild-ubu12-example.sh
+ oblong-yobuild12-libusb | libusb-1.0-0-dev (>= 2:1.0.19),
+# use system snappy if new enough; see yobuild/yobuild-ubu12-example.sh
+ oblong-yobuild12-snappy | libsnappy-dev (>= 1.1.0),
+ oblong-yobuild12-srtp,
+ libglu1-mesa | libglu1,
+ libfontconfig1-dev,
+ libfreetype6-dev,
+ libfreetype6 (>= 2.2.1),
+ libfontconfig1 (>= 2.8.0),
+ libgl1-mesa-dev,
+ libglu1-mesa-dev,
+ ttf-dejavu-extra
+Description: g-speak deps
+
+Package: g-speak-gh4.5
+Architecture: any
+Depends:
+ ${perl:Depends},
+ g-speak-deps-gh4.5 (= ${binary:Version}),
+ g-speak-core-gh4.5 (= ${binary:Version}),
+ oblong-basement-gh4.5 (= ${binary:Version}),
+ oblong-impetus-gh4.5 (= ${binary:Version}),
+ oblong-afferent-gh4.5 (= ${binary:Version}),
+ oblong-media-gh4.5 (= ${binary:Version}),
+ oblong-noodoo-gh4.5 (= ${binary:Version}),
+ oblong-twillig-gh4.5 (= ${binary:Version}),
+ oblong-plasma-gstreamer-gh4.5 (= ${binary:Version}),
+ oblong-plasma-zeroconf-gh4.5 (= ${binary:Version}),
+ oblong-plasma-ruby-gh4.5 (= ${binary:Version}),
+ oblong-projects-ganglia-gh4.5 (= ${binary:Version}),
+ oblong-projects-ouija-gh4.5 (= ${binary:Version}),
+ oblong-projects-ventriloquy-gh4.5 (= ${binary:Version}),
+ oblong-projects-cthulhu-gh4.5 (= ${binary:Version}),
+ oblong-projects-quartermaster-gh4.5 (= ${binary:Version}),
+ oblong-projects-event-slurper-gh4.5 (= ${binary:Version}),
+ oblong-projects-video-gh4.5 (= ${binary:Version}),
+ oblong-projects-netfetch-gh4.5 (= ${binary:Version}),
+ oblong-projects-tile-daemon-gh4.5 (= ${binary:Version}),
+ oblong-system-protist-gh4.5 (= ${binary:Version}),
+ oblong-samples-gh4.5 (= ${binary:Version})
+Description: The g-speak Spatial Operating Environment
+ The g-speak SOE (spatial operating environment) is Oblong's radically
+ new platform. The SOE made its public debut in the film Minority
+ Report, whose bellwether interface one of Oblong's founders
+ designed. But its full history extends backward to three decades of
+ research at the MIT Media Lab. The g-speak SOE implements the biggest
+ advance in human-machine interface in twenty-five years. It also
+ introduces
+ .
+     a new model for multi-process cooperation
+     a real-world geometry engine for gestural input and multi-display output
+     an athletic new network layer for data translation, encapsulation, and transport
+ .
+ ... and a host of other crucial innovations.
+
+Package: g-speak-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends: g-speak-gh4.5 (= ${binary:Version}),
+ g-speak-core-gh4.5-dbg (= ${binary:Version}),
+ oblong-basement-gh4.5-dbg (= ${binary:Version}),
+ oblong-impetus-gh4.5-dbg (= ${binary:Version}),
+ oblong-afferent-gh4.5-dbg (= ${binary:Version}),
+ oblong-media-gh4.5-dbg (= ${binary:Version}),
+ oblong-noodoo-gh4.5-dbg (= ${binary:Version}),
+ oblong-twillig-gh4.5-dbg (= ${binary:Version}),
+ oblong-plasma-gstreamer-gh4.5-dbg (= ${binary:Version}),
+ oblong-plasma-zeroconf-gh4.5-dbg (= ${binary:Version}),
+ oblong-plasma-ruby-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-ganglia-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-ouija-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-ventriloquy-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-cthulhu-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-quartermaster-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-event-slurper-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-video-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-netfetch-gh4.5-dbg (= ${binary:Version}),
+ oblong-projects-tile-daemon-gh4.5-dbg (= ${binary:Version}),
+ oblong-system-protist-gh4.5-dbg (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for g-speak
+
+Package: g-speak-gst-plugins-gh4.5
+Architecture: any
+Depends:
+  ${misc:Depends}, ${shlibs:Depends},
+  g-speak-gh4.5 (= ${binary:Version})
+Description: gstreamer plugins for g-speak
+ GStreamer plugins
+
+Package: g-speak-gst-plugins-gh4.5-dbg
+Architecture: any
+Section: debug
+Priority: extra
+Depends:
+    g-speak-gst-plugins-gh4.5 (= ${binary:Version}),
+    ${misc:Depends}
+Description: debugging symbols for g-speak-gst-plugins

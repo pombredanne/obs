@@ -1,0 +1,12 @@
+opt/oblong/g-speak4.5/include/projects/quartermaster
+opt/oblong/g-speak4.5/lib/libQuartermaster.*
+opt/oblong/g-speak4.5/lib/libViddle.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libQuartermaster.pc
+opt/oblong/g-speak4.5/lib/pkgconfig/libViddle.pc
+opt/oblong/g-speak4.5/bin/qm-provisioner
+opt/oblong/g-speak4.5/bin/qm-merchant
+opt/oblong/g-speak4.5/bin/qm-viddle
+opt/oblong/g-speak4.5/bin/qm-sidler
+opt/oblong/g-speak4.5/bin/qm-ui
+opt/oblong/g-speak4.5/bin/qm-ls-resources
+opt/oblong/g-speak4.5/bin/qm-middle-manager

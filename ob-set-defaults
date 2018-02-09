@@ -342,6 +342,47 @@ then
       2>/dev/null || true
 fi
 
+#-------------------- G_SPEAK_HOME --------------------------
+# This is the only section that changes G_SPEAK_HOME.
+
+if test "$G_SPEAK_HOME" != ""
+then
+   # Replace G_SPEAK_HOME= with the right value in all scripts that contain it
+   # Note: debian/install and debian/*.install do not belong in this list
+   find \
+        debian/rules \
+        debian/*.postinst \
+        debian/*.postrm \
+        debian/*.preinst \
+        debian/*.prerm \
+      -exec egrep -q \
+            -e "^G_SPEAK_HOME *=" \
+            "{}" \; \
+      -exec $sed -i \
+            -e "s,^G_SPEAK_HOME=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
+            "{}" \; \
+      2>/dev/null || true
+
+   # Special case for debian/install and debian/*.install
+   # Only affects yovo currently; staging and greenhouse only have e.g. 'opt' in debian/foo.install.
+   # Already handled by PREFIX case above, since yovo always has PREFIX=G_SPEAK_HOME
+
+   # Special case for debian/*.upstart and debian/*.service
+   # These files are harder since they don't really support variables, and the path is just embedded;
+   # but in all cases so far, the path is always followed by /bin
+   find \
+        debian/*.upstart \
+        debian/*.service \
+      -exec egrep -q \
+            -e 'opt/oblong' \
+            "{}" \; \
+      -exec $sed -i \
+            -e "s%/opt/oblong/g-speak[^ ]*/bin%${G_SPEAK_HOME}/bin%" \
+            -e "s%/opt/oblong/greenhouse/bin%${G_SPEAK_HOME}/bin%" \
+            "{}" \; \
+      2>/dev/null || true
+fi
+
 #-------------------- YOVERSION -----------------------
 # This is almost the only section that changes yobuild version number.
 # (The renames several pages down also do, and rely on the value of YOVERSION set here,
@@ -516,6 +557,7 @@ $sed -i \
     -e "/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
     -e "/SKIP-SUBSTITUTION/! s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
+    -e "/SKIP-SUBSTITUTION/! s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
     -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
     -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
     -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
@@ -551,7 +593,6 @@ $sed -i \
     -e "s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
     -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
-    -e "s,^G_SPEAK_HOME *=.*,G_SPEAK_HOME=$G_SPEAK_HOME," \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
     debian/rules \
@@ -646,6 +687,8 @@ do
         to="$(echo "$from" | $sed \
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*\\([^x0-9]\\)/-gs${suffix}${gspeak_version}\\2/" \
+           -e "s/oblong-gs${suffix}[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
+           -e "s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
            -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
           #

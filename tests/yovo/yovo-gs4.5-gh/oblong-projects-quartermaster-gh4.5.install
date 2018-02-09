@@ -1,0 +1,12 @@
+opt/oblong/greenhouse/include/projects/quartermaster
+opt/oblong/greenhouse/lib/libQuartermaster.*
+opt/oblong/greenhouse/lib/libViddle.*
+opt/oblong/greenhouse/lib/pkgconfig/libQuartermaster.pc
+opt/oblong/greenhouse/lib/pkgconfig/libViddle.pc
+opt/oblong/greenhouse/bin/qm-provisioner
+opt/oblong/greenhouse/bin/qm-merchant
+opt/oblong/greenhouse/bin/qm-viddle
+opt/oblong/greenhouse/bin/qm-sidler
+opt/oblong/greenhouse/bin/qm-ui
+opt/oblong/greenhouse/bin/qm-ls-resources
+opt/oblong/greenhouse/bin/qm-middle-manager

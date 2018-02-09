@@ -1,0 +1,8 @@
+opt/oblong/greenhouse/include/libProtist
+opt/oblong/greenhouse/lib/libProtist.*
+opt/oblong/greenhouse/lib/pkgconfig/libProtist.pc
+opt/oblong/greenhouse/bin/field-strip
+opt/oblong/greenhouse/bin/ob-resolve
+opt/oblong/greenhouse/bin/peek
+opt/oblong/greenhouse/bin/poke
+opt/oblong/greenhouse/bin/pogo

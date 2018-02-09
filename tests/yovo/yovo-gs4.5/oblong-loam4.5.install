@@ -1,0 +1,9 @@
+opt/oblong/g-speak4.5/include/libLoam/c/
+opt/oblong/g-speak4.5/lib/libLoam.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libLoam.pc
+opt/oblong/g-speak4.5/lib/cmake
+opt/oblong/g-speak4.5/bin/ob-version
+opt/oblong/g-speak4.5/bin/ob-which
+opt/oblong/g-speak4.5/bin/asanpreload
+opt/oblong/g-speak4.5/src/*.cmake
+opt/oblong/g-speak4.5/src/*.gmk

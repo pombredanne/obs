@@ -1,0 +1,8 @@
+opt/oblong/g-speak4.5/include/libProtist
+opt/oblong/g-speak4.5/lib/libProtist.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libProtist.pc
+opt/oblong/g-speak4.5/bin/field-strip
+opt/oblong/g-speak4.5/bin/ob-resolve
+opt/oblong/g-speak4.5/bin/peek
+opt/oblong/g-speak4.5/bin/poke
+opt/oblong/g-speak4.5/bin/pogo

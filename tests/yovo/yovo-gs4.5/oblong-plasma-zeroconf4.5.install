@@ -1,0 +1,4 @@
+opt/oblong/g-speak4.5/include/libPlasma/zeroconf
+opt/oblong/g-speak4.5/lib/libPlasmaZeroconf.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libPlasmaZeroconf.pc
+opt/oblong/g-speak4.5/bin/pool-server-zeroconf-adapter

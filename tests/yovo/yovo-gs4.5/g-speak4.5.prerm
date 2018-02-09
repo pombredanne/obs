@@ -1,0 +1,33 @@
+#!/bin/sh
+
+G_SPEAK_HOME=/opt/oblong/g-speak4.5
+
+set -e
+
+for f in "feld.protein" "screen.protein"
+do
+  if [ -e "/etc/oblong/$f" ]; then
+    if [ "${G_SPEAK_HOME}/share/install-data/one-$f" = $(readlink -f "/etc/oblong/$f") ]; then
+      echo "removing $f";
+      rm "/etc/oblong/$f";
+    else
+      echo "$f installed by another, leaving it be";
+    fi
+  else
+    echo "$f not installed";
+  fi
+done
+
+for f in "tiled-config.protein"
+do
+  if [ -e "/etc/oblong/$f" ]; then
+    if [ "${G_SPEAK_HOME}/share/install-data/$f" = $(readlink -f "/etc/oblong/$f") ]; then
+      echo "removing $f";
+      rm "/etc/oblong/$f";
+    else
+      echo "$f installed by another, leaving it be";
+    fi
+  else
+    echo "$f not installed";
+  fi
+done

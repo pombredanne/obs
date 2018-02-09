@@ -1,0 +1,4 @@
+opt/oblong/g-speak4.5/include/projects/ventriloquy
+opt/oblong/g-speak4.5/lib/libVentriloquy.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libVentriloquy.pc
+opt/oblong/g-speak4.5/bin/wormhose-worker

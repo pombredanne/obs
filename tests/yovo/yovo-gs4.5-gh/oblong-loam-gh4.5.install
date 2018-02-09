@@ -1,0 +1,9 @@
+opt/oblong/greenhouse/include/libLoam/c/
+opt/oblong/greenhouse/lib/libLoam.*
+opt/oblong/greenhouse/lib/pkgconfig/libLoam.pc
+opt/oblong/greenhouse/lib/cmake
+opt/oblong/greenhouse/bin/ob-version
+opt/oblong/greenhouse/bin/ob-which
+opt/oblong/greenhouse/bin/asanpreload
+opt/oblong/greenhouse/src/*.cmake
+opt/oblong/greenhouse/src/*.gmk
