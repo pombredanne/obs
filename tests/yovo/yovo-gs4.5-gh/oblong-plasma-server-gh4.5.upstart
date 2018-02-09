@@ -1,0 +1,27 @@
+description "oblong g-speak-gh4.5 plasma upstart script"
+author "Brandon Harvey <brandon@oblong.com>"
+
+start on started networking
+
+# If it dies right on start, will not respawn (& that's fine -- a big error)
+respawn
+
+emits pooltcpserver
+
+env OB_POOLS_DIR=/var/ob/pools
+
+env OB_LOG="BUG /var/log/oblong/plasma.log ERROR /var/log/oblong/plasma.log WARN /var/log/oblong/plasma.log INFO /var/log/oblong/plasma.log"
+
+script
+  POOL_TCP_SERVER_OPTS=
+  if [ -f /etc/oblong/plasma.conf ]; then
+    . /etc/oblong/plasma.conf
+  fi
+  mkdir -p /var/log/oblong
+  exec >> /var/log/oblong/plasma.log 2>&1
+  mkdir -p $OB_POOLS_DIR
+  echo "Warning: marking $OB_POOLS_DIR world-writable"
+  chmod 777 $OB_POOLS_DIR
+  /opt/oblong/g-speak-gh4.5/bin/pool_tcp_server -n $POOL_TCP_SERVER_OPTS
+end script
+

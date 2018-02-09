@@ -1,0 +1,15 @@
+debhelper-build-stamp
+files
+tmp
+*\.[0-9][0-9]
+*\.[0-9]
+*-dbg
+*.debhelper
+*.log
+*.substvars
+oblong-gs4.5-boom
+oblong-gs4.5-pix
+oblong-gs4.5-noodoo2
+oblong-gs4.5-resource
+oblong-gs4.5-splotch
+oblong-gs4.5-twillig2

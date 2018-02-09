@@ -1,0 +1,4 @@
+opt/oblong/g-speak4.5/include/libOuija
+opt/oblong/g-speak4.5/lib/libOuija.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libOuija.pc
+opt/oblong/g-speak4.5/bin/ob-debug

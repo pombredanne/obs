@@ -1,0 +1,7 @@
+opt/oblong/greenhouse/include/libMedia/*.h
+#if HAVE_BLACKMAGIC
+opt/oblong/greenhouse/include/libMedia/BlackMagic
+#endif HAVE_BLACKMAGIC
+opt/oblong/greenhouse/include/libMedia/GStreamer/*.h
+opt/oblong/greenhouse/lib/libMedia.*
+opt/oblong/greenhouse/lib/pkgconfig/libMedia.pc

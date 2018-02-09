@@ -1,0 +1,5 @@
+opt/oblong/g-speak4.5/include/libCthulhu
+opt/oblong/g-speak4.5/lib/libCthulhu.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libCthulhu.pc
+opt/oblong/g-speak4.5/bin/ob-cthulhu
+opt/oblong/g-speak4.5/bin/ob-tentacular

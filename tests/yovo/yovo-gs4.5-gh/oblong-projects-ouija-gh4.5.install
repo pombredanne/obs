@@ -1,0 +1,4 @@
+opt/oblong/greenhouse/include/libOuija
+opt/oblong/greenhouse/lib/libOuija.*
+opt/oblong/greenhouse/lib/pkgconfig/libOuija.pc
+opt/oblong/greenhouse/bin/ob-debug

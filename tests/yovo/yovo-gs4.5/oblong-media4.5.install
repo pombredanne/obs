@@ -1,0 +1,7 @@
+opt/oblong/g-speak4.5/include/libMedia/*.h
+#if HAVE_BLACKMAGIC
+opt/oblong/g-speak4.5/include/libMedia/BlackMagic
+#endif HAVE_BLACKMAGIC
+opt/oblong/g-speak4.5/include/libMedia/GStreamer/*.h
+opt/oblong/g-speak4.5/lib/libMedia.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libMedia.pc

@@ -1,0 +1,49 @@
+#!/bin/sh
+# Simple prototype implementation of dh_alternatives, just
+# barely good enough for my app.
+#
+# See also
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=45614
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=71621
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=582873
+#
+# The command
+#   my_dh_alternatives 598 /opt/foo/bin
+# will loop over all files foo.alternatives, treat each
+# line in them as a filename in /opt/foo/bin,
+# and arrange for it to be published to PATH with the
+# given priority using update-alternatives.
+#
+# It does this by appending commands to foo.postinst.debhelper
+# and foo.prerm.debhelper.
+
+priority=$1
+mybin=$2
+if test "$mybin" = ""
+then
+   echo "Usage: $0 priority bindir"
+   exit 1
+fi
+cd debian
+
+for altern in *.alternatives
+do
+  MASTER=$(head -n  1 < $altern)
+  SLAVES=$(tail -n +2 < $altern)
+  SLAVEARGS=""
+  for b in $SLAVES
+  do
+    SLAVEARGS="$SLAVEARGS --slave /usr/bin/$b $b $mybin/$b"
+  done
+  base=$(basename $altern .alternatives)
+  cat >> $base.postinst.debhelper <<_EOF_
+if [ "\$1" = "configure" ]; then
+  update-alternatives --install /usr/bin/$MASTER $MASTER $mybin/$MASTER $priority $SLAVEARGS
+fi
+_EOF_
+  cat >> $base.prerm.debhelper <<_EOF_
+if [ "\$1" = "remove" ] || [ "\$1" = "deconfigure" ] ; then
+  update-alternatives --remove $MASTER $mybin/$MASTER
+fi
+_EOF_
+done

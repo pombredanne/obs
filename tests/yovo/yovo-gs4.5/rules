@@ -1,0 +1,152 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+#--- Begin lines edited by ob-set-defaults ---
+# ob-set-defaults is the tool to use to change G_SPEAK_HOME, YOBUILD,
+# PREFIX, and package names suffix etc. properly, such that
+# 'debuild -b' would produce a valid debian package.
+# See "ob-set-defaults --help" (and, if this project has it, ci/ob-set-defaults.conf).
+
+# PREFIX is where this project should be installed.
+# By default, it's the same as G_SPEAK_HOME.
+# To change it independently, do e.g.
+#   ob-set-defaults --g-speak 3.28 --prefix /opt/a-better-place
+# or set PREFIX in ci/ob-set-defaults.conf.
+PREFIX=/opt/oblong/g-speak4.5
+
+# G_SPEAK_HOME is the directory where the g-speak SDK we link against is found.
+# To change the project to link against e.g. g-speak 3.28, do e.g.
+#   ob-set-defaults --g-speak 3.28
+G_SPEAK_HOME=/opt/oblong/g-speak4.5
+
+# YOBUILD is where updated system-y libraries for this version of g-speak live.
+# ob-set-defaults sets this based on the g-speak version.
+YOBUILD=/opt/oblong/deps-64-12
+
+# Cmake options passed to ob-set-defaults (careful, quoting is treacherous here)
+CMAKE_GENERATOR=Ninja
+EXTRA_CMAKE_OPTIONS=
+
+#--- End lines edited by ob-set-defaults
+
+# Remainder of file should be completely generic to any
+# project using cmake, and not contain any project-dependent
+# or version-dependent info at all (except possibly the PATH
+# and EXTRA_LD_LIBRARY_PATH lines, which may need to mention
+# $PREFIX/bin or the like for some future project).
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# Enable debhelper systemd service installer
+WITH_SYSTEMD := --with=systemd
+
+# BTMP is where to put the build tree; use dh's default
+SRC=$(shell pwd)
+DEB_BUILD_GNU_TYPE := $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+BTMP=$(SRC)/obj-$(DEB_BUILD_GNU_TYPE)
+
+# Make dh_shlibdeps happy
+# Fun fact: this makefile invokes itself recursively, so appending here
+# means appending twice... and on ubuntu 15.10, leads
+# to mysterious illegal instruction build failures.
+# So let's append at runtime in the rules that need it.
+# Note: unlike rest of Oblong stack, don't want to find libraries
+# in G_SPEAK_HOME here.
+EXTRA_LD_LIBRARY_PATH=$(YOBUILD)/lib
+
+# Make sure we can find cmake even if it's in yobuild
+PATH:=$(YOBUILD)/bin:$(PATH)
+export PATH
+
+# The central, all-powerful debhelper make rule (Thanks, Joey!)
+%:
+	dh $@ --parallel --buildsystem=cmake $(WITH_SYSTEMD)
+
+# If using systemd unit, don't also install upstart unit?
+# cf.
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=800043
+# https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=830208
+ifneq ($(strip $(WITH_SYSTEMD)),)
+override_dh_installinit:
+endif
+
+override_dh_auto_configure:
+	dh_auto_configure -- -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_GENERATOR="$(CMAKE_GENERATOR)" $(EXTRA_CMAKE_OPTIONS)
+
+# dh doesn't quite support other cmake generators than the default,
+# so use cmake --build.  Have to jump through a hoop or two to
+# pass debuild's -j4 parameter through!
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+NUMJOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+BUILDFLAGS := -j$(NUMJOBS)
+else
+BUILDFLAGS :=
+endif
+override_dh_auto_build:
+	cd $(BTMP); cmake --build . -- $(BUILDFLAGS)
+
+# Likewise, jump through a hoop to get 'dh install' to use cmake --build.
+DESTDIR=$(CURDIR)/debian/tmp
+override_dh_auto_install:
+	cd $(BTMP); DESTDIR=$(DESTDIR) cmake --build . --target install
+
+# Likewise, jump through a hoop to get 'dh check' to use ctest -V
+# and also obey DEB_BUILD_OPTIONS=nocheck.
+# Don't set LD_LIBRARY_PATH here, as that would diverge from developer case;
+# have cmake do any LD_LIBRARY_PATH manipulation needed for tests.
+# (see also https://gitlab.kitware.com/cmake/cmake/issues/16293 )
+override_dh_auto_test:
+	if ! echo "$$DEB_BUILD_OPTIONS" | grep nocheck; then cd $(BTMP); ctest -V; fi
+
+# Tell shlibdeps where our shared libraries are so it doesn't freak.
+# KLUDGE Use --ignore-missing-info to avoid warnings from libGL.so
+override_dh_shlibdeps:
+	env LD_LIBRARY_PATH=$${LD_LIBRARY_PATH}:$(EXTRA_LD_LIBRARY_PATH) \
+	dh_shlibdeps -- --ignore-missing-info
+
+# dh_strip needs a little help to know how to name the debug symbol package.
+# Dima's nifty debug package thingy
+# find all the ...-dbg packages, and use dh_strip to separate out their debug symbols into the debug package.
+# Two passes. First does all the -dbg, second does everything else
+STRIP_INTO_DBG = perl -e '    \
+  $$/ = undef;                \
+  @p = <> =~ /^Package:\s*(\S+)/mg;  \
+  $$h{$$_} = 1 for(@p);       \
+  for ( @p )                  \
+  {                           \
+    if( /(.*)-dbg/ )          \
+    {                         \
+      system( "dh_strip -p $$1 --dbg-package=$$_" ); \
+      delete $$h{$$1};        \
+      delete $$h{$$_};        \
+    }                         \
+  }                           \
+  for ( @p )                  \
+  {                           \
+    if( $$h{$$_} )            \
+    {                         \
+      system( "dh_strip -p $$_" ); \
+    }                         \
+  }'
+override_dh_strip:
+	$(STRIP_INTO_DBG) debian/control
+
+# Arrange for *.alternatives to be available on $(PATH)
+# First, compute PRIORITY, an integer that sorts like version number
+DEB_SOURCE_PACKAGE := $(strip $(shell grep -i '^Source: ' debian/control | cut -f 2 -d ':'))
+$(info DEB_SOURCE_PACKAGE $(DEB_SOURCE_PACKAGE))
+VERSION_XY := $(subst -gh,,$(subst g-speak,,$(DEB_SOURCE_PACKAGE)))
+$(info VERSION_XY $(VERSION_XY))
+VERSION_X := $(shell echo $(VERSION_XY) | awk -F. '{print $$1}')
+$(info VERSION_X $(VERSION_X))
+VERSION_Y := $(shell echo $(VERSION_XY) | awk -F. '{print $$2}')
+$(info VERSION_Y $(VERSION_Y))
+PRIORITY := $(shell printf %d%02d $(VERSION_X) $(VERSION_Y))
+$(info PRIORITY $(PRIORITY))
+
+# Then invoke my_dh_alternatives.  Exactly which hook we use doesn't
+# matter; this is the last possible one.
+override_dh_installdeb:
+	debian/my_dh_alternatives $(PRIORITY) $(PREFIX)/bin
+	dh_installdeb

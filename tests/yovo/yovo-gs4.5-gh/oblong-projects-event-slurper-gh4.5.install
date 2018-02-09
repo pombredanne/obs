@@ -1,0 +1,4 @@
+opt/oblong/greenhouse/include/projects/event-slurper
+opt/oblong/greenhouse/lib/libEventSlurper.*
+opt/oblong/greenhouse/lib/pkgconfig/libEventSlurper.pc
+opt/oblong/greenhouse/bin/tagged-biloc

@@ -1,0 +1,49 @@
+if [ "$1" = "configure" ]; then
+  mkdir -p /var/ob/pools /var/ob/pids; chmod 777 /var/ob /var/ob/pools /var/ob/pids; mkdir -p /etc/oblong; chmod 755 /etc/oblong
+fi
+
+#---- begin debian alternatives magic for cmake ----
+# When a user app's CMakeLists.txt does
+#    find_package(Oblong)
+# cmake finds OblongConfig.cmake by checking
+# ../lib/cmake/*/OblongConfig.cmake relative to each directory on PATH.
+# There are two common cases:
+#
+# 1) g-speak explicitly on PATH (e.g. mac, or using old g-speak side-by-side on Ubuntu).
+#    In this case, cmake will find the real OblongConfig.cmake.
+#
+# 2) g-speak not explicitly on PATH (e.g. using latest g-speak on Ubuntu)
+#    This relies on the debian alternatives system which allows selecting
+#    newer or older versions of system packages by adjusting symlinks.
+#    In this case, cmake will find the symlink /usr/lib/cmake/Oblong/OblongConfig.cmake
+#    because /usr/bin is on PATH.
+#
+# To support the 2nd use case, borrow code from debian/rules and my_dh_alternatives
+# to register a link to OblongConfigure.cmake in /usr/lib/cmake/Oblong.
+# Have some coffee and read 'man cmake-packages' and 'man update-alternatives'.
+
+# Compute priority that decreases with increasing major (here, X.Y) version
+# so highest version installed wins.
+# FIXME: this duplicates code in debian/rules, should probably unify tham.
+DEB_SOURCE_PACKAGE=$(grep -i '^Source: ' debian/control | cut -f 2 -d ':')
+VERSION_XY=$(echo $DEB_SOURCE_PACKAGE | sed 's/-gh//;s/g-speak//')
+VERSION_X=$(echo $VERSION_XY | awk -F. '{print $1}')
+VERSION_Y=$(echo $VERSION_XY | awk -F. '{print $2}')
+PRIORITY=$(printf %d%02d $VERSION_X $VERSION_Y)
+
+# Set realdir and linkdir to the directory of the real file and of the symlink
+G_SPEAK_HOME=/opt/oblong/greenhouse
+realdir=$G_SPEAK_HOME/lib/cmake/Oblong
+linkdir=/usr/lib/cmake/Oblong
+
+if [ "$1" = "configure" ]; then
+  install -d -m 755 $linkdir
+  update-alternatives --install $linkdir/OblongConfig.cmake OblongConfig.cmake $realdir/OblongConfig.cmake $PRIORITY
+fi
+
+if [ "\$1" = "remove" ] || [ "\$1" = "deconfigure" ] ; then
+  update-alternatives --remove OblongConfig.cmake $realdir/OblongConfig.cmake
+fi
+#---- end debian alternatives magic for cmake ----
+
+#DEBHELPER#

@@ -1,0 +1,4 @@
+opt/oblong/g-speak4.5/include/projects/event-slurper
+opt/oblong/g-speak4.5/lib/libEventSlurper.*
+opt/oblong/g-speak4.5/lib/pkgconfig/libEventSlurper.pc
+opt/oblong/g-speak4.5/bin/tagged-biloc

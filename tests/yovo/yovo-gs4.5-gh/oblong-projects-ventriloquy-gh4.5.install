@@ -1,0 +1,4 @@
+opt/oblong/greenhouse/include/projects/ventriloquy
+opt/oblong/greenhouse/lib/libVentriloquy.*
+opt/oblong/greenhouse/lib/pkgconfig/libVentriloquy.pc
+opt/oblong/greenhouse/bin/wormhose-worker

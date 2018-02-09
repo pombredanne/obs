@@ -1,0 +1,4 @@
+opt/oblong/greenhouse/include/libPlasma/zeroconf
+opt/oblong/greenhouse/lib/libPlasmaZeroconf.*
+opt/oblong/greenhouse/lib/pkgconfig/libPlasmaZeroconf.pc
+opt/oblong/greenhouse/bin/pool-server-zeroconf-adapter

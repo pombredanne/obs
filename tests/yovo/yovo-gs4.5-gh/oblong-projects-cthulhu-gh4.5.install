@@ -1,0 +1,5 @@
+opt/oblong/greenhouse/include/libCthulhu
+opt/oblong/greenhouse/lib/libCthulhu.*
+opt/oblong/greenhouse/lib/pkgconfig/libCthulhu.pc
+opt/oblong/greenhouse/bin/ob-cthulhu
+opt/oblong/greenhouse/bin/ob-tentacular

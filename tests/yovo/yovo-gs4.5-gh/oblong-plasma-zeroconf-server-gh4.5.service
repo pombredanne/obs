@@ -1,0 +1,22 @@
+[Unit]
+Description=Oblong g-speak-gh4.5 Pool Server Zeroconf Adapter
+Wants=oblong-plasma-gh4.5.service avahi-daemon.service
+After=oblong-plasma-gh4.5.service avahi-daemon.service
+
+[Service]
+Environment='POOL_ZEROCONF_SERVER_OPTS=-t remote'
+# FIXME: does the zeroconf adapter really need OB_POOLS_DIR?
+Environment=OB_POOLS_DIR=/var/ob/pools
+# plasma-zeroconf.conf is optional, may contain any needed environment variable overrides for the server, e.g.
+# OB_POOLS_DIR=/ramdisk/pools
+# OB_LOG="info 20500017=off"
+# POOL_ZEROCONF_SERVER_OPTS="-t remote --interval 30"
+EnvironmentFile=-/etc/oblong/plasma-zeroconf.conf
+# We can't rely on the postinst script to do the mkdir, since user may have changed the environment file
+ExecStartPre=/bin/sh -c "mkdir -p $OB_POOLS_DIR; echo Warning: marking $OB_POOLS_DIR world-writable; chmod 777 $OB_POOLS_DIR"
+Type=simple
+ExecStart=/opt/oblong/g-speak-gh4.5/bin/pool-server-zeroconf-adapter -n $POOL_ZEROCONF_SERVER_OPTS
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

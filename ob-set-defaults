@@ -516,6 +516,7 @@ $sed -i \
     -e "/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
     -e "/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
     -e "/SKIP-SUBSTITUTION/! s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
+    -e "/SKIP-SUBSTITUTION/! s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
     -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
     -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
     -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
@@ -646,6 +647,8 @@ do
         to="$(echo "$from" | $sed \
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
            -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*\\([^x0-9]\\)/-gs${suffix}${gspeak_version}\\2/" \
+           -e "s/oblong-gs${suffix}[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
+           -e "s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
            -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
           #

@@ -3,10 +3,69 @@ set -ex
 
 # Kludge: pass on raspberry pi; tiptoe around mac's sed, too
 BITS=$(getconf LONG_BIT)
-sed -i.bak "s/deps-64-/deps-${BITS}-/" tests/*/*/*
-rm -f tests/*/*/*.bak
+if test "$BITS" != 64
+then
+  sed -i.bak "s/deps-64-/deps-${BITS}-/" tests/*/*/*
+  rm -f tests/*/*/*.bak
+fi
 
 # FIXME: make this data-driven and shorter
+
+@test "yovo" {
+  # Verify ob-set-defaults --greenhouse on yovo 4.5
+
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+
+  cd yovo
+
+  # normal -> greenhouse
+  rm -rf debian
+  cp -a yovo-gs4.5 debian
+  ob-set-defaults --greenhouse
+  if ! diff -ur yovo-gs4.5-gh debian
+  then
+    echo "ob-set-defaults --greenhouse did not give expected result on yovo-gs4.5, should have been same as yovo-gs4.5-gh"
+    exit 1
+  fi
+
+  # greenhouse -> normal
+  rm -rf debian
+  cp -a yovo-gs4.5-gh debian
+  ob-set-defaults --g-speak 4.5
+  if ! diff -ur yovo-gs4.5 debian
+  then
+    echo "ob-set-defaults --g-speak 4.5 did not give expected result on yovo-gs4.5-gh, should have been same as yovo-gs4.5"
+    exit 1
+  fi
+
+  # normal -> normal
+  rm -rf debian
+  cp -a yovo-gs4.5 debian
+  ob-set-defaults --g-speak 4.5
+  if ! diff -ur yovo-gs4.5 debian
+  then
+    echo "ob-set-defaults --g-speak 4.5 did not give expected result on yovo-gs4.5, should have been no-op"
+    exit 1
+  fi
+
+  # greenhouse -> greenhouse
+  rm -rf debian
+  cp -a yovo-gs4.5-gh debian
+  ob-set-defaults --greenhouse
+  if ! diff -ur yovo-gs4.5-gh debian
+  then
+    echo "ob-set-defaults --greenhouse did not give expected result on yovo-gs4.5-gh, should have been no-op"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+
+  cd ..
+}
 
 @test "no-yobuild" {
   echo "no-yobuild: verify ob-set-defaults on non-yobuild projects"
@@ -258,4 +317,3 @@ rm -f tests/*/*/*.bak
   cd ..
   cd ..
 }
-

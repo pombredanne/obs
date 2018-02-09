@@ -1,0 +1,11 @@
+if [ "$1" = "configure" ]; then
+  OB_POOLS_DIR=/var/ob/pools
+  if test -f /etc/oblong/plasma.conf
+  then
+      . /etc/oblong/plasma.conf
+  fi
+  mkdir -p $OB_POOLS_DIR
+  echo "Warning: marking $OB_POOLS_DIR world-writable"
+  chmod 777 $OB_POOLS_DIR
+fi
+#DEBHELPER#

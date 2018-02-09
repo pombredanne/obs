@@ -1,0 +1,24 @@
+description "oblong g-speak-gh4.5 plasma-zeroconf upstart script"
+author "Brandon Harvey <brandon@oblong.com>"
+
+start on started oblong-plasma-gh4.5 and started avahi-daemon
+
+# If it dies right on start, will not respawn (& that's fine -- a big error)
+respawn
+
+env OB_POOLS_DIR=/var/ob/pools
+
+env OB_LOG="BUG /var/log/oblong/plasma-zeroconf.log ERROR /var/log/oblong/plasma-zeroconf.log WARN /var/log/oblong/plasma-zeroconf.log INFO /var/log/oblong/plasma-zeroconf.log"
+
+script
+  POOL_ZEROCONF_SERVER_OPTS="-t remote"
+  if [ -f /etc/oblong/plasma-zeroconf.conf ]; then
+    . /etc/oblong/plasma-zeroconf.conf
+  fi
+  mkdir -p /var/log/oblong
+  exec >> /var/log/oblong/plasma-zeroconf.log 2>&1
+  mkdir -p $OB_POOLS_DIR
+  echo "Warning: marking $OB_POOLS_DIR world-writable"
+  chmod 777 $OB_POOLS_DIR
+  /opt/oblong/g-speak-gh4.5/bin/pool-server-zeroconf-adapter -n $POOL_ZEROCONF_SERVER_OPTS
+end script
