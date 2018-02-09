@@ -20,5 +20,5 @@ script
   mkdir -p $OB_POOLS_DIR
   echo "Warning: marking $OB_POOLS_DIR world-writable"
   chmod 777 $OB_POOLS_DIR
-  /opt/oblong/g-speak-gh4.5/bin/pool-server-zeroconf-adapter -n $POOL_ZEROCONF_SERVER_OPTS
+  /opt/oblong/greenhouse/bin/pool-server-zeroconf-adapter -n $POOL_ZEROCONF_SERVER_OPTS
 end script

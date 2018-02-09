@@ -20,7 +20,7 @@ EnvironmentFile=-/etc/oblong/plasma.conf
 # We can't rely on the postinst script to do the mkdir, since user may have changed the environment file
 ExecStartPre=/bin/sh -c "mkdir -p $OB_POOLS_DIR; echo Warning: marking $OB_POOLS_DIR world-writable; chmod 777 $OB_POOLS_DIR"
 Type=simple
-ExecStart=/opt/oblong/g-speak-gh4.5/bin/pool_tcp_server -n $POOL_TCP_SERVER_OPTS
+ExecStart=/opt/oblong/greenhouse/bin/pool_tcp_server -n $POOL_TCP_SERVER_OPTS
 Restart=always
 
 [Install]
