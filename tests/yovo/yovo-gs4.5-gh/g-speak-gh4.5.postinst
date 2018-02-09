@@ -1,5 +1,7 @@
 #!/bin/sh
 
+G_SPEAK_HOME=/opt/oblong/greenhouse
+
 set -e
 
 case "$1" in
@@ -12,7 +14,7 @@ case "$1" in
       if [ ! -e "/etc/oblong/$f" ]; then
         echo "Installing $f"
         ln -fs \
-          /opt/oblong/g-speak-gh4.5/share/install-data/one-$f \
+          "${G_SPEAK_HOME}"/share/install-data/one-$f \
           /etc/oblong/$f
       fi
     done
@@ -22,7 +24,7 @@ case "$1" in
       if [ ! -e "/etc/oblong/$f" ]; then
         echo "Installing $f"
         ln -fs \
-          /opt/oblong/g-speak-gh4.5/share/install-data/$f \
+          "${G_SPEAK_HOME}"/share/install-data/$f \
           /etc/oblong/$f
       fi
     done

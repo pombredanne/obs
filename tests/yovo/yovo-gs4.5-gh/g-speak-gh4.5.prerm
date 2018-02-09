@@ -1,11 +1,13 @@
 #!/bin/sh
 
+G_SPEAK_HOME=/opt/oblong/greenhouse
+
 set -e
 
 for f in "feld.protein" "screen.protein"
 do
   if [ -e "/etc/oblong/$f" ]; then
-    if [ "/opt/oblong/g-speak-gh4.5/share/install-data/one-$f" = $(readlink -f "/etc/oblong/$f") ]; then
+    if [ "${G_SPEAK_HOME}/share/install-data/one-$f" = $(readlink -f "/etc/oblong/$f") ]; then
       echo "removing $f";
       rm "/etc/oblong/$f";
     else
@@ -19,7 +21,7 @@ done
 for f in "tiled-config.protein"
 do
   if [ -e "/etc/oblong/$f" ]; then
-    if [ "/opt/oblong/g-speak-gh4.5/share/install-data/$f" = $(readlink -f "/etc/oblong/$f") ]; then
+    if [ "${G_SPEAK_HOME}/share/install-data/$f" = $(readlink -f "/etc/oblong/$f") ]; then
       echo "removing $f";
       rm "/etc/oblong/$f";
     else
