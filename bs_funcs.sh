@@ -135,6 +135,7 @@ bs_stamp_debian_changelog() {
     esac
 
     sed -i.bak "1s/(.*/($version$suffix) $distro_codename; urgency=low/" debian/changelog
+    rm -f debian/changelog.bak
 }
 
 # Apply workarounds commonly needed on non-linux platforms

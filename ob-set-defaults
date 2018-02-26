@@ -17,17 +17,20 @@ usage() {
     cat <<_EOF_
 Usage: ob-set-defaults [options]
 Sets default generic build parameters for this project.
-Sticky options:
-  --cef branch   - which version of cef to build against (sticky, but --g-speak resets to default)
-  --g-speak VER  - which version of g-speak to build against (sticky)
-  --mezz VER     - which version of mezzanine to build against (sticky)
+
+Sticky options (ones that change the package name):
+  --cef branch   - which version of cef to build against
+  --greenhouse   - sets -DGREENHOUSE=on -DUSE_STATIC_G_SPEAK=on -DCMAKE_INSTALL_PREFIX=/opt/oblong/greenhouse, -gh tag
+  --g-speak VER  - which version of g-speak to build against
+  --mezz VER     - which version of mezzanine to build against
+Specifying --g-speak resets --cef and -greenhouse to defaults if they aren't also specified.
+
 Options:
   -v             - verbose
   --hard         - use 'git mv' instead of 'mv' when renaming debian files
   --asan         - alias for -DASAN=on
   --coverage     - alias for -DCOVERAGE=on
   --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
-  --greenhouse   - alias for -DUSE_STATIC_G_SPEAK=on -DG_SPEAK_HOME=/opt/oblong/greenhouse, hobbles plasma, adds -gh package suffixes
   --make         - generate Makefiles and build with make
   --ninja        - generate build.ninja and build with ninja
   --no-tests     - alias for -DBUILD_TESTS=off
@@ -139,6 +142,7 @@ esac
 # The defaults that can be overridden by ob-set-defaults.conf
 gspeak_version=""
 mezz_version=""
+opt_greenhouse=false
 G_SPEAK_HOME=""
 PREFIX=""
 YOBUILD=""
@@ -161,14 +165,8 @@ do
     case "$1" in
     -v) set -x
         ;;
-    --greenhouse)   # should be sticky, but is seldom used
-        # In project greenhouse, also need to specify --prefix /opt/oblong/greenhouse to match old set-gspeak.sh behavior
-        suffix="-gh"
-        # everybody's set-gspeak took --greenhouse to mean G_SPEAK_HOME=/opt/oblong/greenhouse PREFIX=/opt/oblong/greenhouse
-        G_SPEAK_HOME=/opt/oblong/greenhouse
-        PREFIX=/opt/oblong/greenhouse
-        # yovo and staging's cmake needed -DGREENHOUSE=on; everyone else's cmake needs -DUSE_STATIC_G_SPEAK=on
-        extra_cmake_options="$extra_cmake_options -DUSE_STATIC_G_SPEAK=on -DGREENHOUSE=on"
+    --greenhouse)
+        opt_greenhouse=true
         ;;
     --g-speak)
         shift
@@ -272,13 +270,32 @@ then
 else
     gspeak_specified=true
 fi
+
+# Greenhouse is true if the option was given on commandline
+# OR if --g-speak was not given but package name indicates greenhouseness.
+if ! $gspeak_specified && bs_is_greenhouse
+then
+    opt_greenhouse=true
+fi
+
+if $opt_greenhouse
+then
+    # In project greenhouse, also need to specify --prefix /opt/oblong/greenhouse to match old set-gspeak.sh behavior
+    suffix="-gh"
+    # everybody's set-gspeak took --greenhouse to mean G_SPEAK_HOME=/opt/oblong/greenhouse PREFIX=/opt/oblong/greenhouse
+    G_SPEAK_HOME=/opt/oblong/greenhouse
+    PREFIX=/opt/oblong/greenhouse
+    # yovo and staging's cmake needed -DGREENHOUSE=on; everyone else's cmake needs -DUSE_STATIC_G_SPEAK=on
+    extra_cmake_options="$extra_cmake_options -DUSE_STATIC_G_SPEAK=on -DGREENHOUSE=on"
+fi
+
 if test "$G_SPEAK_HOME" = ""
 then
     G_SPEAK_HOME=/opt/oblong/g-speak$gspeak_version
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
-projname=$(echo "$pkgname" | $sed 's/-gs.*//;s/-gh//;')
+projname=$(echo "$pkgname" | $sed 's/oblong-gs[0-9.]*-gh-//;s/oblong-gs[0-9.]*-//;s/^-gh//;s/-gs.*//;s/-gh//')
 
 if test "$opt_major" != ""
 then
@@ -611,13 +628,18 @@ $sed -i \
       2>/dev/null) \
     #
 
-# Only want to change 1st line of changelog
+# Same as above, but only patterns needed for 1st line of changelog
+# plus one to fix up some brain damage
 $sed -i \
     -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
-    -e "1s/-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/-gs$suffix${gspeak_version}/g" \
-    -e "1s/oblong-rtsp-viddle-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
+    -e "1s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
+    -e "1s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
+    -e "1s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
+    -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "1s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
     -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
-    -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix${gspeak_version}/g" \
+    -e "1s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
+    -e "1s/oblong-gs-gh${gspeak_version}-gh-/oblong-gs${gspeak_version}-gh-/" \
     debian/changelog \
     #
 
