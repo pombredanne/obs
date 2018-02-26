@@ -339,6 +339,12 @@ bs_get_changenum_git() {
     echo "$d3"
 }
 
+# Look at source tree to see whether it is built for or against greenhouse
+# (i.e. static yovo):
+bs_is_greenhouse() {
+    grep -q -e '-gh[-0-9]' debian/control
+}
+
 # List packages that could be installed by bs_install
 bs_pkg_list() {
   case "${bs_install_host}" in

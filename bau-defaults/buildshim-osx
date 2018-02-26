@@ -155,12 +155,20 @@ do_patch() {
     # old non-sticky options such as --asan, but ob-set-defaults won't do
     # that without at least one option... and if it's defering to a
     # classic local set-gspeak.sh, the only option that will always
-    # work is --g-speak.
-    # FIXME: get rid of old set-gspeak.sh's, make ob-set-defaults
-    # clear options when run with --none (or something like that;
-    # it shouldn't undo previous --g-speak or --cef options...
-    # or --greenhouse?  That'll take some thought.)
-    ob-set-defaults $verbose --g-speak $gspeak
+    # work is --g-speak, which clears sticky options.  Bleah.
+    # Get value of sticky options and use them again.
+
+    local opt_greenhouse
+    if bs_is_greenhouse
+    then
+      opt_greenhouse="--greenhouse"
+    fi
+    local opt_cef=$(bs_get_cef_version | sed 's/cef//')
+    case "$opt_cef" in
+    "") ;;
+    *) opt_cef="--cef $opt_cef";;
+    esac
+    ob-set-defaults $verbose --g-speak $gspeak $opt_greenhouse $opt_cef
   else
     :
     # can't get old g-speak version, probably no options to clear

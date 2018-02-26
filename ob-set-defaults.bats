@@ -11,6 +11,61 @@ fi
 
 # FIXME: make this data-driven and shorter
 
+@test "box-nav" {
+  # Verify ob-set-defaults --greenhouse
+
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+
+  cd box-nav
+
+  # normal -> greenhouse
+  rm -rf debian
+  cp -a gs4.5 debian
+  ob-set-defaults --greenhouse
+  if ! diff -ur gs4.5-gh debian
+  then
+    echo "box-nav: ob-set-defaults --greenhouse did not give expected result on gs4.5, should have been same as gs4.5-gh"
+    exit 1
+  fi
+
+  # greenhouse -> normal
+  rm -rf debian
+  cp -a gs4.5-gh debian
+  ob-set-defaults --g-speak 4.5
+  if ! diff -ur gs4.5 debian
+  then
+    echo "box-nav: ob-set-defaults --g-speak 4.5 did not give expected result on gs4.5-gh, should have been same as gs4.5"
+    exit 1
+  fi
+
+  # normal -> normal
+  rm -rf debian
+  cp -a gs4.5 debian
+  ob-set-defaults --g-speak 4.5
+  if ! diff -ur gs4.5 debian
+  then
+    echo "box-nav: ob-set-defaults --g-speak 4.5 did not give expected result on gs4.5, should have been no-op"
+    exit 1
+  fi
+
+  # greenhouse -> greenhouse
+  rm -rf debian
+  cp -a gs4.5-gh debian
+  ob-set-defaults --greenhouse
+  if ! diff -ur gs4.5-gh debian
+  then
+    echo "box-nav: ob-set-defaults --greenhouse did not give expected result on gs4.5-gh, should have been no-op"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+  cd ..
+}
+
 @test "yovo" {
   # Verify ob-set-defaults --greenhouse on yovo 4.5
 
