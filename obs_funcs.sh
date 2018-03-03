@@ -146,7 +146,7 @@ bs_detect_toolchain()
 # Look at source tree to see what version of cef this project builds against currently
 # Returns same kinds of values as bs_yovo2cefversion
 bs_get_cef_version() {
-    egrep 'webthing-cef' "${bs_origdirslash}debian/control" 2>/dev/null | sed 's/.*webthing-cef/cef/;s/-.*//' | head -n1
+    egrep 'webthing2?-cef' "${bs_origdirslash}debian/control" 2>/dev/null | sed -E 's/.*webthing2?-cef/cef/;s/-.*//;s/,.*//' | head -n1
 }
 
 # Look at source tree to see what version of g-speak this project builds against currently
