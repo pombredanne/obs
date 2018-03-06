@@ -1,5 +1,10 @@
 #!/usr/bin/env bats
 
+SUDO=sudo
+case $OS in
+Windows_NT) SUDO="" ;;
+esac
+
 @test "bau-smoke" {
   ./bau -v --help
   ./bau -v --version
@@ -7,10 +12,10 @@
 }
 
 @test "bau-trickle" {
-  if ! test -d /Applications
+  if test -d /etc/apt/sources.list.d
   then
-    sudo rm -rf sources.list.d.old.bautest
-    sudo cp -a /etc/apt/sources.list.d sources.list.d.old.bautest
+    $SUDO rm -rf sources.list.d.old.bautest
+    $SUDO cp -a /etc/apt/sources.list.d sources.list.d.old.bautest
   fi
 
   # Get access to uncommitted obs and obs_funcs.sh
@@ -27,12 +32,11 @@
   rm -rf bautest.tmp
 
   pwd
-  ls -l
   if test -d sources.list.d.old.bautest
   then
-    sudo mv /etc/apt/sources.list.d /etc/apt/sources.list.d.old.$$
-    sudo mv sources.list.d.old.bautest /etc/apt/sources.list.d
-    sudo apt-get update
+    $SUDO mv /etc/apt/sources.list.d /etc/apt/sources.list.d.old.$$
+    $SUDO mv sources.list.d.old.bautest /etc/apt/sources.list.d
+    $SUDO apt-get update
   fi
 }
 
