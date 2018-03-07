@@ -400,7 +400,10 @@ do_lclone() {
   # depdemo-particle has g-speak in a comment in debian/control to fool ob-set-defaults,
   # so filter out comments here.
   # FIXME: That's pretty fragile.... but then, so is this magic at all.
-  if grep -v '^#' "$origdir"/debian/control| grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma'
+  if grep -v '^#' "$origdir"/debian/control| grep -qE 'Source: g-speak'
+  then
+     mirrorgroups="nobuild yobuild"
+  elif grep -v '^#' "$origdir"/debian/control| grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma'
   then
      # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
      mirrorgroups="nobuild yobuild gspeak"
