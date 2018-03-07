@@ -1,0 +1,16 @@
+do_package() {
+   :
+   # not yet
+   #local pkgname
+   #pkgname=$(bs_get_pkgname)
+   #rm -rf pkgtmp || true
+   #mkdir pkgtmp
+   #DESTDIR=`cd pkgtmp; pwd`
+   #make PREFIX=/usr/local DESTDIR=$DESTDIR install-bau
+   #cd $DESTDIR
+   #tarball=../$pkgname-$version-$version_patchnum.tar.gz
+   #chown -R root:wheel *
+   #tar -czvf $tarball *
+   #cd ..
+   #rm -rf pkgtmp
+}

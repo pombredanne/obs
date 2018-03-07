@@ -7,7 +7,7 @@
     return 0
   fi
 
-  if ! test -d /Applications
+  if grep Ubuntu /etc/issue
   then
     sudo rm -rf sources.list.d.old
     sudo cp -a /etc/apt/sources.list.d sources.list.d.old

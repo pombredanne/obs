@@ -484,14 +484,13 @@ bs_install() {
     bs_download "$@"
 
     # Remember what's been installed; will be used in bs_deps_hook
-    # Keep it in /opt/oblong because that's the only place that's cleared at start of install_deps
-    # FIXME: /opt/oblong doesn't always exist; caused trouble on win & linux
-    if test -d /opt/oblong
-    then
-        echo "$@" | tr ' ' '\012' | $SUDO tee -a /opt/oblong/install_deps.log
-    fi
+    # Except on Ubuntu, where bs_deps_append must be only debian packages.
+    case $_os in
+    ubu*) ;;
+    *)    echo "$@" | bs_deps_append;;
+    esac
 
-    # And now the scary part.  First, check for file (not directory) overwrites.
+    # And now the scary part.
     for tarball in bs_install.tmp/*.tar.*z*
     do
         # FIXME: add a postinstall step to e.g. install things into /etc/oblong, like old yobuild had?
@@ -1122,28 +1121,44 @@ bs_get_package_name() {
     awk '/Source:/ {print $2};' < "${bs_origdirslash}debian/control"
 }
 
-# List the packages installed by the last run of bs_apt_install_deps
-bs_apt_list_installed_deps() {
-    awk '/^Unpacking/ {print $2}' < ../install_deps.log || true
-}
+# Deps mechanism
 
-bs_apt_uninstall_deps() {
-    $SUDO apt-get -q autoremove --purge -y $(bs_apt_list_installed_deps) 'build-deps*' || true
-    rm -f ../install_deps.log || true
+bs_deps_file() {
+    # piss-poor place to put it, but it works everywhere
+    echo ../install_deps.log
 }
 
 bs_deps_clear() {
-   # fixme: unify these
-   # mac
-   if test -f /opt/oblong/install_deps.log
-   then
-      $SUDO rm -f /opt/oblong/install_deps.log
-   fi
-   # linux
-   if test -f ../install_deps.log
-   then
-      rm -f ../install_deps.log
-   fi
+   rm -f $(bs_deps_file)
+}
+
+# Called by bs_install (on mac and win) and bs_deps_append_log (on ubuntu)
+# Stdin is a list of packages that were installed,
+bs_deps_append() {
+   # Remove paths
+   # Throw away anything after an underscore (version on Ubuntu)
+   # Throw away suffixes like -4.0.6-0.tar.gz (version on Mac)
+   tr ' ' '\012' | sed 's,.*/,,;s/_.*//;s/-[-0-9.]*.tar.gz//' >> $(bs_deps_file)
+}
+
+# Ubuntu only.
+# Like bs_deps_append, but stdin is the output of dpkg and/or apt-get install -f.
+bs_deps_append_log()
+{
+   grep -v "Unpacking replacement" | awk '/^Unpacking/ {print $2}' | bs_deps_append
+}
+
+# List the packages installed since bs_deps_clear
+bs_deps_list() {
+    sort -u < $(bs_deps_file) || true
+}
+
+# Ubuntu only.
+# Uninstall all dependencies we know about, including any build-deps,
+# and anything they pulled in, then clear dependency list.
+bs_apt_uninstall_deps() {
+    $SUDO apt-get -q autoremove --purge -y $(bs_deps_list) 'build-deps*' || true
+    bs_deps_clear
 }
 
 # At build time, each builder will create two text files:
@@ -1151,40 +1166,27 @@ bs_deps_clear() {
 #  $platform / $buildername.out, containing the output files it uploads
 # These will later be used by common/SimpleConfig.py to set up dependencies
 
+# Call when uploading; arguments are the packages we're uploading
 bs_deps_hook() {
-    rm -rf bs_deps.tmp
-    mkdir bs_deps.tmp
     if ! buildername=$(bs_get_builder_name)
     then
         echo "bs_deps_hook: not running on buildbot, so not saving dependency info"
+        bs_deps_clear
         return 0
     fi
     echo "bs_deps_hook: builder $buildername reporting it uploads following artifacts: '$*'"
+    rm -rf bs_deps.tmp
+    mkdir bs_deps.tmp
 
-    case $_os in
-    ubu*)
-        # One file per line, remove directory and version number
-        echo $* | tr ' ' '\012' | sed 's,.*/,,;s,_.*,,' > bs_deps.tmp/$buildername.out
-        # Avoid circular dependencies caused by test install of output?
-        bs_apt_list_installed_deps | fgrep -v  --line-regexp -f bs_deps.tmp/$buildername.out > bs_deps.tmp/$buildername.in || true
-        ;;
-    osx*)
-        if test -f /opt/oblong/install_deps.log
-        then
-            cp /opt/oblong/install_deps.log bs_deps.tmp/$buildername.in
-            bs_deps_clear
-        fi
-        # One file per line, remove directory and version number
-        echo $* | tr ' ' '\012' | sed 's,.*/,,;s/-[0-9].*//;s/\.tar\..*z.*//' > bs_deps.tmp/$buildername.out
-        ;;
-    esac
-    # Sanity check: make sure .in doesn't contain anything that was in .out
-    # If output is empty, skip check (since otherwise it would match everything, whoops)
-    ls -l bs_deps.tmp/$buildername.* || true
-    if test "$*" != "" && fgrep --line-regexp -f bs_deps.tmp/$buildername.out bs_deps.tmp/$buildername.in
-    then
-        bs_abort "bs_deps_hook: bug: circular dependency"
-    fi
+    # Treat arguments as package files, save in $buildername.out, one per line
+    # Remove paths
+    # Throw away anything after an underscore (version on Ubuntu)
+    # Throw away suffixes like -4.0.6-0.tar.gz (version on Mac)
+    echo $* | tr ' ' '\012' | sed 's,.*/,,;s/_.*//;s/-[-0-9.]*.tar.gz//' \
+     > bs_deps.tmp/$buildername.out
+
+    # Save accumulated dependencies (but ignore self at all costs)
+    bs_deps_list | fgrep -v  --line-regexp -f bs_deps.tmp/$buildername.out > bs_deps.tmp/$buildername.in || true
 
     if ! echo bs_deps.tmp/* | fgrep '/*' > /dev/null
     then
@@ -1203,6 +1205,7 @@ bs_deps_hook() {
         esac
     fi
     rm -rf bs_deps.tmp
+    bs_deps_clear
 }
 
 bs_version_is_dev()

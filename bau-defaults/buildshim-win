@@ -426,12 +426,14 @@ do_lbuild() {
   fi
   local pkgname
   pkgname=$(bs_get_pkgname)
+  local buildtype
+  buildtype="$(bs_get_cmake_buildtype)"
 
   export LB_SRCTOP="$origdir-supertree.tmp"
 
   # Upload what we just built to the local repo
-  local f="$pkgname-$version-$version_patchnum".tar.gz
-  uberbau $verbose upload "$pkgname" "$_os" "$version_major.$version_minor" "$version_micro" "$version_patchnum" "$f"
+  local f="$pkgname-$buildtype-$version-$version_patchnum".tar.gz
+  uberbau $verbose upload "$pkgname-$buildtype" "$_os" "$version_major.$version_minor" "$version_micro" "$version_patchnum" "$f"
 
   # Build the downstream projects!
   cd "$LB_SRCTOP"

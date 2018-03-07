@@ -912,10 +912,12 @@ bs_apt_install_deps() {
         # If installing from a file repo, use --allow-unauthenticated?
         #sudo mk-build-deps -i -t "apt-get -y --allow-unauthenticated"
 
+        # Want exit status of mk-build-deps, so can't pipe its output to a program
         if yes | $SUDO DEBIAN_FRONTEND=noninteractive LC_ALL=C LANG=C mk-build-deps -i > mk-build-deps.log 2>&1 && ! grep "E: Failed" < mk-build-deps.log
         then
+            # We wanted to use tee, but we couldn't, so output it here to both places.
+            cat mk-build-deps.log | bs_deps_append_log
             cat mk-build-deps.log
-            grep -v "Unpacking replacement" < mk-build-deps.log > ../install_deps.log || true
             break
         fi
         cat mk-build-deps.log
