@@ -758,6 +758,9 @@ mirror_nobuild() {
         # this one's pretty hacky, needed by ir-inertial-tracking-tools
         mirror_one oblong-qwt-$_os-master                             qwt539                              rel
         ;;
+    cygwin|win*)
+        echo "No build is good build"
+        ;;
     *)
         bs_abort "unknown OS"
         ;;
