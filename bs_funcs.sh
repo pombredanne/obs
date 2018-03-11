@@ -121,17 +121,18 @@ bs_stamp_debian_changelog() {
     *) bs_abort "bs_stamp_changelog: bad version_patchnum '$version_patchnum'";;
     esac
 
-    if test "$BS_NO_HASH" = true
-    then
-        hash=""
-    else
-        hash="+g$(bs_get_hash_git)"
-    fi
-
     # If patchnum is empty or zero, don't append it as suffix
     case "$version_patchnum" in
     ""|0) suffix="";;
-    *) suffix="-$version_patchnum$hash";;
+    *)
+      if test "$BS_NO_HASH" = true
+      then
+          hash=""
+      else
+          hash="+g$(bs_get_hash_git)"
+      fi
+      suffix="-$version_patchnum$hash"
+      ;;
     esac
 
     sed -i.bak "1s/(.*/($version$suffix) $distro_codename; urgency=low/" debian/changelog
