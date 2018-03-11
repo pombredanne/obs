@@ -194,7 +194,10 @@ do_package() {
   then
     bs_test_env_setup
   else
-    DEB_BUILD_OPTIONS="$DEB_BUILD_OPTIONS nocheck"
+    case "$DEB_BUILD_OPTIONS" in
+    "") DEB_BUILD_OPTIONS="nocheck";;
+    *)  DEB_BUILD_OPTIONS="$DEB_BUILD_OPTIONS nocheck";;
+    esac
     export DEB_BUILD_OPTIONS
   fi
 

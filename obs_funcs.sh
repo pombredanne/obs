@@ -285,7 +285,13 @@ bs_get_version_git() {
     # tag-COUNT-CHECKSUM
     # or, if at a tag,
     # tag
-    d1=$(git describe --long)
+    if ! d1=$(git describe --long)
+    then
+        # let bau work in samples
+        bs_warn "bs_get_version_git: not in a git repo.  Returning version 0." >&2
+        echo "0"
+        return
+    fi
     # Strip off -CHECKSUM suffix, if any
     case $_os in
     osx*) xregx=-E;;
