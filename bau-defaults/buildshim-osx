@@ -204,7 +204,7 @@ do_compile() {
 do_check() {
   bs_test_env_setup
   cd "$btmp"
-  if ! ctest -V
+  if ! ctest -V $BS_CTEST_EXTRA
   then
       bs_abort "Test failed"
   fi
