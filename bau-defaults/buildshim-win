@@ -311,7 +311,7 @@ do_check() {
 
   bs_test_env_setup
   cd "$btmp-$buildtype"
-  ctest -V -C $buildtype $EXCLUDE
+  ctest -V -C $buildtype $EXCLUDE $BS_CTEST_EXTRA
   bs_test_env_teardown
 }
 
@@ -587,6 +587,8 @@ _EOF_
 
 # Initialize test environment
 bs_test_env_setup() {
+  # FIXME: this is yovo-specifc, move it to yovo/ci,
+  # e.g. append there to GTEST_FILTER and BS_CTEST_EXTRA
   bs_warn "FIXME: Work around bug 12337, which causes tests to fail randomly every time"
   export GTEST_FILTER="-EaseSoftTest.*"
 

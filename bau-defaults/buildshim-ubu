@@ -208,6 +208,7 @@ do_package() {
   debuild \
     --preserve-envvar=DISPLAY \
     --preserve-envvar=GTEST_FLAGFILE \
+    --preserve-envvar=BS_CTEST_EXTRA \
     -b -uc -us -kbuildtools@oblong.com $parallel
   # We could do
   #   dpkg-buildpackage -b -uc -us -kbuildtools@oblong.com $parallel
