@@ -1,5 +1,28 @@
 #!/usr/bin/env bats
 
+@test "obs-deps-filter" {
+  echo "=== Begin test obs-deps-filter"
+  # Get access to uncommitted obs and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests/deps
+
+  for format in bare apt-get-install apt-get-install-s
+  do
+    obs -v deps-filter-log < $format.in > $format.tmp
+    if ! diff -u $format.expected $format.tmp
+    then
+      echo "obs-deps-filter-log got wrong answer on format $format"
+      exit 1
+    fi
+    rm $format.tmp
+  done
+
+  cd ../..
+
+  echo "=== End test obs-deps-filter"
+}
+
 @test "obs-get-gspeak-version" {
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"

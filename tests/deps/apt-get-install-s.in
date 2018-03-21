@@ -1,0 +1,169 @@
+NOTE: This is only a simulation!
+      apt-get needs root privileges for real execution.
+      Keep also in mind that locking is deactivated,
+      so don't depend on the relevance to the real current situation!
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  debsums dh-make-perl gir1.2-gtk-2.0 gmsl libalgorithm-c3-perl
+  libarray-unique-perl libatk1.0-dev libavcodec-dev libavformat-dev
+  libavutil-dev libclass-accessor-chained-perl libclass-c3-perl
+  libconfig-ini-perl libcv-dev libcvaux-dev libdata-optlist-perl
+  libdata-section-perl libdc1394-22-dev libeigen3-dev libemail-address-perl
+  libemail-date-format-perl libenv-sanctify-perl libexporter-lite-perl
+  libfile-chdir-perl libfile-fnmatch-perl libfile-which-perl libfreenect-dev
+  libfreenect0.5 libgtk2.0-dev libhighgui-dev libhttp-server-simple-perl
+  libio-stringy-perl libjpeg62 liblbfgs-dev liblbfgs0 libmixin-linewise-perl
+  libmodule-depends-perl libmro-compat-perl libopencv-calib3d-dev
+  libopencv-contrib-dev libopencv-core-dev libopencv-dev
+  libopencv-features2d-dev libopencv-flann-dev libopencv-gpu-dev
+  libopencv-gpu2.4v5 libopencv-highgui-dev libopencv-imgproc-dev
+  libopencv-legacy-dev libopencv-ml-dev libopencv-objdetect-dev
+  libopencv-ocl-dev libopencv-ocl2.4v5 libopencv-photo-dev
+  libopencv-stitching-dev libopencv-stitching2.4v5 libopencv-superres-dev
+  libopencv-superres2.4v5 libopencv-ts-dev libopencv-ts2.4v5
+  libopencv-video-dev libopencv-videostab-dev libopencv-videostab2.4v5
+  libopencv2.4-java libopencv2.4-jni libparams-util-perl
+  libparse-debcontrol-perl libperlio-utf8-strict-perl libraw1394-dev
+  libsoftware-license-perl libsub-exporter-perl libsub-install-perl
+  libswresample-dev libswscale-dev libwww-mechanize-perl libxcursor-dev
+  libxi-dev nodejs6 texlive-fonts-recommended
+Use 'apt autoremove' to remove them.
+The following additional packages will be installed:
+  gnucash-common gnucash-docs guile-2.0 libaqbanking-data libaqbanking35
+  libaqbanking35-plugins libaqebics0 libaqhbci22 libaqofxconnect7
+  libbytes-random-secure-perl libclass-singleton-perl libcommon-sense-perl
+  libcrypt-random-seed-perl libcrypt-ssleay-perl libdate-manip-perl
+  libdatetime-locale-perl libdatetime-perl libdatetime-timezone-perl
+  libfinance-quote-perl libglade2-0 libgnomecanvas2-0 libgnomecanvas2-common
+  libgoffice-0.8-8 libgoffice-0.8-8-common libgsf-1-114 libgsf-1-common
+  libgwengui-gtk2-0 libgwenhywfar-data libgwenhywfar60
+  libhtml-tableextract-perl libjavascriptcoregtk-1.0-0 libjson-perl
+  libjson-xs-perl libktoblzcheck1v5 libmath-random-isaac-perl
+  libmath-random-isaac-xs-perl libmodule-implementation-perl libofx6 libosp5
+  libparams-validate-perl libtry-tiny-perl libtypes-serialiser-perl
+  libwebkitgtk-1.0-0 libwebkitgtk-1.0-common libxmlsec1 python-cairo
+  python-gnucash python-gobject-2 python-gtk2
+Suggested packages:
+  libdbd-mysql libdbd-pgsql libdbd-sqlite3 aqbanking-tools
+  libchipcard-libgwenhywfar60-plugins gwenhywfar-tools libgwenhywfar60-dbg
+  libhtml-element-extended-perl ktoblzcheck ofx python-gobject-2-dbg
+  python-gtk2-doc
+The following NEW packages will be installed:
+  gnucash gnucash-common gnucash-docs guile-2.0 libaqbanking-data
+  libaqbanking35 libaqbanking35-plugins libaqebics0 libaqhbci22
+  libaqofxconnect7 libbytes-random-secure-perl libclass-singleton-perl
+  libcommon-sense-perl libcrypt-random-seed-perl libcrypt-ssleay-perl
+  libdate-manip-perl libdatetime-locale-perl libdatetime-perl
+  libdatetime-timezone-perl libfinance-quote-perl libglade2-0
+  libgnomecanvas2-0 libgnomecanvas2-common libgoffice-0.8-8
+  libgoffice-0.8-8-common libgsf-1-114 libgsf-1-common libgwengui-gtk2-0
+  libgwenhywfar-data libgwenhywfar60 libhtml-tableextract-perl
+  libjavascriptcoregtk-1.0-0 libjson-perl libjson-xs-perl libktoblzcheck1v5
+  libmath-random-isaac-perl libmath-random-isaac-xs-perl
+  libmodule-implementation-perl libofx6 libosp5 libparams-validate-perl
+  libtry-tiny-perl libtypes-serialiser-perl libwebkitgtk-1.0-0
+  libwebkitgtk-1.0-common libxmlsec1 python-cairo python-gnucash
+  python-gobject-2 python-gtk2
+0 upgraded, 50 newly installed, 0 to remove and 89 not upgraded.
+Inst libglade2-0 (1:2.6.4-2 Ubuntu:16.04/xenial [amd64])
+Inst libgnomecanvas2-common (2.30.3-2 Ubuntu:16.04/xenial [all])
+Inst libgnomecanvas2-0 (2.30.3-2 Ubuntu:16.04/xenial [amd64])
+Inst guile-2.0 (2.0.11+1-10 Ubuntu:16.04/xenial [amd64])
+Inst libaqbanking-data (5.6.4beta-1 Ubuntu:16.04/xenial [all])
+Inst libgwenhywfar-data (4.15.2beta-2build1 Ubuntu:16.04/xenial [all])
+Inst libgwenhywfar60 (4.15.2beta-2build1 Ubuntu:16.04/xenial [amd64])
+Inst libaqbanking35 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Inst libxmlsec1 (1.2.20-2ubuntu4 Ubuntu:16.04/xenial [amd64])
+Inst libaqebics0 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Inst libaqhbci22 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Inst libaqofxconnect7 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Inst libktoblzcheck1v5 (1.48-2.1 Ubuntu:16.04/xenial [amd64])
+Inst libaqbanking35-plugins (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Inst libcrypt-random-seed-perl (0.03-1 Ubuntu:16.04/xenial [all])
+Inst libmath-random-isaac-perl (1.003-1 Ubuntu:16.04/xenial [all])
+Inst libbytes-random-secure-perl (0.28-1 Ubuntu:16.04/xenial [all])
+Inst libclass-singleton-perl (1.5-1 Ubuntu:16.04/xenial [all])
+Inst libcommon-sense-perl (3.74-1build1 Ubuntu:16.04/xenial [amd64])
+Inst libcrypt-ssleay-perl (0.73.04-1build1 Ubuntu:16.04/xenial [amd64])
+Inst libdate-manip-perl (6.52-1 Ubuntu:16.04/xenial [all])
+Inst libhtml-tableextract-perl (2.13-1 Ubuntu:16.04/xenial [all])
+Inst libtry-tiny-perl (0.24-1 Ubuntu:16.04/xenial [all])
+Inst libmodule-implementation-perl (0.09-1 Ubuntu:16.04/xenial [all])
+Inst libparams-validate-perl (1.22-1 Ubuntu:16.04/xenial [amd64])
+Inst libdatetime-locale-perl (1:1.02-1 Ubuntu:16.04/xenial [all])
+Inst libdatetime-timezone-perl (1:1.95-1+2016a Ubuntu:16.04/xenial [all])
+Inst libdatetime-perl (2:1.21-1build1 Ubuntu:16.04/xenial [amd64])
+Inst libjson-perl (2.90-1 Ubuntu:16.04/xenial [all])
+Inst libfinance-quote-perl (1.38-1 Ubuntu:16.04/xenial [all])
+Inst libgsf-1-common (1.14.36-1 Ubuntu:16.04/xenial [all])
+Inst libgsf-1-114 (1.14.36-1 Ubuntu:16.04/xenial [amd64])
+Inst libgoffice-0.8-8-common (0.8.17-3 Ubuntu:16.04/xenial [all])
+Inst libgoffice-0.8-8 (0.8.17-3 Ubuntu:16.04/xenial [amd64])
+Inst libgwengui-gtk2-0 (4.15.2beta-2build1 Ubuntu:16.04/xenial [amd64])
+Inst libjavascriptcoregtk-1.0-0 (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [amd64])
+Inst libtypes-serialiser-perl (1.0-1 Ubuntu:16.04/xenial [all])
+Inst libjson-xs-perl (3.010-2build1 Ubuntu:16.04/xenial [amd64])
+Inst libmath-random-isaac-xs-perl (1.004-2build1 Ubuntu:16.04/xenial [amd64])
+Inst libosp5 (1.5.2-13ubuntu1 Ubuntu:16.04/xenial [amd64])
+Inst libofx6 (1:0.9.10-1build2 Ubuntu:16.04/xenial [amd64])
+Inst libwebkitgtk-1.0-common (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [all])
+Inst libwebkitgtk-1.0-0 (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [amd64])
+Inst python-cairo (1.8.8-2 Ubuntu:16.04/xenial [amd64])
+Inst gnucash-common (1:2.6.12-1 Ubuntu:16.04/xenial [all])
+Inst gnucash (1:2.6.12-1 Ubuntu:16.04/xenial [amd64])
+Inst python-gobject-2 (2.28.6-12ubuntu1 Ubuntu:16.04/xenial [amd64])
+Inst python-gtk2 (2.24.0-4ubuntu1 Ubuntu:16.04/xenial [amd64])
+Inst python-gnucash (1:2.6.12-1 Ubuntu:16.04/xenial [amd64])
+Inst gnucash-docs (2.6.12-1 Ubuntu:16.04/xenial [all])
+Conf libglade2-0 (1:2.6.4-2 Ubuntu:16.04/xenial [amd64])
+Conf libgnomecanvas2-common (2.30.3-2 Ubuntu:16.04/xenial [all])
+Conf libgnomecanvas2-0 (2.30.3-2 Ubuntu:16.04/xenial [amd64])
+Conf guile-2.0 (2.0.11+1-10 Ubuntu:16.04/xenial [amd64])
+Conf libaqbanking-data (5.6.4beta-1 Ubuntu:16.04/xenial [all])
+Conf libgwenhywfar-data (4.15.2beta-2build1 Ubuntu:16.04/xenial [all])
+Conf libgwenhywfar60 (4.15.2beta-2build1 Ubuntu:16.04/xenial [amd64])
+Conf libaqbanking35 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Conf libxmlsec1 (1.2.20-2ubuntu4 Ubuntu:16.04/xenial [amd64])
+Conf libaqebics0 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Conf libaqhbci22 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Conf libaqofxconnect7 (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Conf libktoblzcheck1v5 (1.48-2.1 Ubuntu:16.04/xenial [amd64])
+Conf libaqbanking35-plugins (5.6.4beta-1 Ubuntu:16.04/xenial [amd64])
+Conf libcrypt-random-seed-perl (0.03-1 Ubuntu:16.04/xenial [all])
+Conf libmath-random-isaac-perl (1.003-1 Ubuntu:16.04/xenial [all])
+Conf libbytes-random-secure-perl (0.28-1 Ubuntu:16.04/xenial [all])
+Conf libclass-singleton-perl (1.5-1 Ubuntu:16.04/xenial [all])
+Conf libcommon-sense-perl (3.74-1build1 Ubuntu:16.04/xenial [amd64])
+Conf libcrypt-ssleay-perl (0.73.04-1build1 Ubuntu:16.04/xenial [amd64])
+Conf libdate-manip-perl (6.52-1 Ubuntu:16.04/xenial [all])
+Conf libhtml-tableextract-perl (2.13-1 Ubuntu:16.04/xenial [all])
+Conf libtry-tiny-perl (0.24-1 Ubuntu:16.04/xenial [all])
+Conf libmodule-implementation-perl (0.09-1 Ubuntu:16.04/xenial [all])
+Conf libparams-validate-perl (1.22-1 Ubuntu:16.04/xenial [amd64])
+Conf libdatetime-locale-perl (1:1.02-1 Ubuntu:16.04/xenial [all])
+Conf libdatetime-timezone-perl (1:1.95-1+2016a Ubuntu:16.04/xenial [all])
+Conf libdatetime-perl (2:1.21-1build1 Ubuntu:16.04/xenial [amd64])
+Conf libjson-perl (2.90-1 Ubuntu:16.04/xenial [all])
+Conf libfinance-quote-perl (1.38-1 Ubuntu:16.04/xenial [all])
+Conf libgsf-1-common (1.14.36-1 Ubuntu:16.04/xenial [all])
+Conf libgsf-1-114 (1.14.36-1 Ubuntu:16.04/xenial [amd64])
+Conf libgoffice-0.8-8-common (0.8.17-3 Ubuntu:16.04/xenial [all])
+Conf libgoffice-0.8-8 (0.8.17-3 Ubuntu:16.04/xenial [amd64])
+Conf libgwengui-gtk2-0 (4.15.2beta-2build1 Ubuntu:16.04/xenial [amd64])
+Conf libjavascriptcoregtk-1.0-0 (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [amd64])
+Conf libtypes-serialiser-perl (1.0-1 Ubuntu:16.04/xenial [all])
+Conf libjson-xs-perl (3.010-2build1 Ubuntu:16.04/xenial [amd64])
+Conf libmath-random-isaac-xs-perl (1.004-2build1 Ubuntu:16.04/xenial [amd64])
+Conf libosp5 (1.5.2-13ubuntu1 Ubuntu:16.04/xenial [amd64])
+Conf libofx6 (1:0.9.10-1build2 Ubuntu:16.04/xenial [amd64])
+Conf libwebkitgtk-1.0-common (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [all])
+Conf libwebkitgtk-1.0-0 (2.4.11-0ubuntu0.1 Ubuntu:16.04/xenial-updates [amd64])
+Conf python-cairo (1.8.8-2 Ubuntu:16.04/xenial [amd64])
+Conf gnucash-common (1:2.6.12-1 Ubuntu:16.04/xenial [all])
+Conf gnucash (1:2.6.12-1 Ubuntu:16.04/xenial [amd64])
+Conf python-gobject-2 (2.28.6-12ubuntu1 Ubuntu:16.04/xenial [amd64])
+Conf python-gtk2 (2.24.0-4ubuntu1 Ubuntu:16.04/xenial [amd64])
+Conf python-gnucash (1:2.6.12-1 Ubuntu:16.04/xenial [amd64])
+Conf gnucash-docs (2.6.12-1 Ubuntu:16.04/xenial [all])

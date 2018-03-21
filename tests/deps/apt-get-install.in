@@ -1,0 +1,78 @@
+Selecting previously unselected package oblong-greenhouse-gs4.5x.
+(Reading database ... 367461 files and directories currently installed.)
+Selecting previously unselected package zoblong-greenhouse-gs4.5x-dbg.
+Preparing to unpack zoblong-greenhouse-gs4.5x-dbg_4.5.0-11+gd79bf7cee_amd64.deb ...
+Unpacking zoblong-greenhouse-gs4.5x-dbg (4.5.0-11+gd79bf7cee) ...
+Preparing to unpack oblong-greenhouse-gs4.5x_4.5.0-11+gd79bf7cee_amd64.deb ...
+Unpacking oblong-greenhouse-gs4.5x (4.5.0-11+gd79bf7cee) ...
+Setting up oblong-greenhouse-gs4.5x (4.5.0-11+gd79bf7cee) ...
+--- /etc/oblong/screen.protein	2011-08-10 17:13:04.000000000 -0700
++++ /opt/oblong/g-speak4.5/share/proteins/screen.protein	2017-06-14 20:54:54.000000000 -0700
+@@ -6,12 +6,12 @@
+   screens:
+     { main:
+       { type: basic,
+-        cent: [ -35.0, 1400.0, -1518.0 ],
+-        phys-size: [ 527.778, 400.0 ],
++        cent: [ 0.0, 0.0, -2000.0 ],
++        phys-size: [ 336.0, 210.0 ],
+         norm: [ 0.0, 0.0, 1.0 ],
+         over: [ 1.0, 0.0, 0.0 ],
+-        px-size: [ 1920, 1440 ],
++        px-size: [ 1280, 800 ],
+         px-origin: [0, 0],
+-        eye-dist: 1860.0,
++        eye-dist: 2000.0,
+       }
+     }
+/etc/oblong/screen.protein exists and is different from /opt/oblong/g-speak4.5/share/proteins/screen.protein, leaving unchanged
+--- /etc/oblong/feld.protein	2011-08-10 17:13:04.000000000 -0700
++++ /opt/oblong/g-speak4.5/share/proteins/feld.protein	2017-06-14 20:54:54.000000000 -0700
+@@ -5,7 +5,7 @@
+ ingests:
+   felds:
+     { main:
+-      { window: [600, 40, 800, 600],
++      { window: [0, 0, 1280, 800],
+         screen: main
+       }
+     }
+/etc/oblong/feld.protein exists and is different from /opt/oblong/g-speak4.5/share/proteins/feld.protein, leaving unchanged
+--- /etc/oblong/tiled-config.protein	2011-08-10 17:13:04.000000000 -0700
++++ /opt/oblong/g-speak4.5/share/proteins/tiled-config.protein	2017-06-14 20:54:54.000000000 -0700
+@@ -10,22 +10,26 @@
+   cache-base: "/var/tmp"
+   request-pool: "tcp://localhost/tiles-req"
+   tile-policies:
++    - mapid: "mapquest"
++      type: "standard"
++      url: "http://otile1.mqcdn.com/tiles/1.0.0/osm/$Z/$X/$Y.jpg"
++      cache: "$BASE/$MAPID/$Z/$X/$Z_$X_$Y.jpg"
++      max-z: 18
+     - mapid: "gray"
+       type: "forward"
+       pool: "petrichor"
+     - mapid: "watercolor"
+       type: "standard"
+-      url: "http://tile.stamen.com/watercolor/$Z/$X/$Y.png"
+-      cache: "$BASE/$MAPID/$Z/$X/$Z_$X_$Y.png"
++      url: "http://b.tile.stamen.com/watercolor/$Z/$X/$Y.jpg"
++      cache: "$BASE/$MAPID/$Z/$X/$Z_$X_$Y.jpg"
+     - mapid: "terrain"
+       type: "standard"
+-      url: "http://tile.stamen.com/terrain/$Z/$X/$Y.jpg"
++      url: "http://b.tile.stamen.com/terrain/$Z/$X/$Y.jpg"
+       cache: "$BASE/$MAPID/$Z/$X/$Z_$X_$Y.jpg"
+     - mapid: "toner"
+-      image-format: "png"
+       type: "standard"
+-      url: "http://tile.stamen.com/toner/$Z/$X/$Y.png"
+-      cache: "$BASE/$MAPID/$Z/$X/$Y.png"
++      url: "http://b.tile.stamen.com/toner/$Z/$X/$Y.jpg"
++      cache: "$BASE/$MAPID/$Z/$X/$Y.jpg"
+     - mapid: "toner-lines"
+       image-format: "png"
+       type: "standard"
+/etc/oblong/tiled-config.protein exists and is different from /opt/oblong/g-speak4.5/share/proteins/tiled-config.protein, leaving unchanged
+update-alternatives: using /opt/oblong/g-speak4.5/bin/hantenna-pipeline to provide /usr/bin/hantenna-pipeline (hantenna-pipeline) in auto mode
+Setting up oblong-greenhouse-gs4.5x-dbg (4.5.0-11+gd79bf7cee) ...

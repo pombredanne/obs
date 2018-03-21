@@ -1147,16 +1147,33 @@ bs_deps_append() {
    tr ' ' '\012' | sed 's,.*/,,;s/_.*//;s/-[-0-9.]*.tar.gz//' >> $(bs_deps_file)
 }
 
+# Stdin is a list of:
+#   bare package names and/or 
+#   package tarball names and/or
+#   the output of dpkg -i, apt-get install, and/or apt-get install -s.
+# Stdout is a list of bare package names, with no version suffixes,
+# with duplicates and junk packages filtered out.
+# FIXME: the output of apt-get install is not language-independent,
+# so for best results use the C locale when running apt-get.
+# (The output of apt-get install -s does not have this problem.)
+bs_deps_filter_log() {
+   grep -v "Unpacking replacement" |
+     grep -v build-deps |
+     awk '/^Unpacking |^Inst / {print $2} NF==1 && /^[a-z][-.a-z0-9]*$/ {print} /tar.gz/ {print}' |
+     LANG=C sort -u
+}
+
 # Ubuntu only.
-# Like bs_deps_append, but stdin is the output of dpkg and/or apt-get install -f.
+# Like bs_deps_append, but stdin is the output of dpkg and/or apt-get install
+# and/or apt-get install -s.
 bs_deps_append_log()
 {
-   grep -v "Unpacking replacement" | awk '/^Unpacking/ {print $2}' | bs_deps_append
+   bs_filter_log | bs_deps_append
 }
 
 # List the packages installed since bs_deps_clear
 bs_deps_list() {
-    sort -u < $(bs_deps_file) || true
+    bs_filter < $(bs_deps_file) || true
 }
 
 # Ubuntu only.
