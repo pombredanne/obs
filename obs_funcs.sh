@@ -1168,12 +1168,12 @@ bs_deps_filter_log() {
 # and/or apt-get install -s.
 bs_deps_append_log()
 {
-   bs_filter_log | bs_deps_append
+   bs_deps_filter_log | bs_deps_append
 }
 
 # List the packages installed since bs_deps_clear
 bs_deps_list() {
-    bs_filter < $(bs_deps_file) || true
+    bs_deps_filter_log < $(bs_deps_file) || true
 }
 
 # Ubuntu only.
