@@ -53,6 +53,9 @@ obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt r
 obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$ob_repotop/X
 obs sudo cmd ...            - run cmd as root with local repo visible
 obs run cmd ...             - run cmd with local repo visible
+
+Even more obscure internal commands:
+obs deps-filter             - filter apt log into list of dependencies
 _EOF_
 }
 
@@ -74,6 +77,11 @@ esac
 # Running without any arguments may be a typo in a script, so show usage and abort.
 case "$1" in
 "")    usage; exit 1;;
+esac
+
+case "$LANG" in
+C|en*) ;;
+*) bs_abort "FIXME: obs has problems on non-english systems yet, alas.";;
 esac
 
 # Handle options
@@ -126,5 +134,6 @@ apt_pkg_rm)            bs_apt_pkg_rm "$@";;
 apt_pkg_get_transitive) bs_apt_pkg_get_transitive "$@";;
 sudo)                  sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" "$@";;
 run)                   "$@";;
+deps_filter_log)       bs_deps_filter_log;;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac
