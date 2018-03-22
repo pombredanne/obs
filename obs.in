@@ -55,7 +55,10 @@ obs sudo cmd ...            - run cmd as root with local repo visible
 obs run cmd ...             - run cmd with local repo visible
 
 Even more obscure internal commands:
-obs deps-filter             - filter apt log into list of dependencies
+obs deps-filter-log         - filter apt log into list of dependencies
+obs deps-clear              - clear current list of dependencies
+obs deps-append             - add to current list of dependencies
+obs deps-list               - show current list of dependencies
 _EOF_
 }
 
@@ -135,5 +138,9 @@ apt_pkg_get_transitive) bs_apt_pkg_get_transitive "$@";;
 sudo)                  sudo APT_CONFIG="$APT_CONFIG" GNUPGHOME="$GNUPGHOME" "$@";;
 run)                   "$@";;
 deps_filter_log)       bs_deps_filter_log;;
+deps_append_log)       bs_deps_append_log;;
+deps_append)           bs_deps_append;;
+deps_list)             bs_deps_list;;
+deps_clear)            bs_deps_clear;;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac

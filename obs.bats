@@ -16,6 +16,20 @@
       exit 1
     fi
     rm $format.tmp
+
+    obs deps-clear
+    if test "$(obs deps-list)" != ""
+    then
+      echo "obs-deps-clear did not clear list"
+      exit 1
+    fi
+
+    obs deps-append-log < $format.in
+    if test "$(obs deps-list)" != "$(cat $format.expected)"
+    then
+      echo "obs-deps-list got wrong answer on format $format"
+      exit 1
+    fi
   done
 
   cd ../..
