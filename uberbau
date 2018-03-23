@@ -713,7 +713,6 @@ mirror_minimal() {
     case $_os in
     ubu*)
         mirror_one obs-$_os-master                                    apt   rel
-        mirror_one ob-repobot-$_os-master                             apt   rel
         ;;
     esac
 }
