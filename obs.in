@@ -84,7 +84,7 @@ esac
 
 case "$LANG" in
 ""|C|C.*|en*) ;;
-*) bs_abort "FIXME: obs has problems on non-english systems yet, alas.";;
+*) bs_warn "FIXME: obs has problems on non-english systems yet, alas.";;
 esac
 
 # Handle options
