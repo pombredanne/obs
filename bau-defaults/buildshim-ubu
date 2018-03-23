@@ -292,17 +292,17 @@ do_lclone() {
   # and has a little magic to pick the right yobuild or g-speak version.
   # We use this for nobuild, yobuild, and gspeak automatically.
   # We should consider exposing this like we do --lmirror.
+  # The logic here is very fragile.  Using ob-build-deps at least
+  # protects us from being fooled by comments.
 
   mirrorgroups="minimal"
-  # depdemo-particle has g-speak in a comment in debian/control to fool ob-set-defaults,
-  # so filter out comments here.
-  # FIXME: That's pretty fragile.... but then, so is this magic at all.
-  if grep -v '^#' "$origdir"/debian/control| grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma'
+  if ob-build-deps | grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma|oblong-gs'
   then
      # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
      mirrorgroups="nobuild yobuild gspeak"
-  elif grep -v '^#' "$origdir"/debian/control| grep -v cmake | grep -qE 'yobuild'
+  elif ob-build-deps | grep -v cmake | grep -qE 'oblong-yobuild'
   then
+     # FIXME: it's likely this pulls in yobuild sometimes when it's not needed
      mirrorgroups="yobuild"
   fi
   uberbau $verbose mirror $mirrorgroups
