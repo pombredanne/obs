@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+# Small script to print out the current debian package's
+# build dependencies, one per line.
+use strict;
+use warnings;
+
+use Dpkg::Control::Info;
+use Dpkg::Deps;
+
+my $control = Dpkg::Control::Info->new();
+my $fields = $control->get_source();
+my $build_depends = deps_parse($fields->{'Build-Depends'});
+my $out = deps_concat($build_depends);
+$out =~ s/, /,/g;
+my @out = sort(split(',', $out));
+print join("\n", @out) . "\n";
