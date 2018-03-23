@@ -296,11 +296,11 @@ do_lclone() {
   # protects us from being fooled by comments.
 
   mirrorgroups="minimal"
-  if ob-build-deps | grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma|oblong-gs'
+  if (cd "$origdir"; ob-build-deps) | grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma|oblong-gs'
   then
      # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
      mirrorgroups="nobuild yobuild gspeak"
-  elif ob-build-deps | grep -v cmake | grep -qE 'oblong-yobuild'
+  elif (cd "$origdir"; ob-build-deps) | grep -v cmake | grep -qE 'oblong-yobuild'
   then
      # FIXME: it's likely this pulls in yobuild sometimes when it's not needed
      mirrorgroups="yobuild"
