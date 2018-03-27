@@ -303,7 +303,7 @@ do_lclone() {
   elif (cd "$origdir"; ob-build-deps) | grep -v cmake | grep -qE 'oblong-yobuild'
   then
      # FIXME: it's likely this pulls in yobuild sometimes when it's not needed
-     mirrorgroups="yobuild"
+     mirrorgroups="nobuild yobuild"
   fi
   uberbau $verbose mirror $mirrorgroups
 
