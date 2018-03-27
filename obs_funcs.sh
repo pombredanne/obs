@@ -916,7 +916,10 @@ bs_apt_pkg_add() {
         # Remove the previous version of these packages to avoid dreaded
         # "Already existing files can only be included again, if they are the same, but..."
         # at least for dev builds, so people can force builds after an iz change.
-        reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames > /dev/null
+        case "$pkgarch" in
+        all) reprepro -Vb $apt_archive_root remove $apt_suite $pkgnames;;
+        *)   reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames > /dev/null;;
+        esac
         ;;
     esac
 
