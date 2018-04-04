@@ -68,15 +68,17 @@
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
+  # FIXME: update this list as we add support for more versions of ubuntu
+  # Leave the entry blank in this table until g-speak is available on that OS.
   case $(cat /etc/os-release) in
   *14.04*) gspeak=3.30;;
   *16.04*) gspeak=4.0;;
   *17.10*) gspeak=4.2;;
   esac
-  yoversion=$(obs yovo2yoversion $gspeak)
 
-  if test $(uname) = Linux
+  if test "$gspeak" != "" && test $(uname) = Linux
   then
+    yoversion=$(obs yovo2yoversion $gspeak)
     unset MASTER
     # Assumes we have access to the apt repo already.
     # Download a package and its dependencies

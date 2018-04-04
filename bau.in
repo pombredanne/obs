@@ -192,6 +192,11 @@ else
     }
 fi
 
+case "$LANG" in
+""|C|C.*|en*) ;;
+*) bs_warn "FIXME: bau has problems on non-english systems yet; setting C locale." >&2; export LANG=C ;;
+esac
+
 # Run the desired step(s).
 if test "$BAU_CMD" = list
 then
