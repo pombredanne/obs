@@ -731,6 +731,8 @@ mirror_nobuild() {
         mirror_one oblong-qt-$_os-master     apt rel
         mirror_one oblong-qwt-$_os-master    apt rel
         mirror_one qt531-$_os-master                                  qt531 rel   # needed by screencast & old ir-*
+        # trying to migrate to this one
+        mirror_one qt59-$_os-master                                   qt59                                rel
         mirror_one westar-$_os-master        apt rel
         ;;
     esac
@@ -877,6 +879,7 @@ list_gspeak() {
     echo rtsp-viddle-server
     case $_os in
     ubu*)
+        echo gelatin
         echo plasma-web-proxy
         echo ollivander
         ;;
