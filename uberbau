@@ -868,6 +868,23 @@ list_gspeak() {
     echo yovo
     echo staging
     echo webthing-cef
+}
+
+list_hantenna() {
+    case $_os in
+    ubu1204) echo gmsl;;   # Mac buildshims get it from yobuild anyway, see bug 16633
+    esac
+    # Want to include buildsystem here, but need both buildsystem1 and buildsystem2,
+    # and this script kind of assumes you only want one branch of any project.
+    # So kludge it by making buildsystem1 be a fork of buildsystem that defaults to rel-1.
+    # FIXME: migrate all projects away from buildsystem and to cmake someday.
+    echo buildsystem1
+    echo buildsystem
+    echo libAttic
+    echo liboblong-dimager
+    echo gloveless
+    echo gloveless-models
+    # can't build greenhouse without gloveless
     echo greenhouse
     case $_os in
     ubu12*|ubu14*) ;;   # Older ubuntu can't build modern v8 / growroom
@@ -885,22 +902,6 @@ list_gspeak() {
     # Add guile-plasma after
     # https://gitlab.oblong.com/platform/guile-plasma/issues/1
     # is fixed
-}
-
-list_hantenna() {
-    case $_os in
-    ubu1204) echo gmsl;;   # Mac buildshims get it from yobuild anyway, see bug 16633
-    esac
-    # Want to include buildsystem here, but need both buildsystem1 and buildsystem2,
-    # and this script kind of assumes you only want one branch of any project.
-    # So kludge it by making buildsystem1 be a fork of buildsystem that defaults to rel-1.
-    # FIXME: migrate all projects away from buildsystem and to cmake someday.
-    echo buildsystem1
-    echo buildsystem
-    echo libAttic
-    echo liboblong-dimager
-    echo gloveless
-    echo gloveless-models
 }
 
 list_motion() {
