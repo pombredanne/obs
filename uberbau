@@ -20,7 +20,7 @@ or   : $0 use_local_apt_repo    # add sources.list entry for local repo (usually
 
 The arguments to list/clone/build can be
 - special words which expand to the names of all the projects that embody them, e.g.
-    nobuild gspeak hantenna motion mezz platform
+    nobuild gspeak hantenna gspeak_gloved motion mezz platform
 - names of single projects, e.g.
     yovo staging
 - git urls, e.g.
@@ -868,6 +868,18 @@ list_gspeak() {
     echo yovo
     echo staging
     echo webthing-cef
+    echo samples
+    echo rtsp-viddle-server
+    case $_os in
+    ubu*)
+        echo gelatin
+        echo plasma-web-proxy
+        echo ollivander
+        ;;
+    esac
+    # Add guile-plasma after
+    # https://gitlab.oblong.com/platform/guile-plasma/issues/1
+    # is fixed
 }
 
 list_hantenna() {
@@ -882,26 +894,19 @@ list_hantenna() {
     echo buildsystem
     echo libAttic
     echo liboblong-dimager
+}
+
+# list_gspeak continues here after list_hantenna
+list_gspeak_gloved() {
     echo gloveless
     echo gloveless-models
     # can't build greenhouse without gloveless
     echo greenhouse
+    # can't build growroom without greenhouse
     case $_os in
     ubu12*|ubu14*) ;;   # Older ubuntu can't build modern v8 / growroom
     ubu*|osx*) echo growroom ;;
     esac
-    echo samples
-    echo rtsp-viddle-server
-    case $_os in
-    ubu*)
-        echo gelatin
-        echo plasma-web-proxy
-        echo ollivander
-        ;;
-    esac
-    # Add guile-plasma after
-    # https://gitlab.oblong.com/platform/guile-plasma/issues/1
-    # is fixed
 }
 
 list_motion() {
@@ -994,6 +999,7 @@ list_platform() {
     esac
     list_gspeak
     list_hantenna
+    list_gspeak_gloved
     list_motion
     echo platform-builder
 }
@@ -1006,7 +1012,7 @@ expand_lists() {
         __proj=`echo $__arg | cut -d'#' -f1`
         __branch=`echo $__arg | cut -s -d'#' -f2`
         case $__proj in
-        nobuild|gspeak|mezz|hantenna|motion|platform|ir_inertial) list_$__proj | sed "s/\$/#$__branch/;s/#$//";;
+        nobuild|gspeak|gspeak_gloved|mezz|hantenna|motion|platform|ir_inertial) list_$__proj | sed "s/\$/#$__branch/;s/#$//";;
         *) echo $__arg;;
         esac
     done
