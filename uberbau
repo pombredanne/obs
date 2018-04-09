@@ -894,12 +894,12 @@ list_hantenna() {
     echo buildsystem
     echo libAttic
     echo liboblong-dimager
+    echo gloveless
+    echo gloveless-models
 }
 
 # list_gspeak continues here after list_hantenna
 list_gspeak_gloved() {
-    echo gloveless
-    echo gloveless-models
     # can't build greenhouse without gloveless
     echo greenhouse
     # can't build growroom without greenhouse
