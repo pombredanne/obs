@@ -1,3 +1,9 @@
+oblong-obs (1.15) precise; urgency=low
+
+  * Support ubuntu 18.04
+
+ -- Dan Kegel <dank@oblong.com>  Thu, 12 Apr 2018 07:12:48 -0700
+
 oblong-obs (0.1) precise; urgency=low
 
   * Initial packaging
