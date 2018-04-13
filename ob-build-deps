@@ -6,10 +6,7 @@ use warnings;
 
 my $os = $^O;
 
-if ($os eq "linux") {
-    require Dpkg::Control::Info;
-    require Dpkg::Deps;
-
+if ($os eq "linux" && eval { require Dpkg::Control::Info; require Dpkg::Deps; }) {
     my $control = Dpkg::Control::Info->new();
     my $fields = $control->get_source();
     my $build_depends = deps_parse($fields->{'Build-Depends'});
