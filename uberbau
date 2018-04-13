@@ -755,7 +755,7 @@ mirror_nobuild() {
         # trying to migrate to this one
         mirror_one qt59-$_os-master                                   qt59                                rel
         # this one's pretty hacky, needed by ir-inertial-tracking-tools
-        mirror_one oblong-qwt-$_os-master                             qwt539                              rel
+        mirror_one oblong-qwt-$_os-master                             qwt593                              rel
         ;;
     cygwin|win*)
         echo "No build is good build"

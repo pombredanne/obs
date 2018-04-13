@@ -147,13 +147,12 @@ do_patch() {
   local gspeak
   if test -f bs-options.dat
   then
-    # Normal case, setting some option.  Yay.  Old non-sticky options get cleared.
     ob-set-defaults $verbose $(cat bs-options.dat)
   elif gspeak=$(bs_get_gspeak_version 2>/dev/null) && test "$gspeak" != ""
   then
     # No options given.  We want 'bau all' without options to clear
-    # old non-sticky options such as --asan, but ob-set-defaults won't do
-    # that without at least one option... and if it's defering to a
+    # old options such as --asan, but ob-set-defaults won't do that
+    # without at least one option... and if it's defering to a
     # classic local set-gspeak.sh, the only option that will always
     # work is --g-speak, which clears sticky options.  Bleah.
     # Get value of sticky options and use them again.
@@ -280,33 +279,32 @@ do_lclone() {
 
   uberbau $verbose clone $projects
 
-  # FIXME: autodetect what to mirror better here
-
   # Kludge: there are two ways to mirror packages from upstream:
   #
   # 1) 'uberbau nuke pkg...'
   # This mirrors individual packages.
   # We use this to handle --lmirror.
-  # as an argument to nuke, and as an argument to mirror.
-  uberbau $verbose nuke $mirror
+
+  uberbau $verbose nuke "$mirror"
 
   # 2) 'uberbau mirror project...'
   # This pulls in all the packages from a given source project,
   # and has a little magic to pick the right yobuild or g-speak version.
   # We use this for nobuild, yobuild, and gspeak automatically.
   # We should consider exposing this like we do --lmirror.
+  # The logic here is very fragile.  Using ob-build-deps at least
+  # protects us from being fooled by comments.
 
-  # MAGIC
-  # We are trying to guess something we probably shouldn't be guessing.
-  # The goal is to make the easy cases easy; it's ok if we miss something in corner cases,
-  # user can specify it via --lmirror.
   mirrorgroups="minimal"
-  # Pull in yobuild if we're not building it
-  if ! test -d yobuild
+  if (cd "$origdir"; ob-build-deps) | grep -qE 'g-speak|oblong-noodoo|oblong-loam|oblong-plasma|oblong-gs'
   then
-     mirrorgroups="$mirrorgroups yobuild"
+     # gspeak includes yovo and staging, with -gh if --greenhouse in BS_OPTS
+     mirrorgroups="nobuild yobuild gspeak"
+  elif (cd "$origdir"; ob-build-deps) | grep -v cmake | grep -qE 'oblong-yobuild'
+  then
+     # FIXME: it's likely this pulls in yobuild sometimes when it's not needed
+     mirrorgroups="nobuild yobuild"
   fi
-
   uberbau $verbose mirror $mirrorgroups
 }
 

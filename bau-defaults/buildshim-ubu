@@ -279,6 +279,8 @@ do_lclone() {
   *)  uberbau $verbose set-bsopts $bsoptions;;
   esac
 
+  uberbau $verbose clone $projects
+
   # Kludge: there are two ways to mirror packages from upstream:
   #
   # 1) 'uberbau nuke pkg...'
@@ -306,10 +308,6 @@ do_lclone() {
      mirrorgroups="nobuild yobuild"
   fi
   uberbau $verbose mirror $mirrorgroups
-
-  # finally, clone the downstream $projects
-  uberbau $verbose clone $projects
-  # FIXME: we should clone first and then autodetect what to mirror...?
 }
 
 do_lbuild() {
