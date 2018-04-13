@@ -4,13 +4,39 @@
 use strict;
 use warnings;
 
-use Dpkg::Control::Info;
-use Dpkg::Deps;
+my $os = $^O;
 
-my $control = Dpkg::Control::Info->new();
-my $fields = $control->get_source();
-my $build_depends = deps_parse($fields->{'Build-Depends'});
-my $out = deps_concat($build_depends);
-$out =~ s/, /,/g;
-my @out = sort(split(',', $out));
-print join("\n", @out) . "\n";
+if ($os eq "linux") {
+    require Dpkg::Control::Info;
+    require Dpkg::Deps;
+
+    my $control = Dpkg::Control::Info->new();
+    my $fields = $control->get_source();
+    my $build_depends = deps_parse($fields->{'Build-Depends'});
+    my $out = deps_concat($build_depends);
+    $out =~ s/, /,/g;
+    my @out = sort(split(',', $out));
+    print join("\n", @out) . "\n";
+} else {
+    # Get section of file between Build-Depends and Package:
+    open(FILE, "debian/control") || die "can't find debian/control";
+    my $ready = 0;
+    my @out;
+    while (<FILE>) {
+        if (! $ready) {
+            $ready = 1 if (/Build-Dep/);
+        } else {
+           last if (/Package:/);
+           next if (/^#/);
+           next if (/:/);
+           # punt on alternatives... FIXME
+           next if (/\|/);
+           # Remove version specs
+           s/\([^)]*\)//;
+           # Replace commas with whitespace
+           y/,/ /;
+           push(@out, split(" "));
+       }
+    }
+    print join("\n", sort(@out)) . "\n";
+}
