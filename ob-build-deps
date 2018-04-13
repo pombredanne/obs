@@ -7,6 +7,7 @@ use warnings;
 my $os = $^O;
 
 if ($os eq "linux" && eval { require Dpkg::Control::Info; require Dpkg::Deps; }) {
+    if (eval {
     my $control = Dpkg::Control::Info->new();
     my $fields = $control->get_source();
     my $build_depends = deps_parse($fields->{'Build-Depends'});
@@ -14,7 +15,12 @@ if ($os eq "linux" && eval { require Dpkg::Control::Info; require Dpkg::Deps; })
     $out =~ s/, /,/g;
     my @out = sort(split(',', $out));
     print join("\n", @out) . "\n";
-} else {
+    }) {
+        exit(0);
+    }
+}
+
+{
     # Get section of file between Build-Depends and Package:
     open(FILE, "debian/control") || die "can't find debian/control";
     my $ready = 0;
