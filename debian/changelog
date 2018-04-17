@@ -1,3 +1,9 @@
+oblong-obs (1.17) precise; urgency=low
+
+  * Fix trickle-down builds
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 17 Apr 2018 08:13:00 -0700
+
 oblong-obs (1.15) precise; urgency=low
 
   * Support ubuntu 18.04
