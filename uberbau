@@ -732,6 +732,7 @@ mirror_nobuild() {
         mirror_one qt531-$_os-master                                  qt531 rel   # needed by screencast & old ir-*
         mirror_one westar-$_os-master        apt rel
         mirror_one ceres-backport-$_os-master apt rel                             # needed by ir-inertial-tracking; called libceres-solver in ubu1804
+        mirror_one nodejs6-$_os-master                                apt rel   # fake; this was just repackaged by hand
         ;;
     esac
 
