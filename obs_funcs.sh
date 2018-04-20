@@ -918,7 +918,7 @@ bs_apt_pkg_add() {
         # at least for dev builds, so people can force builds after an iz change.
         case "$pkgarch" in
         all) reprepro -Vb $apt_archive_root remove $apt_suite $pkgnames;;
-        *)   reprepro --silent --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames > /dev/null;;
+        *)   reprepro --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames;;
         esac
         ;;
     esac
