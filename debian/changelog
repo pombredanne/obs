@@ -1,3 +1,9 @@
+oblong-obs (1.18) precise; urgency=low
+
+  * Fix uberbau on mac without greadlink
+
+ -- Dan Kegel <dank@oblong.com>  Fri, 20 Apr 2018 10:51:12 -0700
+
 oblong-obs (1.17) precise; urgency=low
 
   * Fix trickle-down builds
