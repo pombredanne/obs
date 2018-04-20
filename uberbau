@@ -153,6 +153,7 @@ osxpkgs="
 cmake
 coreutils
 doxygen
+fakeroot
 p7zip
 xz
 "
@@ -1045,8 +1046,22 @@ set -e
 # Get directory containing this script, even if accessed via a symlink
 if test "`which greadlink`" != ""
 then
+   # In the 'brew install obs' case, where
+   # plain old readlink returns ../Cellar/obs/1.17/bin/uberbau,
+   # we need to canonicalize the path harder. obs marks coreutils as
+   # a dependency so we can use greadlink -f, which canonicalizes properly.
    THISDIR=$(dirname "$(greadlink -f "$0")")
+elif test -c /dev/machtrace
+then
+   # In the platform installer case, where uberbau is in $G_SPEAK_HOME/bin,
+   # this script is never run via a symlink, so no need to canonicalize.
+   # (If the user installs obs via brew, we should never reach this line.)
+   THISDIR=$(dirname "$0")
 else
+   # On Linux, we used to access binaries like this via symlinks on the
+   # buildbot, and needed to canonicalize.  Let's keep doing it in case
+   # we ever use symlinks again (e.g. debian alternatives).
+   # Fortunately plain old readlink has -f on linux.
    THISDIR=$(dirname "$(readlink -f "$0")")
 fi
 
