@@ -289,8 +289,8 @@ bs_get_version_git() {
     if ! d1=$(git describe --long)
     then
         # let bau work in samples
-        bs_warn "bs_get_version_git: not in a git repo.  Returning version 0." >&2
-        echo "0"
+        bs_warn "bs_get_version_git: not in a git repo.  Returning version 0.1." >&2
+        echo "0.1"
         return
     fi
     # Strip off -CHECKSUM suffix, if any
