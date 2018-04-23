@@ -82,17 +82,17 @@ fallback_to_classic_mezzanine() {
 # Project defined a set-gspeak.sh, so call that instead.
 # Restriction: -v and/or --g-speak must come first.
 fallback_to_classic() {
-    echo "Found local set-gspeak.sh, running that instead"
-
     # Adjust args to match old interface
     local verbose
     local gspeak_version
     local cef_version
+    local gh_opt
     while true
     do
        case "$1" in
        -v)         verbose=-x;;
        --g-speak)  shift; gspeak_version=$1;;
+       --greenhouse) gh_opt=$1;;
        --cef)      shift; cef_version="--cef $1";;
        --hard)
            # makes --g-speak more emphatic and check-in-able
@@ -103,7 +103,8 @@ fallback_to_classic() {
        esac
        shift
     done
-    exec sh $verbose set-gspeak.sh "$gspeak_version" $cef_version
+    echo "Found local set-gspeak.sh, running 'sh $verbose set-gspeak.sh $gspeak_version $cef_version $gh_opt'"
+    exec sh $verbose set-gspeak.sh "$gspeak_version" $cef_version $gh_opt
 }
 
 # Let project override by defining set-gspeak.sh (as in days of yore)
