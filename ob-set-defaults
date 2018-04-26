@@ -680,8 +680,6 @@ do
            traditional_gspeak_pkg=xyzzy-no-match
         fi
         etraditional_gspeak_pkg=$(echo $traditional_gspeak_pkg | sed 's/+/\\+/g')
-        echo "traditional_gspeak_pkg is $traditional_gspeak_pkg"
-        echo "etraditional_gspeak_pkg is $etraditional_gspeak_pkg"
 
         # Traditional mezzanine package names need special handling, but only if we're changing the mezzanine version.
         # These packages can be recognized as follows:
