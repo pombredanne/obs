@@ -135,8 +135,8 @@ esac
 set -e
 
 case "$(uname -s)" in
-Darwin) sed=gsed; if ! gsed --version; then bs_abort "please install gnu-sed"; fi;;
-*) sed=sed;;
+Darwin) sed="gsed -E"; if ! gsed --version; then bs_abort "please install gnu-sed"; fi;;
+*) sed="sed -E";;
 esac
 
 # Tweakable Defaults
@@ -191,6 +191,7 @@ do
         ;;
     --asan)
         extra_cmake_options="$extra_cmake_options -DASAN=on"
+        suffix="-as"
         ;;
     --tsan)
         extra_cmake_options="$extra_cmake_options -DTSAN=on"
@@ -296,7 +297,7 @@ then
 fi
 
 pkgname=$(awk '/Source:/ {print $2};' < debian/control)
-projname=$(echo "$pkgname" | $sed 's/oblong-gs[0-9.]*-gh-//;s/oblong-gs[0-9.]*-//;s/^-gh//;s/-gs.*//;s/-gh//')
+projname=$(echo "$pkgname" | $sed 's/oblong-gs[0-9.]*-(gh|as)-//;s/oblong-gs[0-9.]*-//;s/^-(gh|as)//;s/-gs.*//;s/-(gh|as)//')
 
 if test "$opt_major" != ""
 then
@@ -354,7 +355,7 @@ then
             -e 'opt/oblong' \
             \{} \; \
       -exec $sed -i \
-            -e "s%opt/oblong/g-speak\\(-gh\\)\\{0,1\\}[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
+            -e "s%opt/oblong/g-speak(-gh|-as)?[1-9]\\.[0-9]*%${PREFIX_NOSLASH}%" \
             -e "s%opt/oblong/greenhouse%${PREFIX_NOSLASH}%" \
             \{} \; \
       2>/dev/null || true
@@ -552,7 +553,7 @@ fi
 # New projects must use the gsX.Yx convention in their package names to make this easy
 # Legacy packages are listed here explicitly, e.g. one for each Package: line in yovo/debian/control.in
 # g-speak version number parsing:
-# \(-gh\)\{0,1\} means 'match zero or one occurrances of the string -gh'
+# (-gh)? means 'match zero or one occurrances of the string -gh'
 # [1-9]\.[1-9][0-9]* means 'match version numbers with a nonzero digit, a period, a nonzero digit, and maybe more digits'
 # yobuild and cef version number parsing:
 # [1-9][0-9]* means 'match version numbers which are whole numbers greater than zero'
@@ -572,44 +573,44 @@ fi
 # shellcheck disable=2046
 
 $sed -i \
-    -e "/SKIP-SUBSTITUTION/! s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
-    -e "/SKIP-SUBSTITUTION/! s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
+    -e "/SKIP-SUBSTITUTION/! s/${projname}-gs(-gh|-as)?[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
+    -e "/SKIP-SUBSTITUTION/! s/gs(-gh|-as)?[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
     -e "/SKIP-SUBSTITUTION/! s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
-    -e "/SKIP-SUBSTITUTION/! s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
-    -e "s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
-    -e "s/g-speak-core\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
-    -e "s/g-speak-deps\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
-    -e "s/g-speak-gst-plugins\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
-    -e "s/oblong-afferent\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
-    -e "s/oblong-basement\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
-    -e "s/oblong-impetus\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
-    -e "s/oblong-loam\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
-    -e "s/oblong-loam++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
-    -e "s/oblong-media\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
-    -e "s/oblong-noodoo\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma++\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-gstreamer\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-ruby\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-zeroconf\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
-    -e "s/oblong-plasma-zeroconf-server\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-cthulhu\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-event-slurper\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ganglia\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-inogeni\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-netfetch\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ouija\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-quartermaster\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-tile-daemon\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-ventriloquy\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
-    -e "s/oblong-projects-video\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
+    -e "/SKIP-SUBSTITUTION/! s/oblong-gs[1-9]\.[0-9][0-9]*(-gh|-as)?-/oblong-gs${gspeak_version}${suffix}-/g" \
+    -e "s/g-speak(-gh|-as)?[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "s/g-speak-core(-gh|-as)?[1-9]\.[0-9][0-9]*/g-speak-core$suffix$gspeak_version/g" \
+    -e "s/g-speak-deps(-gh|-as)?[1-9]\.[0-9][0-9]*/g-speak-deps$suffix$gspeak_version/g" \
+    -e "s/g-speak-gst-plugins(-gh|-as)?[1-9]\.[0-9][0-9]*/g-speak-gst-plugins$suffix$gspeak_version/g" \
+    -e "s/oblong-afferent(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-afferent$suffix$gspeak_version/g" \
+    -e "s/oblong-basement(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-basement$suffix$gspeak_version/g" \
+    -e "s/oblong-impetus(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-impetus$suffix$gspeak_version/g" \
+    -e "s/oblong-loam(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-loam$suffix$gspeak_version/g" \
+    -e "s/oblong-loam\+\+(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-loam++$suffix$gspeak_version/g" \
+    -e "s/oblong-media(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-media$suffix$gspeak_version/g" \
+    -e "s/oblong-noodoo(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-noodoo$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma\+\+(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma++$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-gstreamer(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma-gstreamer$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-ruby(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma-ruby$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-server(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma-server$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf$suffix$gspeak_version/g" \
+    -e "s/oblong-plasma-zeroconf-server(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-plasma-zeroconf-server$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-cthulhu(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-cthulhu$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-event-slurper(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-event-slurper$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ganglia(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-ganglia$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-inogeni(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-inogeni$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-netfetch(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-netfetch$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ouija(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-ouija$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-protist(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-protist$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-quartermaster(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-quartermaster$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-tile-daemon(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-ventriloquy(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
+    -e "s/oblong-projects-video(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
     -e "s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
-    -e "s/oblong-samples\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
-    -e "s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
-    -e "s/oblong-twillig\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
-    -e "s/oblong-system-protist\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
+    -e "s/oblong-samples(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
+    -e "s/oblong-staging(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "s/oblong-twillig(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \
+    -e "s/oblong-system-protist(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-system-protist$suffix$gspeak_version/g" \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
@@ -618,7 +619,6 @@ $sed -i \
     $(ls \
       debian/.gitignore \
       debian/*.alternatives \
-      debian/*.install \
       debian/*.lintian-overrides \
       debian/*.postinst \
       debian/*.postrm \
@@ -632,13 +632,13 @@ $sed -i \
 # Same as above, but only patterns needed for 1st line of changelog
 # plus one to fix up some brain damage
 $sed -i \
-    -e "1s/${projname}-gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
-    -e "1s/gs\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
+    -e "1s/${projname}-gs(-gh|-as)?[1-9]\.[0-9][0-9]*x[0-9]*/${projname}-gs$suffix${gspeak_version}x$version_major/g" \
+    -e "1s/gs(-gh|-as)?[1-9]\.[0-9][0-9]*x/gs$suffix${gspeak_version}x/g" \
     -e "1s/-gs[1-9]\.[0-9][0-9]*/-gs${gspeak_version}/g" \
-    -e "1s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
-    -e "1s/g-speak\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
+    -e "1s/oblong-gs[1-9]\.[0-9][0-9]*(-gh|-as)?-/oblong-gs${gspeak_version}${suffix}-/g" \
+    -e "1s/g-speak(-gh|-as)?[1-9]\.[0-9][0-9]*/g-speak$suffix$gspeak_version/g" \
     -e "1s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
-    -e "1s/oblong-staging\(-gh\)\{0,1\}[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
+    -e "1s/oblong-staging(-gh|-as)?[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "1s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
     -e "1s/oblong-gs-gh${gspeak_version}-gh-/oblong-gs${gspeak_version}-gh-/" \
     debian/changelog \
@@ -669,16 +669,19 @@ do
         #   oblong-whiteboard, or oblong-ir-inertial-admin-applications
         if echo "$from" | grep -qE -e 'oblong|g-speak' &&
            ! echo "$from" | grep -qE -e '[0-9].*[-a-z].*[0-9]' &&
-           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-gh[0-9]' &&
+           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-(gh|as)[0-9]' &&
            ! echo "$from" | grep -qE -e 'mezzanine|ob-http-ctl|oblong-mip|oblong-mzreach|oblong-whiteboard|oblong-ir-inertial-admin-applications' \
            #
         then
            # It's a traditional g-speak package name.  The only number
            # in it is the g-speak version number, and it is at the end.
-           traditional_gspeak_pkg=$(basename "$from" | sed -e 's/[0-9].*//' -e 's/-gh//')
+           traditional_gspeak_pkg=$(basename "$from" | $sed -e 's/[0-9].*//' -e 's/(-gh|-as)//')
         else
            traditional_gspeak_pkg=xyzzy-no-match
         fi
+        etraditional_gspeak_pkg=$(echo $traditional_gspeak_pkg | sed 's/+/\\+/g')
+        echo "traditional_gspeak_pkg is $traditional_gspeak_pkg"
+        echo "etraditional_gspeak_pkg is $etraditional_gspeak_pkg"
 
         # Traditional mezzanine package names need special handling, but only if we're changing the mezzanine version.
         # These packages can be recognized as follows:
@@ -691,7 +694,7 @@ do
         if test "$mezz_version" != "" &&
            echo "$from" | grep -qE -e 'mezzanine|ob-http-ctl|oblong-mip|oblong-mzreach|oblong-whiteboard|oblong-ir-inertial-admin-applications' &&
            ! echo "$from" | grep -qE -e '[0-9].*[-a-z].*[0-9]' &&
-           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs-gh[0-9]' &&
+           ! echo "$from" | grep -qE -e '-gs[1-9]|-gs(-gh|-as)[0-9]' &&
            ! echo "$from" | grep -qE -e 'g-speak' \
            #
         then
@@ -708,11 +711,11 @@ do
         fi
 
         to="$(echo "$from" | $sed \
-           -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
-           -e "s/-gs\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*\\([^x0-9]\\)/-gs${suffix}${gspeak_version}\\2/" \
-           -e "s/oblong-gs${suffix}[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
-           -e "s/oblong-gs[1-9]\.[0-9][0-9]*\(-gh\)\{0,1\}-/oblong-gs${gspeak_version}${suffix}-/g" \
-           -e "s/$traditional_gspeak_pkg\(-gh\)\{0,1\}[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
+           -e "s/-gs(-gh|-as)?[1-9]\\.[0-9][0-9]*x[0-9]*/-gs${suffix}${gspeak_version}x${version_major}/" \
+           -e "s/-gs(-gh|-as)?[1-9]\\.[0-9][0-9]*([^x0-9])/-gs${suffix}${gspeak_version}\\2/" \
+           -e "s/oblong-gs${suffix}[1-9]\.[0-9][0-9]*(-gh|-as)?-/oblong-gs${gspeak_version}${suffix}-/g" \
+           -e "s/oblong-gs[1-9]\.[0-9][0-9]*(-gh|-as)?-/oblong-gs${gspeak_version}${suffix}-/g" \
+           -e "s/$etraditional_gspeak_pkg(-gh|-as)?[1-9]\\.[0-9][0-9]*/${traditional_gspeak_pkg}${suffix}${gspeak_version}/" \
            -e "s/$traditional_mezz_pkg[1-9]\\.[0-9][0-9]*/${traditional_mezz_pkg}${mezz_version}/" \
           #
         )"
