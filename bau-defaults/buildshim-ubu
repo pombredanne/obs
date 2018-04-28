@@ -173,6 +173,12 @@ do_patch() {
 }
 
 do_install_deps() {
+  case $_os in
+  ubu1804)
+    echo "ubu1804 bots do not yet run in self-cleaning containers, so remove traces of previous builds the hard way:"
+    sudo ob-remove.sh || true
+    ;;
+  esac
   bs_apt_install_deps
 }
 
