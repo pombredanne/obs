@@ -215,6 +215,9 @@ do_package() {
     --preserve-envvar=DISPLAY \
     --preserve-envvar=GTEST_FLAGFILE \
     --preserve-envvar=BS_CTEST_EXTRA \
+    --preserve-envvar=ASAN_OPTIONS \
+    --preserve-envvar=LSAN_OPTIONS \
+    --preserve-envvar=TSAN_OPTIONS \
     -b -uc -us -kbuildtools@oblong.com $parallel
   # We could do
   #   dpkg-buildpackage -b -uc -us -kbuildtools@oblong.com $parallel
