@@ -509,6 +509,62 @@ bs_test_env_setup() {
   then
     xset dpms force on && xset -dpms && xset s off || true
   fi
+
+  # Set environment variables used by sanitizers
+  case "$(bs_get_cmake_options)" in
+  *TSAN=on*)
+      # Thread sanitizer
+      if test "$TSAN_OPTIONS" != ""
+      then
+          echo "bs_test_env_setup: warning: overriding TSAN_OPTIONS.  FIXME"
+      fi
+      # From https://github.com/google/sanitizers/wiki/ThreadSanitizerFlags
+      # alphabetical order, please
+      TSAN_OPTIONS="suppressions=$origdir/ci/tsan-suppressions.txt"
+      export TSAN_OPTIONS
+      ;;
+  *ASAN=on*)
+      # ASAN implies leak sanitizer, too
+      if test "$LSAN_OPTIONS" != ""
+      then
+          echo "bs_test_env_setup: warning: overriding LSAN_OPTIONS.  FIXME"
+      fi
+      # alphabetical order, please
+      LSAN_OPTIONS="print_suppressions=1 report_objects=1 suppressions=$origdir/ci/lsan-suppressions.txt"
+      export LSAN_OPTIONS
+
+      # Address sanitizer
+      if test "$ASAN_OPTIONS" != ""
+      then
+          echo "bs_test_env_setup: warning: overriding ASAN_OPTIONS.  FIXME"
+      fi
+      # alphabetical order, please
+      # Can't turn on check_initialization_order=1 or strict_init_order=1 yet,
+      # as it flags reference counting for static slaws like A_NULL_SLAW
+      ASAN_OPTIONS="check_initialization_order=0 detect_odr_violation=2 detect_stack_use_after_return=1 strict_init_order=0"
+      export ASAN_OPTIONS
+
+      # For tests that load a g-speak plugin into a prebuilt non-asan executable,
+      # tell the test script where to find asan to preload it.
+      # Currently only used by libPlasma/ruby/test-helpers.rb
+      if test -f /etc/issue
+      then
+          # assume we want the latest... might fail if you install gcc8 on ubu1804 but are using gcc7?
+          ASAN_PRELOAD=$(ls /usr/lib/$(dpkg-architecture -q DEB_TARGET_GNU_TYPE)/libasan.so.? | tail -n 1)
+      elif test -d /Applications
+      then
+          ASAN_PRELOAD=$(find $(xcode-select -p) -name '*asan_osx_dynamic.dylib')
+      else
+          ASAN_PRELOAD=unknown-system-type
+      fi
+      if ! test -f $ASAN_PRELOAD
+      then
+          echo "bs_test_env_setup: error: cannot find asan library to preload"
+          exit 1
+      fi
+      export ASAN_PRELOAD
+      ;;
+  esac
 }
 
 bs_test_env_teardown() {
