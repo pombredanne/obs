@@ -1,0 +1,11 @@
+../../projects/mezzanine/grub.d/10_ob_mezzanine.cfg                    etc/default/grub.d
+../../projects/mezzanine/grub.d/11_ob_edid.cfg                         etc/default/grub.d
+../../projects/mezzanine/grub.d/EDID.README                            lib/firmware/edid
+../../projects/mezzanine/init.d/helpers/configure-mezz-for-new-ip      etc/network/if-up.d
+../../projects/mezzanine/init.d/helpers/edid.conf                      etc/oblong
+../../projects/mezzanine/init.d/helpers/mz.firewall.up.sh              usr/bin
+../../projects/mezzanine/init.d/helpers/mz.network-interfaces          usr/bin
+../../projects/mezzanine/init.d/helpers/services.d/mezzanine-image.yml etc/oblong/services.d
+../../projects/mezzanine/systemd/network-interfaces.service            lib/systemd/system
+../../projects/tools/xlayoutsetup.sh                                   usr/bin
+usr/bin/edid-manager

@@ -17,15 +17,15 @@ PREFIX=/usr
 # G_SPEAK_HOME is the directory where the g-speak SDK we link against is found.
 # To change the project to link against e.g. g-speak 3.28, do e.g.
 #   ob-set-defaults --g-speak 3.28
-G_SPEAK_HOME=/opt/oblong/g-speak3.30
+G_SPEAK_HOME=/opt/oblong/g-speak4.7
 
 # YOBUILD is where updated system-y libraries for this version of g-speak live.
 # ob-set-defaults sets this based on the g-speak version.
-YOBUILD=/opt/oblong/deps-64-11
+YOBUILD=/opt/oblong/deps-64-12
 
 # Cmake options passed to ob-set-defaults (careful, quoting is treacherous here)
 CMAKE_GENERATOR=Ninja
-EXTRA_CMAKE_OPTIONS=
+EXTRA_CMAKE_OPTIONS= -DASAN=on
 
 # dh_strip needs a little help to know how to name the debug symbol package.
 # Dima's nifty debug package thingy
