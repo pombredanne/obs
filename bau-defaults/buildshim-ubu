@@ -194,6 +194,12 @@ do_clean() {
 }
 
 do_package() {
+  # In case tests depend on time, let's show it.
+  printf "do_package: Current local date/time is: "
+  date
+  printf "do_package: Current utc date/time is: "
+  date -u
+
   bs_stamp_debian_changelog
 
   if bs_should_run_tests
