@@ -9,7 +9,7 @@ It does not support transitive dependencies -- it just finds the tarball and unp
 
 ## Getting Started
 
-First, arrange for passwordless login to the package server, e.g.:
+First, arrange for passwordless login to the package server using your LDAP credentials, e.g.:
 
 ```
 $ ssh-copy-id buildhost4.oblong.com
