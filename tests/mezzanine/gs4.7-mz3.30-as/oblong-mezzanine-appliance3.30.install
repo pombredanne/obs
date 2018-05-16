@@ -1,0 +1,2 @@
+../../projects/mezzanine/init.d/helpers/services.d/appliance.yml  etc/oblong/services.d
+../../projects/mezzanine/init.d/helpers/auto-update               usr/bin

@@ -629,7 +629,7 @@ $sed -i \
     -e "s/oblong-projects-tile-daemon(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-projects-tile-daemon$suffix$gspeak_version/g" \
     -e "s/oblong-projects-ventriloquy(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-projects-ventriloquy$suffix$gspeak_version/g" \
     -e "s/oblong-projects-video(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-projects-video$suffix$gspeak_version/g" \
-    -e "s/oblong-rtsp-viddle-server[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
+    -e "s/oblong-rtsp-viddle-server(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-rtsp-viddle-server$suffix$gspeak_version/g" \
     -e "s/oblong-samples(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-samples$suffix$gspeak_version/g" \
     -e "s/oblong-staging(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-staging$suffix$gspeak_version/g" \
     -e "s/oblong-twillig(-as|-gh|-ts)*[1-9]\.[0-9][0-9]*/oblong-twillig$suffix$gspeak_version/g" \

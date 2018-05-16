@@ -12,7 +12,7 @@
 # To change it independently, do e.g.
 #   ob-set-defaults --g-speak 3.28 --prefix /opt/a-better-place
 # or set PREFIX in ci/ob-set-defaults.conf.
-PREFIX=/opt/oblong/g-speak3.99
+PREFIX=/usr
 
 # G_SPEAK_HOME is the directory where the g-speak SDK we link against is found.
 # To change the project to link against e.g. g-speak 3.28, do e.g.

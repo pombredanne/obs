@@ -1,0 +1,14 @@
+usr/bin/fletcher                        usr/bin
+usr/bin/matloc                          usr/bin
+usr/bin/marple                          usr/bin
+
+../../projects/mezzanine/systemd/fletcher.service                lib/systemd/system
+../../projects/mezzanine/systemd/matloc.service                  lib/systemd/system
+../../projects/mezzanine/systemd/matloc.service.d/radeon.conf    opt/oblong/mezzanine/systemd-drop-ins/matloc.service.d
+../../projects/mezzanine/systemd/whiteboard.service              lib/systemd/system
+../../projects/mezzanine/systemd/marple.service                  lib/systemd/system
+../../projects/mezzanine/systemd/qm-provisioner-ipcam.service    lib/systemd/system
+
+../../projects/mezzanine/init.d/helpers/_wbipcam.avigilon        etc/oblong/quartermaster
+../../projects/mezzanine/init.d/helpers/_wbipcam.arecont         etc/oblong/quartermaster
+../../projects/mezzanine/init.d/helpers/_wbipcam.eclipse         etc/oblong/quartermaster

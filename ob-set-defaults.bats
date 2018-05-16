@@ -11,6 +11,37 @@ fi
 
 # FIXME: make this data-driven and shorter
 
+@test "grpc-hello" {
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+  cd grpc-hello
+
+  # Add --asan
+  rm -rf debian
+  cp -a gs4.7 debian
+  ob-set-defaults --g-speak 4.7 --asan
+  if ! diff -ur gs4.7-as debian
+  then
+    echo "ob-set-defaults --g-speak 4.7 --asan did not give expected result on grpc-hello"
+    exit 1
+  fi
+
+  # Undo adding --asan
+  ob-set-defaults --g-speak 4.7
+  if ! diff -ur gs4.7 debian
+  then
+    echo "ob-set-defaults --g-speak 4.7 did not give expected result on grpc-hello"
+    exit 1
+  fi
+
+  rm -rf debian
+  cd ..
+  cd ..
+}
+
+
 @test "box-nav" {
   # Verify ob-set-defaults --greenhouse
 
@@ -227,8 +258,24 @@ fi
     exit 1
   fi
 
-  # FIXME: following tests are ugly because they use a future version
-  # of cef, so must explicitly specify cef.
+  # Add --asan
+  rm -rf debian
+  cp -a gs4.4-mz3.30 debian
+  ob-set-defaults --g-speak 4.7 --asan
+  if ! diff -ur gs4.7-mz3.30-as debian
+  then
+    echo "ob-set-defaults --g-speak 4.7 --asan did not give expected result on mezzanine"
+    exit 1
+  fi
+
+  # Undo adding --asan
+  ob-set-defaults --g-speak 4.4 --cef 3112
+  if ! diff -ur gs4.4-mz3.30 debian
+  then
+    echo "ob-set-defaults --g-speak 4.4 --cef 3112 did not give expected result on mezzanine"
+    exit 1
+  fi
+
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
   ob-set-defaults --g-speak 3.99 --mezz 5.88 --cef 3112
