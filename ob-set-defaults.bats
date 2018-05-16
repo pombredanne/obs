@@ -139,7 +139,7 @@ fi
 
   cd tests
 
-  cd mezzver
+  cd plymouth
 
   rm -rf debian
   cp -a debian-plymouth-mz3.27 debian
@@ -205,24 +205,12 @@ fi
   rm -f ob-version
 }
 
-@test "mezzver" {
-  # Verify that setting g-speak version does not set mezzanine version
-
+@test "mezzanine" {
   # Get access to uncommitted ob-set-default and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
   cd tests
-
-  cd mezzver
-
-  rm -rf debian
-  cp -a debian-plymouth-mz3.27 debian
-  ob-set-defaults --g-speak 4.0 --mezz 3.28
-  if ! diff -ur debian-plymouth-mz3.28 debian
-  then
-    echo "ob-set-defaults --g-speak 4.0 --mezz 3.28 did not give expected result on debian-plymouth"
-    exit 1
-  fi
+  cd mezzanine
 
   rm -rf debian
   cp -a debian-mezz322-gs330 debian
@@ -292,7 +280,14 @@ fi
 
   rm -rf debian
   cd ..
+  cd ..
+}
 
+@test "adminweb" {
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
   cd adminweb
 
   rm -rf debian
@@ -320,8 +315,30 @@ fi
   fi
 
   rm -rf debian
-  cd ..
 
+  cd ..
+  cd ..
+}
+
+@test "plymouth" {
+  # Get access to uncommitted ob-set-default and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  cd tests
+  cd plymouth
+
+  rm -rf debian
+  cp -a debian-plymouth-mz3.27 debian
+  ob-set-defaults --g-speak 4.0 --mezz 3.28
+  if ! diff -ur debian-plymouth-mz3.28 debian
+  then
+    echo "ob-set-defaults --g-speak 4.0 --mezz 3.28 did not give expected result on debian-plymouth"
+    exit 1
+  fi
+
+  rm -rf debian
+
+  cd ..
   cd ..
 }
 

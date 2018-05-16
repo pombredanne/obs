@@ -41,8 +41,8 @@
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
-  rm -rf tests/mezzver/debian
-  cd tests/mezzver
+  rm -rf tests/mezzanine/debian
+  cd tests/mezzanine
   cp -a debian-mezz588-gs399 debian
   # Test normally
   if test $(obs get_gspeak_version) != 3.99
@@ -60,8 +60,8 @@
      exit 1; \
    fi \
   '
+  rm -rf debian
   cd ../..
-  rm -rf tests/mezzver/debian
 }
 
 @test "obs-apt-pkg-get-transitive" {
@@ -230,4 +230,5 @@
   fi
   ! ./obs blart
   ./obs --help
+  echo "obs-smoke done"
 }
