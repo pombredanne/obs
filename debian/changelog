@@ -1,3 +1,23 @@
+oblong-obs (1.19) bionic; urgency=low
+
+  * On Ubuntu, default buildshim now handles --asan
+    and uses ci/{tsan,lsan}-{suppressions,options}.txt if they exist.
+    This makes it a lot easier to use asan.
+  * When --asan or --tsan is given, add -as to package names.
+    This makes it a lot easier to get and provide prebuilt sanitized
+    dependencies.
+  * Known issue: our packages' various flavors
+    (e.g. -as and non-as, -cef3112 and -cef3282)
+    install to the same location, but don't yet tell apt they replace
+    each other, so apt errors out if you install one on top of the other.
+  * The above is particularly painful on non-containerized
+    ubuntu buildbots (and our 18.04 ones aren't containerized yet).
+  * As a temporary expedient, on ubuntu 18.04, 'bau install-deps'
+    does 'ob-remove.sh' first for now (!).
+  * ob-set-defaults now handles oblong-rtsp-viddle-server properly
+
+ -- Dan Kegel <dank@oblong.com>  Wed, 16 May 2018 13:02:21 -0700
+
 oblong-obs (1.18) precise; urgency=low
 
   * Fix uberbau on mac without greadlink
