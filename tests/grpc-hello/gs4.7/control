@@ -1,0 +1,44 @@
+Source: oblong-gs4.7-grpc-hello
+Section: non-free/oblong
+Priority: extra
+Maintainer: The Build Guy <buildguy@example.com>
+Build-Depends: debconf,
+## Boilerplate build dependencies first, in alphabetical order
+               debhelper (>= 7.0.50~),
+##  If ubuntu >= 15.04, pull in dh-systemd
+               dh-systemd (>= 1.20) | libc6 (<< 2.20),
+##  If ubuntu >= 16.04, pull in spruce, for precommit hook
+               oblong-spruce | libc6 (<< 2.23),
+## Want cmake with fix for https://gitlab.kitware.com/cmake/cmake/issues/16293
+## yobuild's 3.6.2 and upstream's 3.7.0 are ok.
+## Ubuntu 17.04 has cmake 3.7.2, which is great.
+##             oblong-yobuild12-cmake | cmake (>= 3.7.0),
+## However, ubuntu 16.04's 3.5.1 is otherwise ok, so let developers slide for now
+               oblong-yobuild12-cmake | cmake (>= 3.5.1),
+##  We default to building with ninja
+               ninja-build,
+##  If ubuntu >= 16.04, pull in strip-nondeterminism, for reproducible builds
+               strip-nondeterminism | libc6 (<< 2.23),
+# Project-specific build dependencies, in alphabetical order:
+               oblong-yobuild12-grpc,
+# ObFindLibs comes along with loam-dev for now
+               oblong-gs4.7-loam-dev,
+Standards-Version: 3.8.4
+Homepage: FIXME
+Vcs-Git: FIXME
+Vcs-Browser: FIXME
+
+Package: oblong-gs4.7-grpc-hello
+Section: non-free/devel
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+Description: A generic grpc application
+ Protein-driven, naturally.
+
+Package: oblong-gs4.7-grpc-hello-dbg
+Section: non-free/devel
+Architecture: any
+Depends: oblong-gs4.7-grpc-hello
+Description: Debug symbols for Oblong grpc-hello
+ If you run into trouble with grpc-hello, install this for mo better backtraces.
