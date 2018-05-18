@@ -224,10 +224,10 @@ bs_get_yoversion() {
         return 0
     elif test -n "$1"
     then
-        # guess based on supplied g-speak version 
+        # guess based on supplied g-speak version
         bs_yovo2yoversion "$1"
     else
-        # guess based on detected g-speak version 
+        # guess based on detected g-speak version
         local ver
         ver=$(bs_get_gspeak_version)
         bs_yovo2yoversion "$ver"
@@ -251,7 +251,7 @@ bs_get_yobuild_home() {
         # FIXME: bit of a kludge, should have an explicit variable for this in libLoam.pc
         grep 'Cflags:' < "$1"/lib/pkgconfig/libLoam.pc | sed 's,.*-I,,;s,/include.*,,'
     else
-        # fourth try: guess based on detected g-speak version 
+        # fourth try: guess based on detected g-speak version
         # Can't use echo, or it will clear status after bs_abort sets it
         # Also, can't nest function calls, have to save intermediaries as variables
         # Also, can't declare and set local variable in same statement, or it ignores status
@@ -1152,7 +1152,7 @@ bs_deps_append() {
 }
 
 # Stdin is a list of:
-#   bare package names and/or 
+#   bare package names and/or
 #   package tarball names and/or
 #   the output of dpkg -i, apt-get install, and/or apt-get install -s.
 # Stdout is a list of bare package names, with no version suffixes,
