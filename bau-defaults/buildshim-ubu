@@ -175,8 +175,15 @@ do_patch() {
 do_install_deps() {
   case $_os in
   ubu1804)
-    echo "ubu1804 bots do not yet run in self-cleaning containers, so remove traces of previous builds the hard way:"
-    sudo ob-remove.sh || true
+    case "$BUILDSHIM_LOCAL_ALREADY_RUNNING" in
+    "")
+      echo "ubu1804 bots do not yet run in self-cleaning containers, so remove traces of previous builds the hard way:"
+      sudo ob-remove.sh || true
+      ;;
+    *)
+      echo "ubu1804 bots do not yet run in self-cleaning containers, but this is inside a tdt build, so don't clean... fingers crossed."
+      ;;
+    esac
     ;;
   esac
   bs_apt_install_deps
