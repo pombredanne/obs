@@ -1014,6 +1014,46 @@ bs_apt_pkg_get_transitive() {
     apt-get -q download $expanded
 }
 
+# Delete current build subdir, kill lingering build jobs, show disk space.
+bs_purge_build() {
+    case $_os in
+    ubu*|osx*)
+        echo "Disk space before purge:"
+        df -h .
+        if test -d build
+        then
+            if ! rm -rf build || test -d build
+            then
+                $SUDO rm -rf build
+            fi
+        fi
+        echo "Disk space after purge:"
+        df -h .
+        ;;
+    cygwin*)
+        # Kill off lingering build processes.  See e.g.
+        # http://blog.peter-b.co.uk/2017/02/stop-mspdbsrv-from-breaking-ci-build.html
+        # https://chromium.googlesource.com/chromium/tools/build/+/master/scripts/slave/kill_processes.py
+        tasklist
+        for exe in git.exe ninja.exe mspdbsrv.exe node.exe
+        do
+            taskkill /F /T /IM $exe || true
+        done
+
+        # Delete using cmd, it's faster
+        # Move off to the side in case it takes too long and buildbot moves on
+        echo "Disk space before purge:"
+        cmd /c dir
+        cmd /c rmdir /s /q build.deleteme.* || true
+        dest=build.deleteme.$$
+        cmd /c "ren build $dest & rmdir /s /q $dest"
+        echo "Disk space after purge:"
+        cmd /c dir
+        ;;
+    *) bs_abort "unsupported os $_os";;
+    esac
+}
+
 #----------- begin upload support ---------------------------------------------------
 # Not pretty.  Needs cleaning up.
 

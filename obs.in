@@ -53,6 +53,7 @@ obs apt-pkg-add X D pkg...  - add given .deb packages to distro D in local apt r
 obs apt-pkg-rm X D pkg...   - remove given packages from distro D in local apt repo at \$ob_repotop/X
 obs sudo cmd ...            - run cmd as root with local repo visible
 obs run cmd ...             - run cmd with local repo visible
+obs purge-build             - delete current 'build' directory and kill old jobs
 
 Even more obscure internal commands:
 obs deps-filter-log         - filter apt log into list of dependencies
@@ -124,6 +125,7 @@ install)               bs_install "$@";;
 download)              bs_download "$@";;
 upload)                proj=$1; shift; bs_upload2 "$proj" "$_os" "$@";;
 pkg_list|list)         bs_pkg_list;;
+purge_build)           bs_purge_build;;
 yovo2cefversion)       bs_yovo2cefversion "$@";;
 yovo2yoversion)        bs_yovo2yoversion "$@";;
 apt_key_gen)           bs_apt_key_gen;;
