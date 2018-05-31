@@ -1,5 +1,24 @@
 #!/usr/bin/env bats
 
+@test "obs-purge-build" {
+  echo "=== Begin test obs-purge-build"
+  # Get access to uncommitted obs and obs_funcs.sh
+  PATH="$(pwd):$PATH"
+
+  rm -rf build
+  mkdir build
+  if test $(uname) = Linux
+  then
+      sudo chown root build
+  fi
+  ./obs -v purge-build
+  if test -d build
+  then
+    echo "obs purge-build failed"
+    exit 1
+  fi
+}
+
 @test "obs-deps-filter" {
   echo "=== Begin test obs-deps-filter"
   # Get access to uncommitted obs and obs_funcs.sh
@@ -230,5 +249,6 @@
   fi
   ! ./obs blart
   ./obs --help
+
   echo "obs-smoke done"
 }
