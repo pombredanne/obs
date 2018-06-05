@@ -204,6 +204,7 @@ bs_set_cflags() {
         osx1011) MIN_MACOSX_VERSION=10.11;;
         osx1012) MIN_MACOSX_VERSION=10.12;;
         osx1013) MIN_MACOSX_VERSION=10.13;;
+        osx1014) MIN_MACOSX_VERSION=10.14;;
         *) bs_abort "Unrecognized version of macosx";;
     esac
 
@@ -297,6 +298,7 @@ bs_install_xcode() {
     osx1011)  bs_install_xcode_version 7.1 ;;
     osx1012)  bs_install_xcode_version 8.1 ;;
     osx1013)  bs_install_xcode_version 9.0 ;;
+    osx1014)  bs_install_xcode_version 10.0 ;;
     osx*)     bs_abort "unsupported os $_os";;
     esac
 }
