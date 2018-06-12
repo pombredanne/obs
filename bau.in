@@ -16,17 +16,14 @@ Usage:
 --version                   - show bau version
 
 Run this project's buildshim with the given step.
-For more help about this project's build, try
 
-  bau help
-
-If step = help, shows the current project's buildshim's help
 If step = list, just lists the build steps in the order they should be run.
 If step = all, runs build steps '$BAU_DEFAULT_STEPS'.
 If step = build, runs build steps '$BAU_BUILD_STEPS'; useful for quick rebuilds.
 
 For backwards compatibility, if no new-style buildshim is found,
 finds and executes the old one instead.
+
 __EOF__
 }
 
@@ -48,7 +45,7 @@ do
     case "$1" in
     -v)        set -x; BAU_VERBOSE=1; export BAU_VERBOSE;;
     --version) echo "bau versionoid $BAU_VERSIONOID"; exit 0;;
-    -h|--help) usage; exit 0;;
+    -h|--help) usage; shift; set -- help "$@"; break;;
     ""|-*)     usage; exit 1;;
     *)         break;;
     esac
