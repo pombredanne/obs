@@ -35,6 +35,7 @@ Options:
   --debug        - alias for -DCMAKE_BUILD_TYPE=Debug
   --greenhouse   - alias for -DGREENHOUSE=on -DUSE_STATIC_G_SPEAK=on -DCMAKE_INSTALL_PREFIX=/opt/oblong/greenhouse
   --g-speak X.Y  - which version of g-speak to build against (sticky)
+  --headless     - unset DISPLAY (to simulate testing without a monitor)
   --mezz X.Y     - which version of mezzanine to build against (sticky)
   --make         - generate Makefiles and build with make
   --ninja        - generate build.ninja and build with ninja
@@ -90,6 +91,9 @@ parse_opts() {
     --g-speak)
         shift
         set_val " --g-speak $1" bs-options.dat
+        ;;
+    --headless)
+        unset DISPLAY || true
         ;;
     --lmirror)
         shift
