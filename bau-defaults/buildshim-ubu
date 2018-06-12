@@ -205,6 +205,9 @@ do_clean() {
 }
 
 do_package() {
+  # handle --headless
+  parse_opts "$@"
+
   # In case tests depend on time, let's show it.
   printf "do_package: Current local date/time is: "
   date
