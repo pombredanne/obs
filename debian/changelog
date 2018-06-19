@@ -1,3 +1,13 @@
+oblong-obs (1.20) bionic; urgency=low
+
+  * bau: make -h show project-specific help, too
+  * bau-defaults/buildshim-ubu: add --headless option to unset DISPLAY
+  * obs: support osx1014
+  * obs: Add purge-build (to delete build directory and kill straggling jobs)
+  * Fix greenhouse tdt on ubu1804
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 19 Jun 2018 11:12:22 -0700
+
 oblong-obs (1.19) bionic; urgency=low
 
   * On Ubuntu, default buildshim now handles --asan
