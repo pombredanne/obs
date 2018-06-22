@@ -177,19 +177,15 @@ do_patch() {
 }
 
 do_install_deps() {
-  case $_os in
-  ubu1804)
-    case "$BUILDSHIM_LOCAL_ALREADY_RUNNING" in
-    "")
-      echo "ubu1804 bots do not yet run in self-cleaning containers, so remove traces of previous builds the hard way:"
+  if test "$_os" = ubu1804 && \
+     test "$(id -un)" = buildbot && \
+     test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" = ""
+  then
+      echo "ubu1804 bots do not yet run in self-cleaning containers, so removing traces of previous builds the hard way:"
       sudo ob-remove.sh || true
-      ;;
-    *)
-      echo "ubu1804 bots do not yet run in self-cleaning containers, but this is inside a tdt build, so don't clean... fingers crossed."
-      ;;
-    esac
-    ;;
-  esac
+  else
+      echo "Not running ob-remove.sh; consider doing that if you run into a clash (e.g. yovo vs. yovo-as, or webthing-cefXXXX vs. webthing-cefYYYY)"
+  fi
   bs_apt_install_deps
 }
 
