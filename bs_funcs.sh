@@ -276,7 +276,7 @@ bs_install_xcode_version() {
     _want_xcode_xy=$1
     # Try to switch xcode version, if needed.
     # Assumes you've installed the right Xcode version and given it an X.Y filename suffix in the Finder.
-    xcodebuild -version
+    xcodebuild -version || sudo xcode-select -switch /Applications/Xcode${_want_xcode_xy}.app
     case $(bs_get_xcode_version) in
     ${_want_xcode_xy}|${_want_xcode_xy}.*) ;;
     *) sudo xcode-select -switch /Applications/Xcode${_want_xcode_xy}.app;;
