@@ -65,7 +65,10 @@ BAU_BIN="$(cd "$BAU_BIN"; pwd)"
 # Add bau to PATH so 'bau patch --g-speak 3.29 --downstream staging'
 # works with yovo (it expects uberbau to be on PATH,
 # and on the buildbots, they're only in ob-repobot, not installed.)
-PATH="${BAU_BIN}:${PATH}"
+# Tough call: putting BAU_BIN first screws up macs by making system pip show
+# up before virtualenv's pip.  Putting it last may leave a stale obs active.
+# Let's try putting it last to see how bad that is in practice.
+PATH="${PATH}:${BAU_BIN}"
 # bs_funcs.sh assumes SRC points to the ci directory...
 # FIXME: it also assumes that $SRC/../arepo.d works.
 SRC=$(pwd)/ci
