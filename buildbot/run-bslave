@@ -1,0 +1,64 @@
+#!/bin/sh
+# Script to run from window manager login items menu
+# for when running as a background service doesn't do
+# Now, on both Ubuntu and Mac OS X you *shouldn't* need
+# this, but it turns out to do opengl, you do.
+# (Otherwise ShaderHelperTest fails mysteriously on OSX,
+# even though /dev/console is writeable.)
+
+SRC=$(dirname $0)
+SRC=$(cd $SRC; pwd)
+
+# If somebody ssh'd in from a mac and got a funny environment,
+# LC_CTYPE might be the invalid value UTF-8
+LANG=en_US.UTF-8
+export LANG
+LC_CTYPE="en_US.UTF-8"
+export LC_CTYPE
+
+set -ex
+
+# Clean up after unclean shutdown.
+# This defeats buildbot's normal "you're already running me" check,
+# but that's ok because we only run this script once per boot,
+# and only on machines that only have one slave (so wildcard
+# should only match once).
+rm -f $HOME/slave-state/*/*/twistd.pid
+
+cd $SRC
+exec > bslave.log 2>&1
+
+if test -d /Library
+then
+    # mac
+    # caffeinate's assertions only last 15 seconds regardless of -t,
+    # so reissue constantly.
+    ./bslave-watchdog &
+    # what the hey, let's use it as intended
+    caffeinate -d -t 100000000 sh bslave.sh run g-speak
+    killall bslave-watchdog
+    # Do a delayed reboot.  Can't just 'sudo shutdown -r now' as that
+    # lets Terminal windows stack up ad infinitum.
+    daemon sh `pwd`/reboot-bslave
+    exit
+elif test -f /etc/issue
+then
+    # linux
+    sh bslave.sh run
+    # wait a bit for ^Z in emergency
+    sleep 5
+    sudo shutdown -r now
+    exit
+elif test -d /cygdrive/c
+then
+    # windows does not yet reboot on each build
+    while true
+    do
+        sh bslave.sh run
+        # wait a bit for ^Z in emergency, and avoid spinning
+        sleep 5
+    done
+else
+    echo "Unknown operating system"
+    exit 1
+fi

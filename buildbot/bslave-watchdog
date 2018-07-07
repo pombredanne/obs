@@ -1,0 +1,10 @@
+#!/bin/sh
+set -x
+# Run this to hint to the system to never sleep the display
+# Overlap the caffeinates so no assertion ever missing
+while true
+do
+   caffeinate -ud sleep 7
+   caffeinate -ud sleep 13 &
+done
+
