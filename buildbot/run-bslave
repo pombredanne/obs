@@ -46,7 +46,7 @@ then
     # linux
     sh bslave.sh run
     # wait a bit for ^Z in emergency
-    sleep 5
+    sleep 9
     sudo shutdown -r now
     exit
 elif test -d /cygdrive/c
