@@ -177,11 +177,11 @@ do_patch() {
 }
 
 do_install_deps() {
-  if test "$_os" = ubu1804 && \
-     test "$(id -un)" = buildbot && \
-     test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" = ""
+  if test "$(id -un)" = buildbot && \
+     test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" = "" && \
+     ! df -T / | grep aufs
   then
-      echo "ubu1804 bots do not yet run in self-cleaning containers, so removing traces of previous builds the hard way:"
+      echo "This is buildbot, but not in a self-cleaning container, so removing traces of previous builds the hard way:"
       sudo ob-remove.sh || true
   else
       echo "Not running ob-remove.sh; consider doing that if you run into a clash (e.g. yovo vs. yovo-as, or webthing-cefXXXX vs. webthing-cefYYYY)"
