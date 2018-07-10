@@ -28,6 +28,9 @@ rm -f $HOME/slave-state/*/*/twistd.pid
 cd $SRC
 exec > bslave.log 2>&1
 
+# Make sure installed obs is up to date with git
+sh bootstrap-obs.sh
+
 if test -d /Library
 then
     # mac
