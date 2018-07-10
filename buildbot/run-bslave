@@ -44,7 +44,25 @@ then
 elif test -f /etc/issue
 then
     # linux
-    sh bslave.sh run
+    if test "$DISPLAY" != ""
+    then
+	# X already running
+        sh bslave.sh run
+    else
+	# No X, so start one
+        > ~/.xinitrc.new
+        echo '/usr/bin/xterm  -geometry 80x25+0+0 -e sh -c "while sleep 1; do top; done" &' >> ~/.xinitrc.new
+        echo '/usr/bin/xterm  -geometry 80x25+0-0   &' >> ~/.xinitrc.new
+        echo '/usr/bin/xclock -geometry 250x250-1+1 &' >> ~/.xinitrc.new
+        echo "exec sh bslave.sh run" >> ~/.xinitrc.new
+	# If there is already a .xinitrc, and it's not the same, back it up
+        if test -f ~/.xinitrc && ! cmp ~/.xinitrc ~/.xinitrc.new
+        then
+            mv ~/.xinitrc ~/.xinitrc.$$.bak
+        fi
+	mv ~/.xinitrc.new ~/.xinitrc
+	startx
+    fi
     # wait a bit for ^Z in emergency
     sleep 9
     sudo shutdown -r now
