@@ -1061,7 +1061,7 @@ bs_purge_build() {
 # True if environment says this is a try build
 bs_is_try_build() {
     case "$PWD" in
-	*-trybuilder*) return 0;;  # true
+	*-trybuilder*|*-try-*) return 0;;  # true
 	*) return 1;;  # false
     esac
 }

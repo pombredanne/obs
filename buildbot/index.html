@@ -1,0 +1,37 @@
+<html>
+<head>
+<title>WIP buildbot - buildhost5</title>
+</head>
+<body>
+<h1>WIP buildbot - buildhost5</h1>
+
+This buildbot is still being brought up.  You probably want <a href="buildhost4.oblong.com">buildhost4</a> for now.
+<p>
+The main page is <a href="http://buildhost5.oblong.com:8010">http://buildhost5.oblong.com:8010</a>.
+<p>
+Try build results are visible there, but most users will just look at the links on the merge requests.
+<p>
+Note: if logs are not very legible, you may have run into a chrome font problem on ubuntu;
+<a href="https://github.com/buildbot/buildbot/issues/4186">try uninstalling ttf-mscorefonts-installer</a>.
+
+<h2>Apt server</h2>
+Build results are available via an apt server.
+To add this apt server to your Ubuntu 16.04 or 18.04 system, install <a href="oblong-repo/">the package oblong-repo</a>,
+then do 'sudo apt-get update'.  You can then use 'sudo apt-get install ...' to install packages from this server.
+<p>
+However, this server is not yet complete.  Don't do that unless you want to see just how incomplete it is.
+
+<h2>Obs server</h2>
+To install packages via obs on mac, see <a href="https://gitlab.oblong.com/platform/obs/blob/master/README.md">the obs README</a>.
+<p>
+To temporarily switch to this server, do 'export MASTER=buildhost5.oblong.com' in the same shell window before running obs.
+
+<h2>Buildbot Configuration</h2>
+The configuration for this buildbot lives in
+<a href="https://gitlab.oblong.com/platform/obs/blob/master/buildbot">platform/obs/buildbot</a>
+<p>
+See also <a href="https://gitlab.oblong.com/platform/docs/wikis/home">the platform wiki</a>.
+
+
+</body>
+</html>

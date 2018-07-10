@@ -1,0 +1,10 @@
+#!/bin/sh
+set -ex
+# Called from run-bslave
+# Give Terminal time to close the window
+sleep 10
+# Then reboot the system the nice way
+caffeinate -u osascript -e 'tell app "System Events" to restart'
+sleep 10
+# screw it
+sudo shutdown -r now
