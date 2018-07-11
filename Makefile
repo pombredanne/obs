@@ -1,5 +1,13 @@
 PREFIX = /usr
 
+UNAMEA := $(shell uname -a)
+COND_DARWIN := $(if $(findstring Darwin,$(UNAMEA)),1)
+ifeq ($(COND_DARWIN),1)
+  $(message This is homebrew)
+  XML_CATALOG_FILES=/usr/local/etc/xml/catalog
+  export XML_CATALOG_FILES
+endif
+
 all: bau.1 bau obs
 
 %.1: %.1.txt
