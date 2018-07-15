@@ -1070,11 +1070,11 @@ export bs_repodir=repotop.tmp
 bs_repotop=$LB_SRCTOP/repotop.tmp
 export bs_repotop
 
+UPSTREAM_MASTER=${MASTER:-buildhost4.oblong.com}
+
 # Tell obs we want a local isolated apt repository
 export MASTER=localhost
 export OB_DUMPER_HOST=localhost
-
-UPSTREAM_MASTER=buildhost4.oblong.com
 
 _bs_no_pkg=true
 . $THISDIR/bs_funcs.sh
