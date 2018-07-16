@@ -678,6 +678,12 @@ mirror_one() {
         esac
     fi
 
+    # Kludge: builder names changed from buildhost4 to buildhost5
+    case $UPSTREAM_MASTER in
+    buildhost5*)
+        from=$(echo $from | sed -E 's/-([a-z0-9]*)-(master|iz)/-\2-normal-\1/');;
+    esac
+
     # Download latest $kind build
     build=`ssh -o StrictHostKeyChecking=no $UPSTREAM_MASTER "cd /var/repobot/$kind/builds/$from && ls | sort -rn | head -n 1"`
     rm -rf dir.tmp
@@ -709,11 +715,6 @@ mirror_minimal() {
     ubu1204) ;;
     ubu*)
         mirror_one spruce-$_os-master        apt rel
-        ;;
-    esac
-    case $_os in
-    ubu*)
-        mirror_one obs-$_os-master                                    apt   rel
         ;;
     esac
 }
@@ -764,6 +765,13 @@ mirror_nobuild() {
         ;;
     *)
         bs_abort "unknown OS"
+        ;;
+    esac
+
+    # Used to be in minimal, but that prevented bootstrapping obs?
+    case $_os in
+    ubu*)
+        mirror_one obs-$_os-master                                    apt   rel
         ;;
     esac
 }
