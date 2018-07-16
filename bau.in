@@ -68,7 +68,13 @@ BAU_BIN="$(cd "$BAU_BIN"; pwd)"
 # Tough call: putting BAU_BIN first screws up macs by making system pip show
 # up before virtualenv's pip.  Putting it last may leave a stale obs active.
 # Let's try putting it last to see how bad that is in practice.
-PATH="${PATH}:${BAU_BIN}"
+# Turns out it makes passing tests hard on Ubuntu, so:
+if test -d /Library
+then
+   PATH="${PATH}:${BAU_BIN}"
+else
+   PATH=${BAU_BIN}":"${PATH}
+fi
 # bs_funcs.sh assumes SRC points to the ci directory...
 # FIXME: it also assumes that $SRC/../arepo.d works.
 SRC=$(pwd)/ci

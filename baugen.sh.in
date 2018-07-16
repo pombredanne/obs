@@ -4,6 +4,9 @@
 # installs bld/pre-commit (if present) as .git/hooks/pre-commit,
 # and installs oblong-spruce (if the git hooks refer to it).
 
+MASTER=${MASTER:-buildhost4.oblong.com}
+export MASTER
+
 usage() {
     cat <<_EOF_
 Prepare this machine and source tree for building with bau.
@@ -75,10 +78,10 @@ bs_install_repo_if_needed() {
         fi
     elif is_ubuntu
     then
-        if $forceupdate || ! test -s /etc/apt/sources.list.d/buildhost4.oblong.com-rel.list
+        if $forceupdate || ! test -s /etc/apt/sources.list.d/${MASTER}-rel.list
         then
             doit rm -f oblong-repo_1.9_all.deb
-            doit wget http://buildhost4.oblong.com/oblong-repo/oblong-repo_1.9_all.deb
+            doit wget http://${MASTER}/oblong-repo/oblong-repo_1.9_all.deb
             doit sudo dpkg -i oblong-repo_1.9_all.deb || doit sudo apt-get install -f -y
             doit rm -f oblong-repo_1.9_all.deb
         fi

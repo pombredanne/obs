@@ -227,13 +227,15 @@ do_package() {
   # variables to have effect, we have to preserve them.
   # e.g. --preserve-envvar=GTEST_FILTER --preserve-envvar=PATH
   # but really the only indispensible one is DISPLAY for opengl tests.
+  # Well, and MASTER, so bs_use_package_repo doesn't reference wrong apt repo by accident.
   debuild \
-    --preserve-envvar=DISPLAY \
-    --preserve-envvar=GTEST_FLAGFILE \
-    --preserve-envvar=BS_CTEST_EXTRA \
     --preserve-envvar=ASAN_OPTIONS \
     --preserve-envvar=ASAN_PRELOAD \
+    --preserve-envvar=BS_CTEST_EXTRA \
+    --preserve-envvar=DISPLAY \
+    --preserve-envvar=GTEST_FLAGFILE \
     --preserve-envvar=LSAN_OPTIONS \
+    --preserve-envvar=MASTER \
     --preserve-envvar=TSAN_OPTIONS \
     -b -uc -us -kbuildtools@oblong.com $parallel
   # We could do

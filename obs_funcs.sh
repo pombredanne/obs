@@ -1487,6 +1487,7 @@ localhost)
 esac
 bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
 MASTER=${MASTER:-buildhost4.oblong.com}
+export MASTER   # needed by debuild ...
 bs_upload_user=${bs_upload_user:-buildbot}
 bs_install_host=$MASTER
 bs_install_root=$bs_repotop/tarballs
