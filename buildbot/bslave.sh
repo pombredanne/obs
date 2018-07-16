@@ -21,7 +21,10 @@ SRC=$(cd $SRC; pwd)
 do_install() {
   if test -f /etc/issue
   then
-    sudo apt install -y python3-buildbot-worker || sudo apt install -y python3-pip && pip3 install buildbot-worker
+    if ! sudo apt install -y python3-buildbot-worker
+    then
+        sudo apt install -y python3-pip && pip3 install buildbot-worker
+    fi
   else
     pip3 install buildbot-worker
   fi
