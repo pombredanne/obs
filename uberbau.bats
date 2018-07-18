@@ -22,6 +22,7 @@
   ln -s .. ob-repobot
   PATH=$(cd ..; pwd):$PATH
   uberbau --help
+  uberbau selftest
   #uberbau set-gspeak 3.28
   uberbau install_deps
   if test -d /Applications
