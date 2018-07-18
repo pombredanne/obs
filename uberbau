@@ -661,6 +661,38 @@ push_many()
 }
 
 #--------------------------------------------------------------------------------
+map_builder_name() {
+    # Kludge: builder names changed from buildhost4 to buildhost5
+    # old: gst-oblong-ubu1804-master-yobuild12
+    # new: gst-oblong-master-normal-yobuild12-ubu1804
+    # So in packagename-os-branch-flags,
+    # move OS to end, and insert normal after branch.
+    # FIXME: maybe changing builder names in buildhost5 wasn't such a hot idea.
+    sed -E \
+       -e 's/(ubu[0-9]*|osx[0-9]*|win[0-9]*)-(master|iz|rel-[0-9.]*)-(yobuild[0-9]*)/\2-normal-\3-\1/' \
+       -e 's/(ubu[0-9]*|osx[0-9]*|win[0-9]*)-(master|iz|rel-[0-9.]*)/\2-normal-\1/' \
+       #
+}
+
+testcase_map_builder_name() {
+    local vin=$1
+    local vexp=$2
+    local vout
+    vout=$(echo $vin | map_builder_name)
+    case "$vout" in
+    "$vexp") ;;
+    *) bs_abort "map_builder_name $vin output $vout but expected $vexp";;
+    esac
+}
+
+test_map_builder_name() {
+    set -x
+    echo "Testing map_builder_name:"
+    testcase_map_builder_name gst-oblong-ubu1804-master-yobuild12     gst-oblong-master-normal-yobuild12-ubu1804
+    testcase_map_builder_name spruce-ubu1804-master                   spruce-master-normal-ubu1804
+    testcase_map_builder_name oblong-cef-ubu1804-rel-3.3282-yobuild12 oblong-cef-rel-3.3282-normal-yobuild12-ubu1804
+}
+
 # Kludge to just grab the latest of a few basic packages
 # Not yet general purpose.
 
@@ -679,9 +711,12 @@ mirror_one() {
     fi
 
     # Kludge: builder names changed from buildhost4 to buildhost5
+    # old: builds/gst-oblong-ubu1804-master-yobuild12
+    # new: builds/gst-oblong-master-normal-yobuild12-ubu1804
     case $UPSTREAM_MASTER in
     buildhost5*)
-        from=$(echo $from | sed -E 's/-([a-z0-9]*)-(master|iz)/-\2-normal-\1/');;
+        from=$(echo $from | map_builder_name)
+        ;;
     esac
 
     # Download latest $kind build
@@ -729,12 +764,10 @@ mirror_nobuild() {
     case $_os in
     ubu1604)
         mirror_one blackmagic-$_os-master    apt rel  # desktopvideo.  Should we even?
-        mirror_one oblong-qt-$_os-master     apt rel
-        mirror_one oblong-qwt-$_os-master    apt rel
         mirror_one qt531-$_os-master                                  qt531 rel   # needed by screencast & old ir-*
         mirror_one westar-$_os-master        apt rel
         mirror_one ceres-backport-$_os-master apt rel                             # needed by ir-inertial-tracking; called libceres-solver in ubu1804
-        mirror_one nodejs6-$_os-master                                apt rel   # fake; this was just repackaged by hand
+        mirror_one nodejs6-$_os-master                                apt rel   # should come from mezzanine/third-party instead!? FIXME
         ;;
     esac
 
@@ -1183,6 +1216,10 @@ do
 done
 
 case $cmd in
+    selftest)
+        # The beginning of a self-test suite
+        test_map_builder_name
+        ;;
     install_deps)
         do_install_deps
         ;;
