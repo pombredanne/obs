@@ -57,6 +57,7 @@
 }
 
 @test "obs-get-gspeak-version" {
+  echo "=== Begin test obs-get-gspeak-version"
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
@@ -84,15 +85,15 @@
 }
 
 @test "obs-apt-pkg-get-transitive" {
+  echo "=== Begin test obs-apt-pkg-get-transitive"
   # Get access to uncommitted obs and obs_funcs.sh
   PATH="$(pwd):$PATH"
 
   # FIXME: update this list as we add support for more versions of ubuntu
   # Leave the entry blank in this table until g-speak is available on that OS.
   case $(cat /etc/os-release) in
-  *14.04*) gspeak=3.30;;
   *16.04*) gspeak=4.0;;
-  *17.10*) gspeak=4.2;;
+  *18.04*) gspeak=4.6;;
   esac
 
   if test "$gspeak" != "" && test $(uname) = Linux
@@ -106,22 +107,32 @@
     sudo apt-get update
     sudo apt remove oblong-loam${gspeak} oblong-loam++${gspeak} || true
     sudo apt-get clean
-    obs apt-pkg-get-transitive oblong-loam++${gspeak}
+    if ! obs apt-pkg-get-transitive oblong-loam${gspeak}
+    then
+        echo "Yovo has not yet been built, skipping.  FIXME: add a mock package for this test."
+    else
+        rm -f *.deb
+        sudo apt remove oblong-loam${gspeak} oblong-loam++${gspeak} || true
+        sudo apt-get clean
 
-    # Verify they were downloaded
-    for pkg in oblong-loam++${gspeak} oblong-loam${gspeak} oblong-yobuild${yoversion}-boost
-    do
-      if ! test -f ${pkg}*.deb
-      then
-	echo "FAIL: ${pkg}*.deb not found"
+	obs apt-pkg-get-transitive oblong-loam++${gspeak}
+
+	# Verify they were downloaded
+	for pkg in oblong-loam++${gspeak} oblong-loam${gspeak} oblong-yobuild${yoversion}-boost
+	do
+	  if ! test -f ${pkg}*.deb
+	  then
+	    echo "FAIL: ${pkg}*.deb not found"
+	  fi
+	done
+	# Delete it, or it'll get uploaded!
+	rm *.deb
       fi
-    done
-    # Delete it, or it'll get uploaded!
-    rm *.deb
-  fi
+   fi
 }
 
 @test "obs-artifact" {
+  echo "=== Begin test obs-artifact"
   rm -rf obs-artifact.tmp
   mkdir obs-artifact.tmp
   cd obs-artifact.tmp
