@@ -756,6 +756,11 @@ mirror_minimal() {
 
 # Random crud needed by yovo et al but not part of yobuild
 mirror_nobuild() {
+    case "$YOVERSION" in
+    11|12|13) ;;
+    *) bs_abort "mirror_nobuild: bad YOVERSION '$YOVERSION'; did you do 'uberbau set-gspeak x.y'?";;
+    esac
+
     mirror_minimal
 
     # argument to mirror_one is the buildbot builder name, should be a subdir of UPSTREAM_MASTER:/var/repobot/rel/builds/
@@ -767,7 +772,8 @@ mirror_nobuild() {
         #mirror_one qt531-$_os-master                                  qt531 rel   # needed by screencast & old ir-*
         #mirror_one westar-$_os-master        apt rel
         mirror_one ceres-backport-$_os-master apt rel                             # needed by ir-inertial-tracking; called libceres-solver in ubu1804
-        mirror_one nodejs6-$_os-master                                apt rel   # should come from mezzanine/third-party instead!? FIXME
+        #mirror_one nodejs6-$_os-master                                apt rel   # replaced by mezzanine/third-party
+        mirror_one third-party-$_os-master                             apt rel   # provides nodejs6 and loads of other stuff, like node
         ;;
     esac
 
@@ -1135,6 +1141,10 @@ then
     echo "Read g-speak version $GSPEAK_VER from $LB_SRCTOP/uberbau-gspeak.dat" >&2
 
     YOVERSION=`bs_yovo2yoversion $GSPEAK_VER`
+    case "$YOVERSION" in
+    11|12|13) ;;
+    *) bs_abort "uberbau: bad YOVERSION '$YOVERSION'?";;
+    esac
     CEFBRANCH=`bs_yovo2cefversion $GSPEAK_VER`
     case $CEFBRANCH in
        cef2272) CEFBRANCHNAME=rel-3.2272.2077;;
