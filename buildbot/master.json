@@ -73,18 +73,6 @@
         },
         {
             "category" : "astor",
-            "name"     : "bands",
-            "homepage" : "https://gitlab-ibm.oblong.com/astor/astordoc/blob/master/bands-overview.md",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/bands.git",
-            "builders" : [
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
             "name"     : "chains",
             "homepage" : "https://gitlab-ibm.oblong.com/astor/chains",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/chains.git",
@@ -116,35 +104,12 @@
         },
         {
             "category" : "astor",
-            "name"     : "disaster",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/disaster.git",
-            "builders" : [
-                { "os":"osx1012", "branch":"master", "suffix":"3.28", "params":"--g-speak 3.28"              },
-                { "os":"osx1012", "branch":"master", "suffix":"3.28", "params":"--g-speak 3.28", "try":"yes" },
-                { "os":"ubu1604", "branch":"master", "suffix":"3.28", "params":"--g-speak 3.28"              },
-                { "os":"ubu1604", "branch":"master", "suffix":"3.28", "params":"--g-speak 3.28", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
             "name"     : "disaster-assets",
             "comment"  : "Uses lfs; buildshim uses bs_kludge_init_git_lfs in case git-lfs wasn't installed",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/disaster-assets.git",
             "builders" : [
                 { "os":"ubu1604", "branch" : "master"              },
                 { "os":"ubu1604", "branch" : "master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "docwatson",
-            "homepage" : "https://gitlab-ibm.oblong.com/astor/docwatson",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/docwatson.git",
-            "builders" : [
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" }
             ]
         },
         {
@@ -162,41 +127,6 @@
             "repourl"  : "git@gitlab.oblong.com:astor/drivein_bigassets.git",
             "builders" : [
                 { "os":"ubu1604", "branch" : "master" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "fidget",
-            "homepage" : "https://gitlab.oblong.com/astor/astordoc/blob/master/fidget-overview.md",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/fidget.git",
-            "builders" : [
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"osx1011", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.26", "params":"--g-speak 3.26"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.26", "params":"--g-speak 3.26", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" }
-          ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "fidget-assets",
-            "homepage" : "https://gitlab.oblong.com/astor/astordoc/blob/master/fidget-overview.md",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/fidget_assets.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "kettle",
-            "homepage" : "https://gitlab-ibm.oblong.com/astor/kettle",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/kettle.git",
-            "builders" : [
-                { "os":"osx1011", "branch" : "master",   "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"osx1011", "branch" : "master",   "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",   "suffix":"-3.28", "params":"--g-speak 3.28"              },
-                { "os":"ubu1604", "branch" : "master",   "suffix":"-3.28", "params":"--g-speak 3.28", "try":"yes" }
             ]
         },
         {
@@ -238,15 +168,6 @@
                 { "os":"ubu1604", "branch" : "master",  "suffix":"-4.7",  "params":"--g-speak 4.7            " , "try":"yes" },
                 { "os":"ubu1804", "branch" : "master",  "suffix":"-4.7",  "params":"--g-speak 4.7            "               },
                 { "os":"ubu1804", "branch" : "master",  "suffix":"-4.7",  "params":"--g-speak 4.7            " , "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "miyagi",
-            "homepage" : "https://gitlab.oblong.com/astor/astordoc/blob/master/miyagi-overview.md",
-            "repourl"  : "git@gitlab.oblong.com:astor/miyagi.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28" }
             ]
         },
         {
@@ -325,23 +246,6 @@
         },
         {
             "category" : "astor",
-            "name"     : "scrubs",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/scrubs.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28 --cef 2704"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"-3.28", "params":"--g-speak 3.28 --cef 2704", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "scrubs_bigassets",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/scrubs_bigassets.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master" }
-            ]
-        },
-        {
-            "category" : "astor",
             "name"     : "sea",
             "homepage" : "https://gitlab.oblong.com/astor/astordoc/blob/master/sea-overview.md",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/sea.git",
@@ -365,37 +269,6 @@
             "repourl"  : "git@gitlab.oblong.com:astor/sea_bigassets.git",
             "builders" : [
                 { "os":"ubu1604", "branch" : "master" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "sprockets",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/sprockets.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master", "suffix":"-3.28", "params":"--g-speak 3.28"               },
-                { "os":"ubu1604", "branch" : "master", "suffix":"-3.28", "params":"--g-speak 3.28" , "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "sprockets-assets",
-            "comment"  : "Uses lfs; buildshim uses bs_kludge_init_git_lfs in case git-lfs wasn't installed",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/sprockets-assets.git",
-            "builders" : [
-                { "os":"ubu1604", "branch" : "master"              },
-                { "os":"ubu1604", "branch" : "master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "astor",
-            "name"     : "yamp",
-            "homepage" : "https://gitlab-ibm.oblong.com/astor/yamp",
-            "repourl"  : "git@gitlab-ibm.oblong.com:astor/yamp.git",
-            "builders" : [
-                { "os":"osx1011", "branch"  : "master", "suffix":"-3.28", "params":"--g-speak 3.28"               },
-                { "os":"osx1011", "branch"  : "master", "suffix":"-3.28", "params":"--g-speak 3.28" , "try":"yes" },
-                { "os":"ubu1604", "branch"  : "master", "suffix":"-3.28", "params":"--g-speak 3.28"               },
-                { "os":"ubu1604", "branch"  : "master", "suffix":"-3.28", "params":"--g-speak 3.28" , "try":"yes" }
             ]
         },
         {
