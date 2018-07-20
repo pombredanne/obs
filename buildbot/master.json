@@ -14,12 +14,16 @@
         { "os":"osx1013",          "name":"rbb-osx1013-2" },
         { "os":"osx1013",          "name":"rbb-osx1013-3" },
         { "os":"osx1013",          "name":"rbb-osx1013-4" },
+        { "os":"osx1014",          "name":"dankmbp"       },
         { "os":"osx1014",          "name":"rbb-osx1014-1" },
         { "os":"osx1014",          "name":"rbb-osx1014-3" },
-        { "os":"osx1014",          "name":"dankmbp" },
+        { "os":"ubu1604",          "name":"rbb-ubu1604-1"                                },
+        { "os":"ubu1604",          "name":"rbb-ubu1604-2"                                },
         { "os":"ubu1604",          "name":"rbb-ubu1604-6"                                },
-        { "os":"ubu1604",          "name":"whbb-t7500-1" },
-        { "os":"ubu1604",          "name":"whbb-t7500-2" },
+        { "os":"ubu1604",          "name":"rbb-ubu1604-7"                                },
+        { "os":"ubu1604",          "name":"whbb-t7500-1"  },
+        { "os":"ubu1604",          "name":"whbb-t7500-2"  },
+        { "os":"ubu1604",          "name":"whbb-t7500-3"  },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-1"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-2"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-3"                             },
@@ -31,8 +35,8 @@
         { "os":"ubu1804",          "name":"whbb-t7500-3" },
         { "os":"win10",            "name":"rbb-win10-2"                                  },
         { "os":"win10x",           "name":"rbb-win10-1"                                  },
-        { "os":"win7key",          "name":"g-speak-win7-bb01"                                    },
-        { "os":"win7_msvc2013",    "name":"g-speak-yobuild10-win7"                               }
+        { "os":"win7key",          "name":"win7-bb01"                                    },
+        { "os":"win7_msvc2013",    "name":"yobuild10-win7"                               }
     ],
 
     "projects" : [
@@ -442,6 +446,16 @@
             "category" : "backports",
             "name"      : "oblong-xserver-xorg-video-intel",
             "repourl"   : "git@gitlab.oblong.com:platform/oblong-xserver-xorg-video-intel.git",
+            "builders"  : [
+                { "os":"ubu1604", "branch":"master"              },
+                { "os":"ubu1604", "branch":"master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "backports",
+            "name"      : "third-party",
+            "repourl"   : "git@gitlab.oblong.com:mezzanine/third-party",
+            "comment"   : "pulls in mezzanine's favorite nodejs6, virtualbox, vagrant, docker-ce, fence-agents, and saltstack",
             "builders"  : [
                 { "os":"ubu1604", "branch":"master"              },
                 { "os":"ubu1604", "branch":"master", "try":"yes" }
