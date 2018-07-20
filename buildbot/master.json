@@ -1038,8 +1038,6 @@
             "name"     : "wandreader",
             "repourl"  : "git@gitlab.oblong.com:hardware/wandreader.git",
             "builders" : [
-                { "os":"ubu1604", "branch":"master", "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"ubu1604", "branch":"master", "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" },
                 { "os":"ubu1604", "branch":"master", "suffix":"4.0",  "params":"--g-speak 4.0"               },
                 { "os":"ubu1604", "branch":"master", "suffix":"4.0",  "params":"--g-speak 4.0",  "try":"yes" },
                 { "os":"ubu1604", "branch":"master", "suffix":"4.2",  "params":"--g-speak 4.2"               },
@@ -2287,15 +2285,6 @@
         },
         {
             "category" : "solutions",
-            "name"     : "intermezzo",
-            "repourl"  : "git@gitlab.oblong.com:solutions/intermezzo.git",
-            "builders" : [
-                { "os":"ubu1604",        "branch"  : "master",   "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"ubu1604",        "branch"  : "master",   "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "solutions",
             "name"     : "leland",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/leland.git",
             "builders" : [
@@ -2438,22 +2427,6 @@
         },
         {
             "category" : "solutions",
-            "name"     : "wandrohut",
-            "repourl"  : "git@gitlab.oblong.com:solutions/wandrohut.git",
-            "builders" : [
-                { "os":"ubu1604", "branch":"master", "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"ubu1604", "branch":"master", "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "solutions",
-            "name"     : "zelige",
-            "repourl"  : "git@gitlab.oblong.com:solutions/zelige.git",
-            "builders" : [
-            ]
-        },
-        {
-            "category" : "solutions",
             "name"     : "zelige-assets",
             "repourl"  : "git@gitlab.oblong.com:solutions/zelige-assets.git",
             "builders" : [
@@ -2468,19 +2441,6 @@
             "builders" : [
                 { "os":"ubu1604", "branch":"master"              },
                 { "os":"ubu1604", "branch":"master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "solutions",
-            "name"      : "igor",
-            "repourl"   : "git@gitlab-ibm.oblong.com:mezzanine-demos/igor.git",
-            "builders"  : [
-                { "os":"osx1011", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"osx1011", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" },
-                { "os":"osx1012", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"osx1012", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29"              },
-                { "os":"ubu1604", "branch" : "master",  "suffix":"3.29", "params":"--g-speak 3.29", "try":"yes" }
             ]
         },
         {
