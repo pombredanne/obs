@@ -38,7 +38,7 @@ then
     # so reissue constantly.
     ./bslave-watchdog &
     # what the hey, let's use it as intended
-    caffeinate -d -t 100000000 sh bslave.sh run g-speak
+    caffeinate -d -t 100000000 sh bslave.sh run
     killall bslave-watchdog
     # Do a delayed reboot.  Can't just 'sudo shutdown -r now' as that
     # lets Terminal windows stack up ad infinitum.

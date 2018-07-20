@@ -1,0 +1,17 @@
+#!/bin/sh
+# Install this with
+#   osascript -e 'tell application "System Events" to make login item at end with properties {name: "launch-bslave",path:"/Users/buildbot/src/obs/buildbot/run-bslave-in-terminal", hidden:false}'
+# to cause it to start on login.
+
+set -x
+set +e
+exec > /tmp/run-bslave-in-terminal.log 2>&1
+SRC=$(dirname "$0")
+SRC=$(cd "$SRC"; pwd)
+# Can't do this, as then open takes too long and gets killed?
+#killall Terminal
+# Instead, gently close idle windows
+osascript "$SRC"/close-idle-tabs.scpt
+# Then start our script in a terminal
+/usr/bin/open -a /Applications/Utilities/Terminal.app "$SRC/run-bslave"
+echo done
