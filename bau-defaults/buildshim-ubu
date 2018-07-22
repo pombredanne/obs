@@ -132,7 +132,20 @@ parse_opts() {
   esac
 }
 
+apt_sanity_check() {
+  # FIXME: make this less site-specific somehow.
+  # Avoid mixing builds from different sources.
+  # apt will sometimes save you from frankenbuilds with the error
+  # W: Sources disagree on hashes for supposely identical version '12.23-0' of 'oblong-yobuild12-gst-alphamask:amd64'.
+  # but not always.
+  if ls -l /etc/apt/sources.list.d | grep buildhost4 && ls -l /etc/apt/sources.list.d | grep buildhost5
+  then
+    bs_abort "Should not have both buildhost4 and buildhost5 active"
+  fi
+}
+
 do_patch() {
+  apt_sanity_check
   bs_kludge_init_submodule_on_try_build
 
   if test -f .gitattributes && grep lfs .gitattributes > /dev/null
@@ -177,6 +190,7 @@ do_patch() {
 }
 
 do_install_deps() {
+  apt_sanity_check
   if test "$(id -un)" = buildbot && \
      test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" = "" && \
      ! df -T / | grep aufs
@@ -187,6 +201,7 @@ do_install_deps() {
       echo "Not running ob-remove.sh; consider doing that if you run into a clash (e.g. yovo vs. yovo-as, or webthing-cefXXXX vs. webthing-cefYYYY)"
   fi
   bs_apt_install_deps
+  apt_sanity_check
 }
 
 do_clean() {
@@ -336,6 +351,7 @@ do_lclone() {
      mirrorgroups="nobuild yobuild"
   fi
   uberbau $verbose mirror $mirrorgroups
+  apt_sanity_check
 }
 
 do_lbuild() {
@@ -361,7 +377,9 @@ do_lbuild() {
 
   # Build the downstream projects!
   cd "$LB_SRCTOP"
+  apt_sanity_check
   uberbau $verbose build $projects
+  apt_sanity_check
 }
 
 do_upload() {
