@@ -548,7 +548,7 @@ bs_test_env_setup() {
   # https://bugs.oblong.com/show_bug.cgi?id=16685
   if test "$DISPLAY" != ""
   then
-    xset dpms force on && xset -dpms && xset s off || true
+    (xset dpms force on && xset -dpms && xset s off) || true
   fi
 
   # Set environment variables used by sanitizers
@@ -640,7 +640,7 @@ bs_test_env_teardown() {
   # FIXME: can we restore the old settings instead of just guessing blanking was on?
   if test "$DISPLAY" != ""
   then
-    xset +dpms && xset s on || true
+    (xset +dpms && xset s on) || true
   fi
 
   # delete the directory bs_test_env_setup created, if any
