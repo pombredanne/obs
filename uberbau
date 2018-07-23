@@ -790,14 +790,14 @@ mirror_nobuild() {
         echo "Guessing about these versions..."
         mirror_one oblong-cef-$_os-${CEFBRANCHNAME}-yobuild$YOVERSION oblong-yobuild$YOVERSION-$CEFBRANCH rel
         mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            oblong-yobuild$YOVERSION-v8-5.2.361 rel
-        # this one's pretty hacky, needed by screencast and libqtplasma
-        mirror_one qt532-$_os-master                                  qt532                               rel
-        # this one's pretty hacky, needed by ir-inertial-bootloader-host
-        mirror_one qt551-$_os-master                                  qt551                               rel
-        # trying to migrate to this one
-        mirror_one qt59-$_os-master                                   qt59                                rel
-        # this one's pretty hacky, needed by ir-inertial-tracking-tools
-        mirror_one oblong-qwt-$_os-master                             qwt593                              rel
+        # FIXME: This one's a bit awkward.
+        # repackage-qt/ci/buildshim hardcodes output package name to 'qt59'.
+        # platform/repackage-qt -> tarballs/qt59/osx1014/5.9, rel/builds/repackage-qt-master-normal-osx1014/
+
+        mirror_one repackage-qt-$_os-master                           qt59                                rel
+        # FIXME: This one's also a bit awkward.
+        # oblong-qwt/ci/buildshim-osx hardcodes output package name to 'qwt" + version of qt used.
+        mirror_one oblong-qwt-$_os-master                             qwt593                                rel
         ;;
     cygwin|win*)
         echo "No build is good build"
