@@ -835,4 +835,11 @@ then
     bs_warn "ob-set-defaults: Files renamed (e.g. $movedcmd), but --hard not given, so 'git mv' not used."
     bs_warn "ob-set-defaults: Undo, then rerun with --hard if you want to check changes in to git."
 fi
+
+if test -f ci/ob-set-defaults.extra
+then
+    echo "Running ci/ob-set-defaults.extra"
+    . ci/ob-set-defaults.extra
+fi
+
 sanitycheck
