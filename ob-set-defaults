@@ -478,7 +478,7 @@ then
     if test "$gspeak_version" != ""
     then
         # FIXME: doesn't work in general case
-        YOBUILD=$(bs_get_yobuild_home "$gspeak_version")
+        YOBUILD=/opt/oblong/deps-$BITS-$(bs_yovo2yoversion "$gspeak_version")
     fi
 fi
 
