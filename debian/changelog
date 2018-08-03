@@ -1,3 +1,49 @@
+oblong-obs (1.23) bionic; urgency=low
+
+  * ob-set-defaults: when setting g-speak, get default yobuild from
+    g-speak version rather than project.
+  * ob-set-defaults: run ci/ob-set-defaults.extra if present
+  * uberbau: mirror nobuild: remove obsolete qt 5.3 and 5.5, document and tidy 5.9
+  * bau-defaults: avoid ambiguity about whether script should abort if xset missing
+  * bau: abort if mixing two incompatible sources of packages
+  * run-bslave-in-terminal: new tack on avoiding terminal window pile-up on mac
+  * buildbot/master.cfg: don't build all commits of a merge
+
+ -- Dan Kegel <dank@oblong.com> Fri, 03 Aug 2018 11:36:56 -0700
+
+oblong-obs (1.22) bionic; urgency=low
+
+  * uberbau: mirror third-party rather than nodejs6; check YOVERSION, too.
+  * obs.bats: don't fail if g-speak not yet built
+  * uberbau: no longer mirror qt531 and westar; they are no longer used as of g-speak 4.2
+  * uberbau: mirror: handle buildhost5 builder names better
+  * uberbau: adjust to buildhost5; also, defer mirroring obs to avoid bootstrap failure.
+  * bau: on ubuntu, keep obs in front of path; fixes obs build error due to stale obs.
+  * Obey MASTER more thoroughly.
+  * bslave.sh: fix usage message, handle missing pip3 on ubuntu
+  * Makefile: get manpage to build on osx
+  * buildbot/run-bslave: call bootstrap-obs.sh at startup
+  * bau-defaults/buildshim-ubu: clear dependencies if not in container
+  * buildbot/run-bslave: start x if it's not already started on linux
+  * buildbot/master.cfg: fix intuit_buildtype typo, add git describe step,
+    shorten name of builders in gitlab ui
+
+ -- Dan Kegel <dank@oblong.com> Thu, 19 Jul 2018 14:18:00 -0700
+
+oblong-obs (1.21) bionic; urgency=low
+
+  * buildbot/bslave.sh: support ubu1604
+  * buildbot: helper scripts for running workers on mac, etc.
+  * buildbot/bslave.sh: first draft of script to show how to create a worker.
+  * buildbot/master.cfg: don't override default for gitlab status reporting; a static string isn't enough.
+  * bs_is_try_build: also recognize pwd of *-try-* as a try build
+  * buildbot/bslave.sh: Try to leave virtualenv in control; see platform/ob-repobot#76
+  * bs_install_xcode_version: if xcodebuild aborts, run xcode-select unconditionally.
+  * bau-defaults/buildshim-ubu: the pre-purging kludge makes using bau
+    hard, so only do it if user is buildbot.
+
+ -- Dan Kegel <dank@oblong.com> Tue, 10 Jul 2018 11:15:20 -0700
+
 oblong-obs (1.20) bionic; urgency=low
 
   * bau: make -h show project-specific help, too
