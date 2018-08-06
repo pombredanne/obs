@@ -39,6 +39,7 @@ obs get-gspeak-home         - show path to g-speak this project builds against c
 obs get-yobuild-home [GSH]  - show path to yobuild this project [or given G_SPEAK_HOME] builds against
 obs get-yoversion [GSH]     - show major version of yobuild this project [or given G_SPEAK_HOME] builds against
 obs get-prefix              - show where this project will be installed
+obs intuit-buildtype        - get whether this project artifacts will be dev or rel
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
 
@@ -144,5 +145,6 @@ deps_append_log)       bs_deps_append_log;;
 deps_append)           bs_deps_append;;
 deps_list)             bs_deps_list;;
 deps_clear)            bs_deps_clear;;
+intuit_buildtype)      bs_intuit_buildtype;;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac
