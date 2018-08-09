@@ -2162,6 +2162,33 @@
         },
         {
             "category" : "solutions",
+            "name"     : "jetbus",
+            "repourl"  : "git@gitlab.oblong.com:solutions/busby/jetbus.git",
+            "builders" : [
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4",  "try":"yes" },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" }
+            ]
+        },
+        {
+            "category" : "solutions",
             "name"     : "leland",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/leland.git",
             "builders" : [
