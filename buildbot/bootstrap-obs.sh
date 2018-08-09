@@ -24,7 +24,7 @@ else
        fi
        now=$(date +%s)
        age=$(expr $now - $birthday)
-       if test $age -gt 600
+       if test $age -gt 40
        then
            echo "bootstrap-obs.sh: timestamp stale, ignoring"
            rm -f timestamp
