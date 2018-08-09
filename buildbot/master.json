@@ -2118,6 +2118,19 @@
         },
         {
             "category" : "solutions",
+            "name"     : "assimp-viewer",
+            "repourl"  : "git@gitlab.oblong.com:solutions/assimp-viewer.git",
+            "builders" : [
+                { "os":"ubu1604", "branch" : "master", "suffix":"-4.2", "params":"--g-speak 4.2"              },
+                { "os":"ubu1604", "branch" : "master", "suffix":"-4.2", "params":"--g-speak 4.2", "try":"yes" },
+                { "os":"ubu1604", "branch" : "master", "suffix":"-4.6", "params":"--g-speak 4.6"              },
+                { "os":"ubu1604", "branch" : "master", "suffix":"-4.6", "params":"--g-speak 4.6", "try":"yes" },
+                { "os":"ubu1804", "branch" : "master", "suffix":"-4.6", "params":"--g-speak 4.6"              },
+                { "os":"ubu1804", "branch" : "master", "suffix":"-4.6", "params":"--g-speak 4.6", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "solutions",
             "name"     : "cresty",
             "repourl"  : "git@gitlab.oblong.com:solutions/cresty.git",
             "builders" : [
