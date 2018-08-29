@@ -192,6 +192,7 @@ do_patch() {
 do_install_deps() {
   apt_sanity_check
   if test "$(id -un)" = buildbot && \
+     test "$BUILDSHIM_NO_PURGE" = "" && \
      test "$BUILDSHIM_LOCAL_ALREADY_RUNNING" = "" && \
      ! df -T / | grep aufs
   then
