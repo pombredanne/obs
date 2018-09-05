@@ -74,6 +74,7 @@ install-obs: obs
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
 	install -m 644 obs_funcs.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-set-defaults $(DESTDIR)$(PREFIX)/bin
+	install -m 755 ob-set-targets $(DESTDIR)$(PREFIX)/bin
 	install -m 755 obs ob-remove.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-list-dbg-pkgs $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-build-deps $(DESTDIR)$(PREFIX)/bin
@@ -95,6 +96,7 @@ uninstall-obs:
            $(DESTDIR)$(PREFIX)/bin/ob-remove.sh \
            $(DESTDIR)$(PREFIX)/bin/obs \
            $(DESTDIR)$(PREFIX)/bin/ob-set-defaults \
+           $(DESTDIR)$(PREFIX)/bin/ob-set-targets \
            $(DESTDIR)$(PREFIX)/bin/obs_funcs.sh \
            #
 

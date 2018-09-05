@@ -1,0 +1,181 @@
+#!/bin/sh
+
+# To change the versions of ubuntu we target, edit or override the following line
+UBUNTUS="${UBUNTUS:-16.04 18.04}"
+# or override it in ob-set-targets.conf
+if test -f ci/ob-set-targets.conf
+then
+  . ci/ob-set-targets.conf
+fi
+
+# A identifier unique to this user and this run
+UNIQ=$$.$LOGNAME
+
+usage() {
+  cat <<_EOF_
+Usage: ob-set-targets [--precommit|--installhook]
+Expands .gitlab-ci.yml.tpl to set the desired target operating systems ($UBUNTUS).
+Options:
+--installhook - install a git precommit hook and exits.
+--precommit   - sanity check .gitlab-ci.yml and .gitlab-ci.yml.tpl
+
+Reads settings from ci/ob-set-targets.conf if present.
+_EOF_
+}
+
+check_input() {
+  if ! test -f .gitlab-ci.yml.tpl
+  then
+    if test -f .gitlab-ci.yml
+    then
+      echo "This project has a .gitlab-ci.yml, but no .gitlab-ci.yml.tpl yet."
+      echo "See https://gitlab.oblong.com/platform/docs/wikis/gitlab-ci-templating"
+    else
+      echo "Cannot find .gitlab-ci.yml.tpl.  Are you in the right directory?"
+    fi
+    exit 1
+  fi
+}
+
+# We include the precommit hook inline here for ease of distribution
+install_hook() {
+  rm -f .git/hooks/pre-commit
+  cat > .git/hooks/pre-commit <<"_EOF_"
+#!/bin/sh
+exec 1>&2
+# Example precommit hook.
+# If your project has its own precommit hook script, add this line to it.
+ob-set-targets --precommit
+_EOF_
+  chmod +x .git/hooks/pre-commit
+}
+
+# Install dependencies, if needed
+# FIXME: be more elegant
+install_deps() {
+  if ! gitlab-ci-linter --version > /dev/null
+  then
+    go get github.com/orobardet/gitlab-ci-linter
+  fi
+  if ! gitlab-ci-linter --version > /dev/null
+  then
+    echo "Can't find gitlab-ci-linter.  Did you add ~/go/bin to PATH?"
+    exit 1
+  fi
+
+  if ! renderizer /dev/null > /dev/null
+  then
+    go get github.com/gomatic/renderizer
+  fi
+  if ! renderizer /dev/null > /dev/null
+  then
+    echo "Can't find gitlab-ci-linter.  Did you add ~/go/bin to PATH?"
+    exit 1
+  fi
+}
+
+# Output compact nested map with given name.  Each row has:
+# UBUNTU: input element
+# OSID: input element sanitized for use as yaml identifier
+oslist2yml() {
+  local name
+  name=$1
+  shift
+  echo "$name:"
+  for item
+  do
+     # Remove dot, add alpha prefix
+     # Use 'ubu' as prefix, might support 'rh' or the like later.
+     id=ubu$(echo $item | tr -d .)
+     echo " - UBUNTU: '$item'"
+     echo "   OSID: '$id'"
+  done
+}
+
+# Hit the network and ask gitlab if it likes this .gitlab-ci.yml
+linter() {
+  gitlab-ci-linter -u gitlab.oblong.com
+}
+
+# Expand the template
+#
+# The template being expanded looks something like this:
+#
+# --snip--
+# # Rather than duplicate jobs for each OS by hand, we use go's template language;
+# # anything inside double curly braces is a go template language expression.
+# # The template variable .OSLIST is a yaml compact nested map, e.g.
+# #   - UBUNTU: '16.04'
+# #     OSID: 'ubu1604'
+# #   - UBUNTU: '18.04'
+# #     OSID:'ubu1804'
+# # Let's loop over it.  To get the current entry's UBUNTU, use .UBUNTU.
+# # gitlab-ci doesn't allow dots in yaml anchor names, so use .OSID there instead.
+# {{ range .OSLIST }}
+#   # Create a job and give it a YAML anchor for later reuse:
+#   job-{{.OSID}}: &job-{{.OSID}}
+#     stuff: whatever
+#   # Now create two specializations of that job:
+#   red-job-{{.OSID}}:    *job-{{.OSID}}
+#     color: red
+#   green-job-{{.OSID}}:  *job-{{.OSID}}
+#     color: green
+# {{ end }}
+# # Here endeth the loop.
+# --snip--
+
+expandit() {
+  oslist2yml OSLIST $UBUNTUS > /tmp/params.$UNIQ.yml
+  renderizer -S=/tmp/params.$UNIQ.yml .gitlab-ci.yml.tpl > .gitlab-ci.yml
+  rm /tmp/params.$UNIQ.yml
+}
+
+# Quick correctness check when doing 'git commit'
+precommit() {
+  # Exit early if no changes to gitlab-ci.yml*
+  if ! git status | grep gitlab-ci.yml
+  then
+    return 0
+  fi
+  # Expand template to a temporary file
+  oslist2yml OSLIST $UBUNTUS > /tmp/params.$UNIQ.yml
+  renderizer -S=/tmp/params.$UNIQ.yml .gitlab-ci.yml.tpl > /tmp/.gitlab-ci.yml.$UNIQ.tmp
+  rm /tmp/params.$UNIQ.yml
+  # Assert that .gitlab-ci.yml would not change
+  if ! diff -u .gitlab-ci.yml /tmp/.gitlab-ci.yml.$UNIQ.tmp
+  then
+    rm /tmp/.gitlab-ci.yml.$UNIQ.tmp
+    echo "pre-commit error: .gitlab-ci.yml is not identical to the output of set-targets."
+    echo "Please make any needed changes to .gitlab-ci.yml.tpl."
+    echo "Then run set-targets, and do 'git add .gitlab-ci.yml*'."
+    exit 1
+  fi
+  rm /tmp/.gitlab-ci.yml.$UNIQ.tmp
+}
+
+# Go!
+case $1 in
+"")
+  check_input
+  install_deps
+  expandit
+  linter
+  ;;
+--precommit|precommit)
+  check_input
+  install_deps
+  precommit
+  linter
+  ;;
+--installhook|installhook)
+  check_input
+  install_hook
+  ;;
+-h|--help|help)
+  usage
+  ;;
+*)
+  usage
+  exit 1
+  ;;
+esac
