@@ -133,10 +133,11 @@ expandit() {
 # Quick correctness check when doing 'git commit'
 precommit() {
   # Exit early if no changes to gitlab-ci.yml*
-  if ! git status | grep gitlab-ci.yml
+  if ! git status | grep gitlab-ci.yml > /dev/null
   then
     return 0
   fi
+
   # Expand template to a temporary file
   oslist2yml OSLIST $UBUNTUS > /tmp/params.$UNIQ.yml
   renderizer -S=/tmp/params.$UNIQ.yml .gitlab-ci.yml.tpl > /tmp/.gitlab-ci.yml.$UNIQ.tmp
@@ -147,10 +148,18 @@ precommit() {
     rm /tmp/.gitlab-ci.yml.$UNIQ.tmp
     echo "pre-commit error: .gitlab-ci.yml is not identical to the output of set-targets."
     echo "Please make any needed changes to .gitlab-ci.yml.tpl."
-    echo "Then run set-targets, and do 'git add .gitlab-ci.yml*'."
+    echo "Then run ob-set-targets, and do 'git add .gitlab-ci.yml*'."
     exit 1
   fi
   rm /tmp/.gitlab-ci.yml.$UNIQ.tmp
+
+  # Abort if either file has not been added
+  if git status -s .gitlab-ci.yml .gitlab-ci.yml.tpl | egrep '^(\?|AM)'
+  then
+    echo "pre-commit error: one or the other of .gitlab-ci.yml are not added."
+    echo "Please do 'git add .gitlab-ci.yml*'."
+    exit 1
+  fi
 }
 
 # Go!
