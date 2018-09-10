@@ -154,7 +154,23 @@ precommit() {
   rm /tmp/.gitlab-ci.yml.$UNIQ.tmp
 
   # Abort if either file has not been added
-  if git status -s .gitlab-ci.yml .gitlab-ci.yml.tpl | egrep '^(\?|AM)'
+  # Output of git status -s is as follows:
+  # First column is the status of files that have been added but not yet committed
+  # Second column is the status of files that have not yet been added
+  # ? = untracked
+  #   = unmodified
+  # M = modified
+  # A = added
+  # D = deleted
+  # R = renamed
+  # C = copied
+  # U = updated but unmerged
+  # ! = ignored (if --ignored)
+  # For now, assume anything but space or A in 2nd column is a problem.
+  # e.g. Output in case where .gitlab-ci.yml is correct but not added looks like this:
+  #  M .gitlab-ci.yml
+  # M  .gitlab-ci.yml.tpl
+  if git status --ignored -s .gitlab-ci.yml .gitlab-ci.yml.tpl | egrep '^.([^ A])'
   then
     echo "pre-commit error: one or the other of .gitlab-ci.yml are not added."
     echo "Please do 'git add .gitlab-ci.yml*'."
