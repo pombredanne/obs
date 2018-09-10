@@ -16,8 +16,8 @@ usage() {
 Usage: ob-set-targets [--precommit|--installhook]
 Expands .gitlab-ci.yml.tpl to set the desired target operating systems ($UBUNTUS).
 Options:
---installhook - install a git precommit hook and exits.
---precommit   - sanity check .gitlab-ci.yml and .gitlab-ci.yml.tpl
+--installhook - install a git precommit hook and exit.
+--precommit   - sanity check .gitlab-ci.yml and .gitlab-ci.yml.tpl.
 
 Reads settings from ci/ob-set-targets.conf if present.
 _EOF_
