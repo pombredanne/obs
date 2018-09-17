@@ -342,7 +342,8 @@ fi
 if test "$PREFIX" != ""
 then
    # Replace PREFIX= with the right value in all files that contain it
-   # Note: debian/install and debian/*.install do not belong in this list
+   # Note: debian/install, debian/*.install, and debian/*.dirs do not
+   # belong in this list because they contain naked paths, not variable settings.
    find \
         debian/rules \
         debian/control \
@@ -442,6 +443,7 @@ then
         debian/control \
         debian/.gitignore \
         debian/*.alternatives \
+        debian/*.dirs \
         debian/*.lintian-overrides \
         debian/*.postinst \
         debian/*.postrm \
@@ -491,6 +493,7 @@ then
         debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
+        debian/*.dirs \
         debian/*.install \
         debian/*.lintian-overrides \
         debian/*.postinst \
@@ -539,6 +542,7 @@ then
         debian/install \
         debian/.gitignore \
         debian/*.alternatives \
+        debian/*.dirs \
         debian/*.install \
         debian/*.lintian-overrides \
         debian/*.postinst \
@@ -571,6 +575,7 @@ fi
 #------------------------------------------------------
 
 # Set g-speak version number, and major version number for this project, in debian/* files.
+# that could have package names or variable settings in their bodies (so not e.g. .install or .dirs).
 # This sed should catch all Oblong projects.
 # New projects must use the gsX.Yx convention in their package names to make this easy
 # Legacy packages are listed here explicitly, e.g. one for each Package: line in yovo/debian/control.in
@@ -672,6 +677,7 @@ $sed -i \
 moved=false
 for from in \
     debian/*.alternatives \
+    debian/*.dirs \
     debian/*.install \
     debian/*.lintian-overrides \
     debian/*.postinst \
@@ -819,7 +825,9 @@ then
   for package in $packages
   do
       # Update the version number in all instances of the above packages
-      # in file bodies in the debian directory
+      # in file bodies in the debian directory.
+      # (.install and .dirs files should be included if install paths include
+      # mezz version numbers... they currently don't, so they're not listed here.)
       from=$(echo "$package" | $sed 's/2.7/[1-9].[0-9][0-9]*/')
       to=$(echo "$package" | $sed "s/2.7/$mezz_version/")
       $sed -i \
