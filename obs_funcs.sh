@@ -113,6 +113,16 @@ bs_detect_os() {
     esac
 }
 
+# Default MASTER depends on current OS; that way we can
+# do a gradual transition to a new MASTER, newest OS's first.
+bs_default_master() {
+    case $_os in
+    "")              bs_abort "bs_default_master: _os not set" >&2;;
+    ubu1804|osx1014) echo buildhost5.oblong.com;;
+    *)               echo buildhost4.oblong.com;;
+    esac
+}
+
 # Echo the number of CPU cores
 bs_detect_ncores() {
     case $_os in
@@ -1449,64 +1459,75 @@ bs_upload2()
 
 #----------- end upload support ---------------------------------------------------
 
-# Provide a few variables by default
-_os=$(bs_detect_os)
+bs_set_globals() {
+    _os=$(bs_detect_os)
 
-SUDO=sudo
-case $_os in
-cygwin) SUDO="" ;;
-esac
+    SUDO=sudo
+    case $_os in
+    cygwin) SUDO="" ;;
+    esac
 
-# FIXME: provide fewer variables
-# Most of these are from lazy old code
+    # FIXME: provide fewer variables
+    # Most of these are from lazy old code
 
-bs_repodir=${bs_repodir:-repobot}
+    bs_repodir=${bs_repodir:-repobot}
 
-# To do local builds, set MASTER to localhost, and bs_repotop to where to store
-# artifacts, then do e.g. obs apt-key-gen; brepo.sh init
-case "$MASTER" in
-"") ;;
-localhost)
-    bs_upload_user=$LOGNAME
-    # Change behavior of apt.  Careful, have to pass it through sudo!
-    export APT_CONFIG="$bs_repotop/etc/apt.conf"
-    # Change behavior of gpg.  Careful, have to pass it through sudo!
-    # Alas, GNUPGHOME has to be a short absolute path,
-    # as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
-    # FIXME: this is likely to clash if run in parallel.
-    if test "$BS_GNUPGHOME"
-    then
-        # Workaround to avoid clash during 'localbuild.sh build nobuild'
-        echo "obs_funcs: Setting GNUPGHOME from BS_GNUPGHOME, only used by debian/rules as of this writing" >&2
-        GNUPGHOME="$BS_GNUPGHOME"
-    else
-        GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
-    fi
-    export GNUPGHOME
-    ;;
-esac
-bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
-MASTER=${MASTER:-buildhost4.oblong.com}
-export MASTER   # needed by debuild ...
-bs_upload_user=${bs_upload_user:-buildbot}
-bs_install_host=$MASTER
-bs_install_root=$bs_repotop/tarballs
-bs_origdir="$(pwd)"
-bs_origdirslash="$bs_origdir/"
+    # To do local builds, set MASTER to localhost, and bs_repotop to where to store
+    # artifacts, then do e.g. obs apt-key-gen; brepo.sh init
+    case "$MASTER" in
+    "") ;;
+    localhost)
+	bs_upload_user=$LOGNAME
+	# Change behavior of apt.  Careful, have to pass it through sudo!
+	export APT_CONFIG="$bs_repotop/etc/apt.conf"
+	# Change behavior of gpg.  Careful, have to pass it through sudo!
+	# Alas, GNUPGHOME has to be a short absolute path,
+	# as on Ubuntu 16.04, we don't have gpgconf --create-socketdir.
+	# FIXME: this is likely to clash if run in parallel.
+	if test "$BS_GNUPGHOME"
+	then
+	    # Workaround to avoid clash during 'localbuild.sh build nobuild'
+	    echo "obs_funcs: Setting GNUPGHOME from BS_GNUPGHOME, only used by debian/rules as of this writing" >&2
+	    GNUPGHOME="$BS_GNUPGHOME"
+	else
+	    GNUPGHOME=/tmp/obs_localbuild_gpghome_$LOGNAME.tmp
+	fi
+	export GNUPGHOME
+	;;
+    esac
+    bs_repotop=${bs_repotop:-/home/buildbot/var/$bs_repodir}
+    MASTER=${MASTER:-$(bs_default_master)}
+    export MASTER   # needed by debuild ...
+    bs_upload_user=${bs_upload_user:-buildbot}
+    bs_install_host=$MASTER
+    bs_install_root=$bs_repotop/tarballs
+    bs_origdir="$(pwd)"
+    bs_origdirslash="$bs_origdir/"
 
-# Allow user to download as a different user
-bs_get_install_sshspec() {
-    if test "$bs_install_user"
-    then
-        echo ${bs_install_user}@${bs_install_host}
-    elif test "$LOGNAME" = SYSTEM
-    then
-        # Odd case: if running as service on cygwin, don't use name of system user.
-        echo ${bs_upload_user}@${bs_install_host}
-    else
-        # Default: just use your own user id when sshing to MASTER
-        echo ${bs_install_host}
-    fi
+    # Allow user to download as a different user
+    bs_get_install_sshspec() {
+	if test "$bs_install_user"
+	then
+	    echo ${bs_install_user}@${bs_install_host}
+	elif test "$LOGNAME" = SYSTEM
+	then
+	    # Odd case: if running as service on cygwin, don't use name of system user.
+	    echo ${bs_upload_user}@${bs_install_host}
+	else
+	    # Default: just use your own user id when sshing to MASTER
+	    echo ${bs_install_host}
+	fi
+    }
+    bs_install_sshspec=$(bs_get_install_sshspec)
 }
-bs_install_sshspec=$(bs_get_install_sshspec)
 
+# It was a design mistake to set globals by default.  Make it optional so callers
+# can use e.g. bs_detect_os and bs_default_master without setting all the globals,
+# and then call bs_set_globals at their leisure.
+case $BS_SET_GLOBALS in
+""|"true")
+    # Provide a few variables by default
+    bs_set_globals;;
+"false") ;;
+*) bs_abort "obs_funcs.sh: BS_SET_GLOBALS set to $BS_SET_GLOBALS ?";;
+esac

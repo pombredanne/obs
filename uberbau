@@ -1117,7 +1117,12 @@ export bs_repodir=repotop.tmp
 bs_repotop=$LB_SRCTOP/repotop.tmp
 export bs_repotop
 
-UPSTREAM_MASTER=${MASTER:-buildhost4.oblong.com}
+# Get funcstions from obs_funcs.sh without setting any globals
+BS_SET_GLOBALS=false
+. $THISDIR/obs_funcs.sh
+_os=$(bs_detect_os)
+UPSTREAM_MASTER=${MASTER:-$(bs_default_master)}
+unset BS_SET_GLOBALS
 
 # Tell obs we want a local isolated apt repository
 export MASTER=localhost
@@ -1125,7 +1130,6 @@ export OB_DUMPER_HOST=localhost
 
 _bs_no_pkg=true
 . $THISDIR/bs_funcs.sh
-_os=`bs_detect_os`
 
 # Platform workarounds
 SUDO=sudo
