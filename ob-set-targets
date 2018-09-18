@@ -12,6 +12,15 @@ fi
 # A identifier unique to this user and this run
 UNIQ=$$.$LOGNAME
 
+if grep 16.04 /etc/issue > /dev/null
+then
+  # Or should we use a secret gopath?
+  export GOPATH=$HOME/go110
+  PATH=$GOPATH/bin:$PATH
+else
+  PATH=$HOME/go/bin:$PATH
+fi
+
 usage() {
   cat <<_EOF_
 Usage: ob-set-targets [--precommit|--installhook]
@@ -52,18 +61,15 @@ _EOF_
 }
 
 install_golang() {
-  if grep 16.04 /etc/issue
+  if grep 16.04 /etc/issue > /dev/null
   then
-    export GOPATH=$HOME/go110
-    PATH=$GOPATH/bin:$PATH
-
     # Kludge: add go-1.10 to PATH if needed
     if ! echo $PATH | grep /usr/lib/go-1.10/bin
     then
       PATH=/usr/lib/go-1.10/bin:$PATH
     fi
 
-    if go version | egrep "1.10"
+    if go version | egrep "1.10" > /dev/null
     then
       return
     fi
@@ -77,8 +83,9 @@ install_golang() {
     sudo add-apt-repository ppa:gophers/archive
     sudo apt update
     sudo apt install -y golang-1.10
+    # Clear the PATH cache in bash to avoid not seeing new go
+    hash -r || true
   else
-    PATH=$HOME/go/bin:$PATH
     if ! go version
     then
       sudo apt install -y golang
