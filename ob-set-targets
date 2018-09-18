@@ -8,6 +8,9 @@ then
   . ci/ob-set-targets.conf
 fi
 
+# Kludge... where most people put it
+PATH=$HOME/go/bin:$PATH
+
 # A identifier unique to this user and this run
 UNIQ=$$.$LOGNAME
 
@@ -50,11 +53,35 @@ _EOF_
   chmod +x .git/hooks/pre-commit
 }
 
+install_golang() {
+  # Kludge: add go-1.10 to PATH if needed
+  if test -x /usr/lib/go-1.10/bin && ! echo $PATH | grep /usr/lib/go-1.10/bin
+  then
+    PATH=/usr/lib/go-1.10/bin:$PATH
+  fi
+
+  if go version | egrep '1.8|1.9|1.1[0-9]'
+  then
+    return
+  fi
+
+  if grep 16.04 /etc/issue
+  then
+    # Default go on ubuntu 16.04 is not sufficient
+    sudo add-apt-repository ppa:gophers/archive
+    sudo apt update
+    sudo apt install -y golang-1.10
+  else
+    sudo apt install -y golang
+  fi
+}
+
 # Install dependencies, if needed
 # FIXME: be more elegant
 install_deps() {
   if ! gitlab-ci-linter --version > /dev/null
   then
+    install_golang
     go get github.com/orobardet/gitlab-ci-linter
   fi
   if ! gitlab-ci-linter --version > /dev/null
@@ -65,7 +92,8 @@ install_deps() {
 
   if ! renderizer /dev/null > /dev/null
   then
-    go get github.com/gomatic/renderizer
+    install_golang
+    go get github.com/dankegel/renderizer
   fi
   if ! renderizer /dev/null > /dev/null
   then
