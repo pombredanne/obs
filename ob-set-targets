@@ -70,6 +70,10 @@ install_golang() {
 
     echo "Warning: installing go-1.10."
     # Default go on ubuntu 16.04 is not sufficient
+    if ! test -x /usr/bin/add-apt-repository
+    then
+      sudo apt install -y software-properties-common
+    fi
     sudo add-apt-repository ppa:gophers/archive
     sudo apt update
     sudo apt install -y golang-1.10
