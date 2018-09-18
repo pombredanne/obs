@@ -64,7 +64,7 @@ install_golang() {
   if grep 16.04 /etc/issue > /dev/null
   then
     # Kludge: add go-1.10 to PATH if needed
-    if ! echo $PATH | grep /usr/lib/go-1.10/bin
+    if ! echo $PATH | grep /usr/lib/go-1.10/bin > /dev/null
     then
       PATH=/usr/lib/go-1.10/bin:$PATH
     fi
@@ -74,14 +74,7 @@ install_golang() {
       return
     fi
 
-    echo "Warning: installing go-1.10."
-    # Default go on ubuntu 16.04 is not sufficient
-    if ! test -x /usr/bin/add-apt-repository
-    then
-      sudo apt install -y software-properties-common
-    fi
-    sudo add-apt-repository ppa:gophers/archive
-    sudo apt update
+    echo "Installing go-1.10 from official Ubuntu 16.04 backports repo."
     sudo apt install -y golang-1.10
     # Clear the PATH cache in bash to avoid not seeing new go
     hash -r || true
