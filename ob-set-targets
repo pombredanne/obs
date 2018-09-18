@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 # To change the versions of ubuntu we target, edit or override the following line
 UBUNTUS="${UBUNTUS:-16.04 18.04}"
@@ -10,6 +11,15 @@ fi
 
 # A identifier unique to this user and this run
 UNIQ=$$.$LOGNAME
+
+if grep 16.04 /etc/issue > /dev/null
+then
+  # Or should we use a secret gopath?
+  export GOPATH=$HOME/go110
+  PATH=$GOPATH/bin:$PATH
+else
+  PATH=$HOME/go/bin:$PATH
+fi
 
 usage() {
   cat <<_EOF_
@@ -50,26 +60,54 @@ _EOF_
   chmod +x .git/hooks/pre-commit
 }
 
+install_golang() {
+  if grep 16.04 /etc/issue > /dev/null
+  then
+    # Kludge: add go-1.10 to PATH if needed
+    if ! echo $PATH | grep /usr/lib/go-1.10/bin > /dev/null
+    then
+      PATH=/usr/lib/go-1.10/bin:$PATH
+    fi
+
+    if go version | egrep "1.10" > /dev/null
+    then
+      return
+    fi
+
+    echo "Installing go-1.10 from official Ubuntu 16.04 backports repo."
+    sudo apt install -y golang-1.10
+    # Clear the PATH cache in bash to avoid not seeing new go
+    hash -r || true
+  else
+    if ! go version
+    then
+      sudo apt install -y golang
+    fi
+  fi
+}
+
 # Install dependencies, if needed
 # FIXME: be more elegant
 install_deps() {
   if ! gitlab-ci-linter --version > /dev/null
   then
+    install_golang
     go get github.com/orobardet/gitlab-ci-linter
   fi
   if ! gitlab-ci-linter --version > /dev/null
   then
-    echo "Can't find gitlab-ci-linter.  Did you add ~/go/bin to PATH?"
+    echo "Can't find gitlab-ci-linter.  Bug..."
     exit 1
   fi
 
   if ! renderizer /dev/null > /dev/null
   then
-    go get github.com/gomatic/renderizer
+    install_golang
+    go get github.com/dankegel/renderizer
   fi
   if ! renderizer /dev/null > /dev/null
   then
-    echo "Can't find gitlab-ci-linter.  Did you add ~/go/bin to PATH?"
+    echo "Can't find gitlab-ci-linter.  Bug..."
     exit 1
   fi
 }
