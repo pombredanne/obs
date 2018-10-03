@@ -132,6 +132,28 @@
         },
         {
             "category" : "astor",
+            "name"     : "foundations",
+            "homepage" : "https://gitlab-ibm.oblong.com/astor/foundations",
+            "repourl"  : "git@gitlab-ibm.oblong.com:astor/foundations.git",
+            "builders" : [
+                { "os":"osx1012", "branch":"master", "suffix":"-4.6", "params":"--g-speak 4.6" },
+                { "os":"osx1012", "branch":"master", "suffix":"-4.6", "params":"--g-speak 4.6", "try":"yes"  },
+                { "os":"ubu1604", "branch":"master", "suffix":"-4.6", "params":"--g-speak 4.6" },
+                { "os":"ubu1604", "branch":"master", "suffix":"-4.6", "params":"--g-speak 4.6", "try":"yes"  }
+            ]
+        },
+        {
+            "category" : "astor",
+            "name"     : "foundations-assets",
+            "comment"  : "Uses lfs",
+            "repourl"  : "git@gitlab-ibm.oblong.com:astor/foundations-assets.git",
+            "builders" : [
+                { "os":"ubu1604", "branch":"master" },
+                { "os":"ubu1604", "branch":"master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "astor",
             "name"     : "libseabed",
             "repourl"  : "git@gitlab-ibm.oblong.com:seabed/libseabed.git",
             "comment"  : "just run its smoketest, no artifacts to upload",
