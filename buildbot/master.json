@@ -35,7 +35,7 @@
         { "os":"ubu1804",          "name":"rbb-ubu1804-7"                                },
         { "os":"ubu1804",          "name":"whbb-t7500-3" },
         { "os":"win10",            "name":"rbb-win10-2"                                  },
-        { "os":"win10x",           "name":"rbb-win10-1"                                  },
+        { "os":"win10",           "name":"rbb-win10-1"                                  },
         { "os":"win7key",          "name":"win7-bb01"                                    },
         { "os":"win7_msvc2013",    "name":"yobuild10-win7"                               }
     ],
@@ -1127,8 +1127,8 @@
             "builders"  : [
                 { "os":"osx1011", "branch":"oblong-1-7-x"              },
                 { "os":"osx1011", "branch":"oblong-1-7-x", "try":"yes" },
-                { "os":"win10x",  "branch":"oblong-1-7-x"              },
-                { "os":"win10x",  "branch":"oblong-1-7-x", "try":"yes" }
+                { "os":"win10",  "branch":"oblong-1-7-x"              },
+                { "os":"win10",  "branch":"oblong-1-7-x", "try":"yes" }
             ]
         },
         {
@@ -1315,8 +1315,8 @@
             "builders"  : [
                 { "os":"osx1011", "branch":"oblong-electron-1-7-x"              },
                 { "os":"osx1011", "branch":"oblong-electron-1-7-x", "try":"yes" },
-                { "os":"win10x",  "branch":"oblong-electron-1-7-x"              },
-                { "os":"win10x",  "branch":"oblong-electron-1-7-x", "try":"yes" }
+                { "os":"win10",  "branch":"oblong-electron-1-7-x"              },
+                { "os":"win10",  "branch":"oblong-electron-1-7-x", "try":"yes" }
             ]
         },
         {
