@@ -734,7 +734,9 @@ bs_upload_debs() {
             fi
             if ! test "$BS_KEEP_IT"
             then
-                rm -f $d/*.deb
+                # When run in a docker-rich environment, you might
+                # be uploading things owned by root, sigh.
+                $SUDO rm -f $d/*.deb
             fi
             break
         fi
