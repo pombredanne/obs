@@ -2311,7 +2311,7 @@
         {
             "category" : "solutions",
             "name"     : "objet",
-            "repourl"  : "git@gitlab.oblong.com:solutions/objet.git",
+            "repourl"  : "git@gitlab.oblong.com:solutions/busby/objet.git",
             "builders" : [
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
