@@ -1,0 +1,11 @@
+do_install_deps() {
+  # Clean up after any interrupted builds
+  bs_deps_clear
+
+  # We need go!
+  if ! go version
+  then
+    brew install go
+  fi
+}
+
