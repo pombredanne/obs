@@ -87,8 +87,7 @@ install_golang() {
 }
 
 # Install dependencies, if needed
-# FIXME: remove this once we're sure the Ubuntu and mac installs of obs
-# properly install renderizer and gitlab-ci-linter
+# FIXME: be more elegant
 install_deps() {
   if ! gitlab-ci-linter --version > /dev/null
   then
@@ -108,7 +107,7 @@ install_deps() {
   fi
   if ! renderizer /dev/null > /dev/null
   then
-    echo "Can't find renderizer.  Bug..."
+    echo "Can't find gitlab-ci-linter.  Bug..."
     exit 1
   fi
 }

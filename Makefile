@@ -2,20 +2,13 @@ PREFIX = /usr
 
 UNAMEA := $(shell uname -a)
 COND_DARWIN := $(if $(findstring Darwin,$(UNAMEA)),1)
-COND_CYGWIN := $(if $(findstring CYGWIN,$(UNAMEA)),1)
 ifeq ($(COND_DARWIN),1)
   $(message This is homebrew)
   XML_CATALOG_FILES=/usr/local/etc/xml/catalog
   export XML_CATALOG_FILES
 endif
 
-# Kludge: add go-1.10 to PATH in case we're on ubuntu 16.04 and have golang-1.10 installed
-PATH:=/usr/lib/go-1.10/bin:$(PATH)
-
 all: bau.1 bau obs
-ifneq ($(COND_CYGWIN),1)
-all: renderizer gitlab-ci-linter
-endif
 
 %.1: %.1.txt
 	# don't fail if manpage can't be formatted, e.g. on windows
@@ -32,14 +25,6 @@ VERSIONOID := 1023
 	echo VERSIONOID is $(VERSIONOID)
 	sed 's/@VERSIONOID@/$(VERSIONOID)/' < $< > $@
 	chmod +x $@
-
-renderizer:
-	go get github.com/dankegel/renderizer
-	cp ~/go/bin/renderizer .
-
-gitlab-ci-linter:
-	go get github.com/orobardet/gitlab-ci-linter
-	cp ~/go/bin/gitlab-ci-linter .
 
 check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau
 
@@ -68,13 +53,7 @@ check-ob-set-defaults:
 	sh -xe ob-set-defaults-test.sh
 	rm ob-set-defaults-test.sh
 
-install: install-bau install-obs install-go
-
-install-go: renderizer gitlab-ci-linter
-ifneq ($(COND_CYGWIN),1)
-	install -m 755 renderizer $(DESTDIR)$(PREFIX)/bin
-	install -m 755 gitlab-ci-linter $(DESTDIR)$(PREFIX)/bin
-endif
+install: install-bau install-obs
 
 install-bau: bau.1 bau baugen.sh
 	install -m 755 -d $(DESTDIR)$(PREFIX)/bin
@@ -122,4 +101,4 @@ uninstall-obs:
            #
 
 clean:
-	rm -rf *.tmp bau.1 obs bau renderizer gitlab-ci-linter
+	rm -rf *.tmp bau.1 obs bau
