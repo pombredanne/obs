@@ -76,12 +76,13 @@ cd obs
    # Always update, 'cause the git repo may have been updated without a following install
    git pull --ff-only
    make clean
-   make
+   make obs bau
 
    # On some systems, we installed it as root, tsk
-   make PREFIX=$PREFIX uninstall 2>/dev/null || sudo make PREFIX=$PREFIX uninstall || true
+   make PREFIX=$PREFIX uninstall-obs uninstall-bau 2>/dev/null || \
+   sudo make PREFIX=$PREFIX PREFIX=$PREFIX uninstall-obs uninstall-bau || true
 
-   $sudo make PREFIX=$PREFIX install
+   $sudo make PREFIX=$PREFIX install-obs install-bau
 )
 cd ..
 rm timestamp
