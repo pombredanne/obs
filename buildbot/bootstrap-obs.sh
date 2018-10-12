@@ -37,8 +37,9 @@ else
    do
        echo "bootstrap-obs.sh: busy, waiting"
        sleep 5
-       tries=$(expr $tries - 1)
+       tries=$(expr $tries - 1) || true
    done
+   # just do it... chances are there is no other container.
 fi
 
 SUDO=
