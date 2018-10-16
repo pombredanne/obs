@@ -831,7 +831,7 @@ then
       from=$(echo "$package" | $sed 's/2.7/[1-9].[0-9][0-9]*/')
       to=$(echo "$package" | $sed "s/2.7/$mezz_version/")
       $sed -i \
-          -e "s/$from/$to/g" \
+          -e "/SKIP-SUBSTITUTION/! s/$from/$to/g" \
           debian/control debian/rules debian/changelog \
           $(ls debian/*.lintian-overrides debian/*.postinst debian/*.prerm debian/*.upstart debian/*.service debian/.gitignore 2>/dev/null) \
           #
