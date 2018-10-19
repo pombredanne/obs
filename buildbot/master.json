@@ -377,7 +377,9 @@
             "repourl"   : "git@gitlab.oblong.com:platform/blackmagic.git",
             "builders"  : [
                 { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
+                { "os":"ubu1604", "branch":"master", "try":"yes" },
+                { "os":"ubu1804", "branch":"master"              },
+                { "os":"ubu1804", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -2415,6 +2417,15 @@
             "category" : "mezzanine",
             "name"      : "build-utils",
             "repourl"   : "git@gitlab.oblong.com:mezzanine/build-utils.git",
+            "builders"  : [
+                { "os":"ubu1804", "branch":"master"              },
+                { "os":"ubu1804", "branch":"master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "mezzanine",
+            "name"      : "ob-vagrant",
+            "repourl"   : "git@gitlab.oblong.com:mezzanine/ob-vagrant.git",
             "builders"  : [
                 { "os":"ubu1804", "branch":"master"              },
                 { "os":"ubu1804", "branch":"master", "try":"yes" }
