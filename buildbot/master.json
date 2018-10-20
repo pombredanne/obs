@@ -24,7 +24,6 @@
         { "os":"ubu1604",          "name":"rbb-ubu1604-7"                                },
         { "os":"ubu1604",          "name":"whbb-t7500-1"  },
         { "os":"ubu1604",          "name":"whbb-t7500-2"  },
-        { "os":"ubu1604",          "name":"whbb-t7500-3"  },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-1"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-2"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-3"                             },
