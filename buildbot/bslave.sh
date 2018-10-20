@@ -13,6 +13,7 @@ _EOF_
 }
 
 MASTER=${MASTER:-buildhost5.oblong.com}
+export MASTER
 PATH=$HOME/.local/bin:$PATH
 
 SRC=$(dirname $0)
