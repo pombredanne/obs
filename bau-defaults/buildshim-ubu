@@ -395,6 +395,12 @@ do_upload() {
     # Freaky - have to unset that transient variable?!
     unset BS_UNPACK_IT
     BS_NO_CLEAN_UPLOAD=1 bs_upload fakekind non-free coverage-source.tgz
+  elif test -n "$GITLAB_CI"
+  then
+    # Upload to both buildhost4 and buildhost5 from gitlab builds.
+    # TODO: remove this block once buildhost4 is truly gone.
+    BS_KEEP_IT=true MASTER=buildhost4.oblong.com bs_upload_debs
+    BS_KEEP_IT=true MASTER=buildhost5.oblong.com bs_upload_debs
   else
     bs_upload_debs
   fi
