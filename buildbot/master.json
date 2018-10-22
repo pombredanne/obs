@@ -2099,7 +2099,6 @@
                 { "os":"osx1014", "branch":"iz",                                                     "try":"yes" },
                 { "os":"ubu1604", "branch":"iz"                                                                  },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-asan",     "params":"--asan --debug"                           },
-                { "os":"ubu1604", "branch":"iz",       "suffix":"-asan",     "params":"--asan --debug",              "try":"yes" },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-coverage", "params":"--coverage --debug --no-publish"          },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-coverage", "params":"--coverage --debug",          "try":"yes" },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-gh",       "params":"--greenhouse"             },
