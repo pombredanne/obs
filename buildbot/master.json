@@ -1068,15 +1068,6 @@
             ]
         },
         {
-            "category"  : "platform",
-            "name"      : "autoconnect",
-            "repourl"   : "git@gitlab.oblong.com:platform/autoconnect.git",
-            "builders"  : [
-                { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
-            ]
-        },
-        {
             "category" : "platform",
             "name"      : "cef",
             "emailmode" : "none",
@@ -2444,15 +2435,6 @@
         },
         {
             "category" : "mezzanine",
-            "name"     : "ir-inertial-admin-apps",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/ir-inertial-admin-apps.git",
-            "builders" : [
-                { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "mezzanine",
             "name"      : "mzproto",
             "repourl"   : "git@gitlab.oblong.com:mezzanine/mzproto.git",
             "builders"  : [
@@ -2528,15 +2510,6 @@
         },
         {
             "category" : "mezzanine",
-            "name"     : "mezzanine-plymouth",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-plymouth.git",
-            "builders" : [
-                { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "mezzanine",
             "name"     : "mezzanine-image",
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-image.git",
             "builders" : [
@@ -2583,17 +2556,6 @@
         },
         {
             "category" : "mezzanine",
-            "name"     : "mezzanine-ca",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-ca.git",
-            "builders" : [
-                { "os" : "ubu1604", "branch"  : "debug"                  },
-                { "os" : "ubu1604", "branch"  : "debug"  , "try" : "yes" },
-                { "os" : "ubu1604", "branch"  : "master"                 },
-                { "os" : "ubu1604", "branch"  : "master" , "try" : "yes" }
-            ]
-        },
-        {
-            "category" : "mezzanine",
             "name"     : "mezzanine-web",
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-web.git",
             "builders" : [
@@ -2612,15 +2574,6 @@
         },
         {
             "category" : "mezzanine",
-            "name"     : "screenshare-provisioner",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/screenshare-provisioner.git",
-            "builders" : [
-                { "os":"ubu1604", "branch"  : "master"                        },
-                { "os":"ubu1604", "branch"  : "master", "try":"yes"           }
-            ]
-        },
-        {
-            "category" : "mezzanine",
             "name"     : "mezzanine-screencast",
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-screencast.git",
             "builders" : [
@@ -2630,15 +2583,6 @@
                 { "os":"ubu1604", "branch"  : "master", "try":"yes"           },
                 { "os":"win7key", "branch"  : "master"                        },
                 { "os":"win7key", "branch"  : "master", "try":"yes"           }
-            ]
-        },
-        {
-            "category" : "mezzanine",
-            "name"     : "mzreach-www",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/mzreach-www.git",
-            "builders" : [
-                {"os" : "ubu1604", "branch"  : "master"                         },
-                {"os" : "ubu1604", "branch"  : "master", "try" : "yes"          }
             ]
         },
         {
