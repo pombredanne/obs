@@ -54,28 +54,14 @@ then
    PREFIX=/usr/local
 fi
 
-pingonce() {
-   case "$OS" in
-   Windows_NT) ping -n 1 $1;;
-   *)          ping -c 1 $1;;
-   esac
-}
-
-tries=6
-while test $tries -gt 0 && ! pingonce oblong.com
-do
-   echo Waiting for DNS to finish
-   sleep 5
-   tries=$(expr $tries - 1)
-done
-
 touch timestamp
 cd obs
 (
    git fetch
 
    # Always update, 'cause the git repo may have been updated without a following install
-   git pull --ff-only
+   # Retry once, in case the network was temporarily down.
+   git pull --ff-only || (sleep 10; git pull --ff-only)
    make clean
    make obs bau
 
@@ -87,4 +73,5 @@ cd obs
 )
 cd ..
 rm timestamp
+
 exit 0
