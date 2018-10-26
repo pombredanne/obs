@@ -8,32 +8,7 @@ set -e
 for slave in `./slaves.sh`
 do
     echo ===== $slave ====
-    case $slave in
-    *pi3*)
-        tries=4
-        while test $tries -gt 1 && ! ssh -o StrictHostKeyChecking=no buildbot@${slave} "rm -f .obs/timestamp; sudo classic sh .obs/obs/buildbot/bootstrap-obs.sh || true"
-        do
-             sleep 5
-             tries=$(expr $tries - 1)
-        done
-        ;;
-    *osx*)
-        tries=4
-        while test $tries -gt 1 && ! ssh -o StrictHostKeyChecking=no buildbot@${slave} "PATH=\$PATH:/usr/local/bin; brew uninstall -f obs; rm -f ~/.obs/timestamp; sh .obs/obs/buildbot/bootstrap-obs.sh"
-        do
-             sleep 5
-             tries=$(expr $tries - 1)
-        done
-        ;;
-    *)
-        tries=4
-        while test $tries -gt 1 && ! ssh -o StrictHostKeyChecking=no buildbot@${slave} "sh .obs/obs/buildbot/bootstrap-obs.sh"
-        do
-             sleep 5
-             tries=$(expr $tries - 1)
-        done
-        ;;
-    esac
+    ssh -o StrictHostKeyChecking=no buildbot@${slave} "cd src/obs && git checkout master && git pull --ff-only; cd ~/.obs/obs && git pull --ff-only" || true
 done
 
 echo done
