@@ -34,12 +34,20 @@ VERSIONOID := 1024
 	chmod +x $@
 
 renderizer:
-	go get github.com/dankegel/renderizer
-	cp ~/go/bin/renderizer .
+	if test -x /usr/bin/go || test -x /usr/lib/go-1.10/bin; then \
+	 go get github.com/dankegel/renderizer; \
+	 cp ~/go/bin/renderizer .; \
+	else \
+         touch renderizer; \
+	fi
 
 gitlab-ci-linter:
-	go get github.com/orobardet/gitlab-ci-linter
-	cp ~/go/bin/gitlab-ci-linter .
+	if test -x /usr/bin/go || test -x /usr/lib/go-1.10/bin; then \
+	 go get github.com/orobardet/gitlab-ci-linter; \
+	 cp ~/go/bin/gitlab-ci-linter .; \
+	else \
+         touch gitlab-ci-linter; \
+	fi
 
 check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau
 
@@ -72,8 +80,10 @@ install: install-bau install-obs install-go
 
 install-go: renderizer gitlab-ci-linter
 ifneq ($(COND_CYGWIN),1)
-	install -m 755 renderizer $(DESTDIR)$(PREFIX)/bin
-	install -m 755 gitlab-ci-linter $(DESTDIR)$(PREFIX)/bin
+	if test -x /usr/bin/go || test -x /usr/lib/go-1.10/bin; then \
+	 install -m 755 renderizer $(DESTDIR)$(PREFIX)/bin; \
+	 install -m 755 gitlab-ci-linter $(DESTDIR)$(PREFIX)/bin; \
+	fi
 endif
 
 install-bau: bau.1 bau baugen.sh
