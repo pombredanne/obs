@@ -798,9 +798,9 @@ bs_install_zip() {
     xy=$2
     base="${3:-/cygdrive/c}"
     rm -f ${depname}*${xy}*.zip
-    micro=$(ssh -n ${bs_install_sshspec} "cd $bs_install_root/$depname/$_os/$xy; ls | sort -n | tail -n 1")
-    patch=$(ssh -n ${bs_install_sshspec} "cd $bs_install_root/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1")
-    scp ${bs_install_sshspec}:$bs_install_root/$depname/$_os/$xy/$micro/$patch/${depname}*.zip .
+    micro=$(ssh -n $(bs_get_install_sshspec) "cd $bs_install_root/$depname/$_os/$xy; ls | sort -n | tail -n 1")
+    patch=$(ssh -n $(bs_get_install_sshspec) "cd $bs_install_root/$depname/$_os/$xy/$micro; ls | sort -n | tail -n 1")
+    scp $(bs_get_install_sshspec):$bs_install_root/$depname/$_os/$xy/$micro/$patch/${depname}*.zip .
     # And now the scary part.  First, check for file (not directory) overwrites.
     if ! zipinfo -1 ${depname}*zip | grep -v '/$' | perl -e 'while (<STDIN>) { chomp; warn "/$_ already exists" if -f "$base/$_"; }'
     then

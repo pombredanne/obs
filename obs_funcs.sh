@@ -373,7 +373,7 @@ bs_pkg_list() {
       (cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,')
       ;;
   *)
-      ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
+      ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" "cd ${bs_install_root}; ls -d */$_os | sed 's,/.*,,'"
       ;;
   esac
 }
@@ -385,7 +385,7 @@ bs_pkg_latest_() {
       (cd "${bs_install_root}/$1" && ls | $sort --version-sort | tail -n 1)
       ;;
   *)
-      ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" "cd '${bs_install_root}/$1' && ls | $sort --version-sort | tail -n 1"
+      ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" "cd '${bs_install_root}/$1' && ls | $sort --version-sort | tail -n 1"
       ;;
   esac
 }
@@ -407,7 +407,7 @@ bs_download_get_sort() {
         ;;
     *)
         # Same thing remotely; add brew's bin since ssh doesn't have it by default.
-        ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'
+        ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" 'PATH="${PATH}":/usr/local/bin:/opt/local/bin; if sort --version-sort /dev/null 2>/dev/null; then which sort; elif gsort --version-sort /dev/null 2>/dev/null; then which gsort; else echo fail; fi'
     esac
 }
 
@@ -458,7 +458,7 @@ bs_download() {
         localhost)
              cp "${bs_install_root}/$depname/$_os/$xy/$micro/$patch"/*.tar.*z* "${bs_download_dest}";;
         *)
-             scp -o StrictHostKeyChecking=no "${bs_install_sshspec}:${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.*z*" "${bs_download_dest}/";;
+             scp -o StrictHostKeyChecking=no "$(bs_get_install_sshspec):${bs_install_root}/$depname/$_os/$xy/$micro/$patch/*.tar.*z*" "${bs_download_dest}/";;
         esac
     done
 }
@@ -1120,12 +1120,12 @@ bs_create_empty_dir_on_master() {
                 rm -rf "$dir"
             fi
             ;;
-        *) ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" "if test -d '$dir' && test \$(du -s '$dir' | cut -f1) -gt $max_safe_size; then echo 'directory $dir too big, aborting'; exit 1; else rm -rf '$dir'; fi";;
+        *) ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" "if test -d '$dir' && test \$(du -s '$dir' | cut -f1) -gt $max_safe_size; then echo 'directory $dir too big, aborting'; exit 1; else rm -rf '$dir'; fi";;
         esac
     fi
     case "$MASTER" in
     localhost) mkdir -p "$dir";;
-    *) ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" "mkdir -p '$dir'";;
+    *) ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" "mkdir -p '$dir'";;
     esac
 }
 
@@ -1277,8 +1277,8 @@ bs_deps_hook() {
             cp bs_deps.tmp/* $deps_dest
             ;;
         *)
-            ssh -o StrictHostKeyChecking=no -n "${bs_install_sshspec}" mkdir -p "$deps_dest"
-            scp -o StrictHostKeyChecking=no bs_deps.tmp/* "${bs_install_sshspec}:$deps_dest/"
+            ssh -o StrictHostKeyChecking=no -n "$(bs_get_install_sshspec)" mkdir -p "$deps_dest"
+            scp -o StrictHostKeyChecking=no bs_deps.tmp/* "$(bs_get_install_sshspec):$deps_dest/"
             ;;
         esac
     fi
@@ -1421,7 +1421,7 @@ bs_upload2()
           cp -a $* $builds_dest
           ;;
         *)
-          scp -o StrictHostKeyChecking=no -p "$@" "${bs_install_sshspec}:$builds_dest/"
+          scp -o StrictHostKeyChecking=no -p "$@" "$(bs_get_install_sshspec):$builds_dest/"
           ;;
         esac
         # Only fire the dependency hook if we actually publish (else try builders will sneak into the list of things to trigger)
@@ -1447,7 +1447,7 @@ bs_upload2()
           cp -a $* sha1sums.txt $builds_dest
           ;;
         *)
-          scp -o StrictHostKeyChecking=no -p "$@" sha1sums.txt "${bs_install_sshspec}:$builds_dest/"
+          scp -o StrictHostKeyChecking=no -p "$@" sha1sums.txt "$(bs_get_install_sshspec):$builds_dest/"
           ;;
         esac
         ;;
@@ -1517,7 +1517,13 @@ bs_set_globals() {
 	    echo ${MASTER}
 	fi
     }
-    bs_install_sshspec=$(bs_get_install_sshspec)
+    # Globals that contain the value of MASTER and are only set on startup
+    # don't work well when you try stuff like
+    #    BS_KEEP_IT=true MASTER=buildhost4.oblong.com bs_upload_debs
+    #    BS_KEEP_IT=true MASTER=buildhost5.oblong.com bs_upload_debs
+    # as bau-defaults/buildshim-ubu currently does.
+    # Replace all uses of bs_install_sshspec with $(bs_get_install_sshspec)
+    bs_install_sshspec=obsolete-use-bs_get_install_sshspec-instead
 }
 
 # It was a design mistake to set globals by default.  Make it optional so callers

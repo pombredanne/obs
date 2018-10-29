@@ -9,7 +9,7 @@ oblong-obs (1.23) bionic; urgency=low
   * run-bslave-in-terminal: new tack on avoiding terminal window pile-up on mac
   * buildbot/master.cfg: don't build all commits of a merge
 
- -- Dan Kegel <dank@oblong.com> Fri, 03 Aug 2018 11:36:56 -0700
+ -- Dan Kegel <dank@oblong.com>  Fri, 03 Aug 2018 11:36:56 -0700
 
 oblong-obs (1.22) bionic; urgency=low
 

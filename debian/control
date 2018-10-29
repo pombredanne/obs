@@ -11,7 +11,7 @@ Build-Depends: build-essential,
    devscripts,
    docbook-xml,
    gnupg2|gnupg,
-   golang (> 2:1.9) | golang-1.10,
+   golang (>> 2:1.9) | golang-1.10,
 # possibly controversial - entropy magnifier to avoid build hangs due to lack of entropy
    haveged,
    libxml2-utils,

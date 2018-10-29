@@ -251,7 +251,6 @@ do_mirror_obs() {
             bs_repodir=repobot
             bs_repotop=/home/buildbot/var/repobot
             bs_install_root=$bs_repotop/tarballs
-            bs_install_sshspec=$(bs_get_install_sshspec)
 
             bs_download $pkgname
         )
