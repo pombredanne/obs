@@ -2401,8 +2401,8 @@
         },
         {
             "category" : "solutions-demos",
-            "name"     : "seismo-hex",
-            "repourl"  : "git@gitlab.oblong.com:solutions/seismo-hex.git",
+            "name"     : "seismo",
+            "repourl"  : "git@gitlab.oblong.com:solutions/demos/seismo.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
               { "os":"ubu1604", "branch" : "master", "try":"yes" }
