@@ -345,8 +345,12 @@ then
    # Note: debian/install, debian/*.install, and debian/*.dirs do not
    # belong in this list because they contain naked paths, not variable settings.
    find \
-        debian/rules \
         debian/control \
+        debian/postinst \
+        debian/postrm \
+        debian/preinst \
+        debian/prerm \
+        debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
         debian/*.lintian-overrides \
@@ -389,6 +393,10 @@ then
    # Replace G_SPEAK_HOME= with the right value in all scripts that contain it
    # Note: debian/install and debian/*.install do not belong in this list
    find \
+        debian/postinst \
+        debian/postrm \
+        debian/preinst \
+        debian/prerm \
         debian/rules \
         debian/*.postinst \
         debian/*.postrm \
@@ -439,8 +447,12 @@ fi
 if test "$YOVERSION" != ""
 then
    find \
-        debian/rules \
         debian/control \
+        debian/postinst \
+        debian/postrm \
+        debian/preinst \
+        debian/prerm \
+        debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
         debian/*.dirs \
@@ -490,6 +502,10 @@ then
    find \
         debian/control \
         debian/install \
+        debian/postinst \
+        debian/postrm \
+        debian/preinst \
+        debian/prerm \
         debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
@@ -537,9 +553,13 @@ if test "$cefbranch" != ""
 then
    barecefbranch=$(echo $cefbranch | sed 's/cef//')
    find \
-        debian/rules \
         debian/control \
         debian/install \
+        debian/postinst \
+        debian/postrm \
+        debian/preinst \
+        debian/prerm \
+        debian/rules \
         debian/.gitignore \
         debian/*.alternatives \
         debian/*.dirs \
@@ -646,6 +666,10 @@ $sed -i \
     debian/control \
     $(ls \
       debian/.gitignore \
+      debian/postinst \
+      debian/postrm \
+      debian/preinst \
+      debian/prerm \
       debian/*.alternatives \
       debian/*.lintian-overrides \
       debian/*.postinst \
