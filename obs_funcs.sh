@@ -897,16 +897,6 @@ bs_apt_pkg_add() {
         test -f "$arg" || bs_abort "Package $arg is not a file."
     done
 
-    local pkgnames
-    pkgarch=$(echo $apt_pkgs | awk '{print $1}' | sed 's/.*_//;s/\.deb//')
-    for arg in "$@"
-    do
-        # remove first _ and everything after it, and first / and everything before it, yielding the package name
-        pkgname=${arg%%_*}
-        pkgname=${pkgname##*/}
-        pkgnames="$pkgnames $pkgname"
-    done
-
     # Acquire an exclusive lock on this repo
     # See how fd 9 is set up by redirection at end of this function
     local LOCKFILE=$apt_archive_root/reprepro.lock
@@ -927,10 +917,19 @@ bs_apt_pkg_add() {
         # Remove the previous version of these packages to avoid dreaded
         # "Already existing files can only be included again, if they are the same, but..."
         # at least for dev builds, so people can force builds after an iz change.
-        case "$pkgarch" in
-        all) reprepro -Vb $apt_archive_root remove $apt_suite $pkgnames;;
-        *)   reprepro --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgnames;;
-        esac
+        # Handle a mixture of native and portable packages (they require different args to reprepro)
+        for arg in $apt_pkgs
+        do
+            local pkgarch=$(echo $arg | awk '{print $1}' | sed 's/.*_//;s/\.deb//')
+            # remove first _ and everything after it, and first / and everything before it, yielding the package name
+            local pkgname=${arg%%_*}
+            pkgname=${pkgname##*/}
+
+            case "$pkgarch" in
+            all) reprepro -Vb $apt_archive_root remove $apt_suite $pkgname;;
+            *)   reprepro --architecture $pkgarch -Vb $apt_archive_root remove $apt_suite $pkgname;;
+            esac
+        done
         ;;
     esac
 
@@ -939,10 +938,11 @@ bs_apt_pkg_add() {
     LANG=C reprepro --ask-passphrase -P extra -Vb $apt_archive_root includedeb $apt_suite $@ > /tmp/reprepro.log.$$ 2>&1
     status=$?
     set -e
-    if grep "Already existing files can only" /tmp/reprepro.log.$$
+    if grep "Already existing files can only" /tmp/reprepro.log.$$ > /dev/null
     then
+        cat /tmp/reprepro.log.$$
         rm /tmp/reprepro.log.$$
-        bs_abort "Repeat upload failed.  You can only upload a rel package once.  Maybe you meant to give this package a dev- tag?"
+        bs_abort "Repeat upload failed.  Possible cause: You can only upload a rel package once.  Maybe you meant to give this package a dev- tag?"
     fi
     echo $status > subshell.status.tmp
     if test $status -ne 0
