@@ -721,34 +721,36 @@ bs_move_debs_to()
 }
 
 bs_upload_debs() {
-    failed=false
+    local d
     for d in . .. debbuild btmp btmp/_CPack_Packages no-deb-found
     do
         if ls $d/*.deb
         then
-            # Don't upload synthetic build dependency packages
-            rm -f $d/*-build-deps*deb || true
-            if ! bs_upload fakekind non-free $d/*.deb
-            then
-                failed=true
-            fi
-            if ! test "$BS_KEEP_IT"
-            then
-                # When run in a docker-rich environment, you might
-                # be uploading things owned by root, sigh.
-                $SUDO rm -f $d/*.deb
-            fi
             break
         fi
     done
-    if $failed
-    then
-        bs_abort "upload failed"
-    fi
-
     if test $d = no-deb-found
     then
         bs_abort "No packages found to upload"
+    fi
+
+    # Don't upload synthetic build dependency packages
+    rm -f $d/*-build-deps*deb || true
+
+    # Don't use 'if' here, else bs_abort inside bs_upload won't abort.
+    # See http://mywiki.wooledge.org/BashFAQ/105
+    # but in short, 'set -e' and 'if' don't get along
+    bs_upload fakekind non-free $d/*.deb
+    if test $? != 0
+    then
+        bs_abort "upload failed, and it didn't abort for some reason"
+    fi
+
+    if ! test "$BS_KEEP_IT"
+    then
+        # When run in a docker-rich environment, you might
+        # be uploading things owned by root, sigh.
+        $SUDO rm -f $d/*.deb
     fi
 }
 
