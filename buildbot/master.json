@@ -2329,6 +2329,10 @@
             "name"     : "systemd-plasma",
             "repourl"  : "git@gitlab.oblong.com:solutions/systemd-plasma.git",
             "builders" : [
+              { "os":"ubu1604", "branch":"master", "suffix":"4.6",  "params":"--g-speak 4.6"               },
+              { "os":"ubu1604", "branch":"master", "suffix":"4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+              { "os":"ubu1804", "branch":"master", "suffix":"4.6",  "params":"--g-speak 4.6"               },
+              { "os":"ubu1804", "branch":"master", "suffix":"4.6",  "params":"--g-speak 4.6",  "try":"yes" },
             ]
         },
         {
