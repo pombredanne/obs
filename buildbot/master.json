@@ -2383,6 +2383,15 @@
         },
         {
             "category" : "solutions-demos",
+            "name"     : "flycity-assets",
+            "repourl"  : "git@gitlab.oblong.com:solutions/demos/flycity-assets.git",
+            "builders" : [
+              { "os":"ubu1604", "branch" : "master"              },
+              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "solutions-demos",
             "name"     : "heart",
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/heart.git",
             "builders" : [
