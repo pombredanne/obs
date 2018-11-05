@@ -2369,7 +2369,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/brain.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2378,7 +2380,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/flycity.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2387,7 +2391,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/flycity-assets.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2396,7 +2402,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/heart.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2405,7 +2413,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/kepler.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2414,7 +2424,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/scraper.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2423,7 +2435,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/seismo.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
@@ -2432,7 +2446,9 @@
             "repourl"  : "git@gitlab.oblong.com:solutions/demos/serialbox.git",
             "builders" : [
               { "os":"ubu1604", "branch" : "master"              },
-              { "os":"ubu1604", "branch" : "master", "try":"yes" }
+              { "os":"ubu1604", "branch" : "master", "try":"yes" },
+              { "os":"ubu1804", "branch" : "master"              },
+              { "os":"ubu1804", "branch" : "master", "try":"yes" }
             ]
         },
         {
