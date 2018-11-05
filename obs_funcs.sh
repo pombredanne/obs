@@ -1152,7 +1152,8 @@ bs_get_artifact_subdir() {
     then
         # See https://docs.gitlab.com/ee/ci/variables/
         # Requires gitlab >= 9.3
-        echo "$CI_PROJECT_PATH_SLUG/$CI_PIPELINE_ID"
+        # We could just use "$slog/$job", but let's leave a few more breadcrumbs than that.
+        echo "$CI_PROJECT_PATH_SLUG-$_os-$CI_PIPELINE_ID/$CI_JOB_ID"
     else
         echo "default"
     fi
