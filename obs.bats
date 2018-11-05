@@ -154,8 +154,8 @@
     exit 1
   fi
   # gitlab-ci case
-  want="bletch/42"
-  got="$( (CI_PROJECT_PATH_SLUG=bletch CI_PIPELINE_ID=42 ../obs get-artifact-subdir) )"
+  want="bletch-$(obs detect-os)-42/777"
+  got="$( (CI_PROJECT_PATH_SLUG=bletch CI_PIPELINE_ID=42 CI_JOB_ID=777 ../obs get-artifact-subdir) )"
   if test "$got" != "$want"
   then
     echo "bs-artifact-subdir did not sense gitlab-ci metadata ($got != $want)"
