@@ -33,7 +33,7 @@
         { "os":"ubu1804",          "name":"rbb-ubu1804-3"                                },
         { "os":"ubu1804",          "name":"rbb-ubu1804-4"                                },
         { "os":"ubu1804",          "name":"rbb-ubu1804-7"                                },
-        { "os":"ubu1804",          "name":"rbb-ubu1804-8"                                },
+        { "os":"ubu1804b",         "name":"rbb-ubu1804-8"                                },
         { "os":"ubu1804",          "name":"whbb-t7500-3" },
         { "os":"win10",            "name":"rbb-win10-2"                                  },
         { "os":"win10",           "name":"rbb-win10-1"                                  },
@@ -1143,6 +1143,8 @@
             "builders"  : [
                 { "os":"osx1011", "branch":"oblong-1-7-x"              },
                 { "os":"osx1011", "branch":"oblong-1-7-x", "try":"yes" },
+                { "os":"ubu1804b", "branch":"oblong-1-7-x"              },
+                { "os":"ubu1804b", "branch":"oblong-1-7-x", "try":"yes" },
                 { "os":"win10",  "branch":"oblong-1-7-x"              },
                 { "os":"win10",  "branch":"oblong-1-7-x", "try":"yes" }
             ]
@@ -1549,10 +1551,13 @@
                 { "os":"ubu1604", "branch":"master",   "suffix":"-4.7",  "params":"--g-speak 4.7"  , "try" : "yes" },
                 { "os":"ubu1604", "branch":"rel-4.2",  "suffix":"-4.2",  "params":"--g-speak 4.2"                  },
                 { "os":"ubu1604", "branch":"rel-4.4",  "suffix":"-4.4",  "params":"--g-speak 4.4"                  },
+                { "os":"ubu1604", "branch":"rel-4.4",  "suffix":"-4.4",  "params":"--g-speak 4.4"  , "try" : "yes" },
                 { "os":"ubu1604", "branch":"rel-4.6",  "suffix":"-4.6",  "params":"--g-speak 4.6"                  },
+                { "os":"ubu1604", "branch":"rel-4.6",  "suffix":"-4.6",  "params":"--g-speak 4.6"  , "try" : "yes" },
                 { "os":"ubu1804", "branch":"master",   "suffix":"-4.7",  "params":"--g-speak 4.7"                  },
                 { "os":"ubu1804", "branch":"master",   "suffix":"-4.7",  "params":"--g-speak 4.7"  , "try" : "yes" },
-                { "os":"ubu1804", "branch":"rel-4.6",  "suffix":"-4.6",  "params":"--g-speak 4.6"                  }
+                { "os":"ubu1804", "branch":"rel-4.6",  "suffix":"-4.6",  "params":"--g-speak 4.6"                  },
+                { "os":"ubu1804", "branch":"rel-4.6",  "suffix":"-4.6",  "params":"--g-speak 4.6"  , "try" : "yes" }
             ]
         },
         {
@@ -1881,7 +1886,9 @@
             "releasenotes" : "https://webrtc.org/release-notes/",
             "builders"  : [
                 { "os":"ubu1604", "branch":"master", "suffix":"60", "params":"-r 6294a7eb71c891e9ea41273a7a94113f6802d0da"              },
-                { "os":"ubu1604", "branch":"master", "suffix":"60", "params":"-r 6294a7eb71c891e9ea41273a7a94113f6802d0da", "try":"yes" }
+                { "os":"ubu1604", "branch":"master", "suffix":"60", "params":"-r 6294a7eb71c891e9ea41273a7a94113f6802d0da", "try":"yes" },
+                { "os":"ubu1804", "branch":"master", "suffix":"60", "params":"-r 6294a7eb71c891e9ea41273a7a94113f6802d0da"              },
+                { "os":"ubu1804", "branch":"master", "suffix":"60", "params":"-r 6294a7eb71c891e9ea41273a7a94113f6802d0da", "try":"yes" }
             ]
         },
         {
@@ -2231,6 +2238,34 @@
             "name"     : "mosaic",
             "repourl"  : "git@gitlab.oblong.com:solutions/mosaic.git",
             "builders" : [
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4",  "try":"yes" },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1012", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4",  "try":"yes" },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"ubu1804", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"ubu1804", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
@@ -2456,6 +2491,19 @@
             "name"      : "build-utils",
             "repourl"   : "git@gitlab.oblong.com:mezzanine/build-utils.git",
             "builders"  : [
+                { "os":"ubu1604", "branch":"master"              },
+                { "os":"ubu1604", "branch":"master", "try":"yes" },
+                { "os":"ubu1804", "branch":"master"              },
+                { "os":"ubu1804", "branch":"master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "mezzanine",
+            "name"      : "ziggy",
+            "repourl"   : "git@gitlab.oblong.com:mezzanine/ziggy.git",
+            "builders"  : [
+                { "os":"ubu1604", "branch":"master"              },
+                { "os":"ubu1604", "branch":"master", "try":"yes" },
                 { "os":"ubu1804", "branch":"master"              },
                 { "os":"ubu1804", "branch":"master", "try":"yes" }
             ]
@@ -2567,7 +2615,7 @@
             "builders" : [
                 { "os" : "ubu1604",           "branch"  : "master"                                             },
                 { "os" : "ubu1604",           "branch"  : "master",                              "try" : "yes" },
-                { "os" : "ubu1804",           "branch"  : "master", "params":"--g-speak 4.7"                   }
+                { "os" : "ubu1804",           "branch"  : "master", "params":"--g-speak 4.6"                   }
             ]
         },
         {
@@ -2578,9 +2626,9 @@
             "builders" : [
                 { "os" : "ubu1604",           "branch"  : "mz"                                                                 },
                 { "os" : "ubu1604",           "branch"  : "mz",                                                    "try":"yes" },
-                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.7"                       },
-                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.7",          "try":"yes" },
-                { "os" : "ubu1804",           "branch"  : "mz", "suffix":"-as", "params":"--g-speak 4.7 --asan --no-publish"   }
+                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.6"                       },
+                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.6",          "try":"yes" },
+                { "os" : "ubu1804",           "branch"  : "mz", "suffix":"-as", "params":"--g-speak 4.6 --asan --no-publish"   }
             ]
         },
         {
@@ -2650,7 +2698,9 @@
             "repourl"   : "git@gitlab.oblong.com:mezzanine/rubygem-mezzanine-samltools.git",
             "builders"  : [
                 {"os":"ubu1604", "branch":"master"              },
-                {"os":"ubu1604", "branch":"master", "try":"yes" }
+                {"os":"ubu1604", "branch":"master", "try":"yes" },
+                {"os":"ubu1804", "branch":"master"              },
+                {"os":"ubu1804", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -2659,7 +2709,9 @@
             "repourl"   : "git@gitlab.oblong.com:mezzanine/mz-config-parser.git",
             "builders"  : [
                 {"os":"ubu1604", "branch":"master"              },
-                {"os":"ubu1604", "branch":"master", "try":"yes" }
+                {"os":"ubu1604", "branch":"master", "try":"yes" },
+                {"os":"ubu1804", "branch":"master"              },
+                {"os":"ubu1804", "branch":"master", "try":"yes" }
             ]
         }
     ]
