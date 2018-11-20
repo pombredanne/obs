@@ -737,13 +737,26 @@ bs_upload_debs() {
     # Don't upload synthetic build dependency packages
     rm -f $d/*-build-deps*deb || true
 
-    # Don't use 'if' here, else bs_abort inside bs_upload won't abort.
-    # See http://mywiki.wooledge.org/BashFAQ/105
-    # but in short, 'set -e' and 'if' don't get along
-    bs_upload fakekind non-free $d/*.deb
-    if test $? != 0
+    local status=0
+    if test -n "$GITLAB_CI"
     then
-        bs_abort "upload failed, and it didn't abort for some reason"
+      # Upload to both buildhost4 and buildhost5 from gitlab builds.
+      # TODO: remove this block once buildhost4 is truly gone.
+
+      # Don't use 'if' here, else bs_abort inside bs_upload won't abort.
+      # See http://mywiki.wooledge.org/BashFAQ/105
+      # but in short, 'set -e' and 'if' don't get along
+      MASTER=buildhost4.oblong.com bs_upload fakekind non-free $d/*.deb
+      test $? != 0 && status=$?
+      MASTER=buildhost5.oblong.com bs_upload fakekind non-free $d/*.deb
+      test $? != 0 && status=$?
+    else
+      bs_upload fakekind non-free $d/*.deb
+      test $? != 0 && status=$?
+    fi
+    if test $status != 0
+    then
+      bs_abort "upload failed, and it didn't abort for some reason"
     fi
 
     if ! test "$BS_KEEP_IT"
