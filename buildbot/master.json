@@ -331,7 +331,9 @@
             "comment"   : "pulls in mezzanine's favorite nodejs6, virtualbox, vagrant, docker-ce, fence-agents, and saltstack",
             "builders"  : [
                 { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
+                { "os":"ubu1604", "branch":"master", "try":"yes" },
+                { "os":"ubu1804", "branch":"master"              },
+                { "os":"ubu1804", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -2254,6 +2256,8 @@
                 { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
                 { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
                 { "os":"osx1013", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"osx1014", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1014", "branch" : "rel-5",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
                 { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "rel-5",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
@@ -2282,6 +2286,8 @@
                 { "os":"osx1013", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
                 { "os":"osx1013", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
                 { "os":"osx1013", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
@@ -2311,6 +2317,12 @@
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
                 { "os":"osx1012", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6"               },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2"               },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.2",  "params":"--g-speak 4.2",  "try":"yes" },
                 { "os":"ubu1604", "branch" : "master",   "suffix":"-4.4",  "params":"--g-speak 4.4"               },
