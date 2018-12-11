@@ -18,6 +18,7 @@
         { "os":"osx1014",          "name":"rbb-osx1014-1" },
         { "os":"osx1014",          "name":"rbb-osx1014-2" },
         { "os":"osx1014",          "name":"rbb-osx1014-3" },
+        { "os":"osx1014",          "name":"rbb-osx1014-4" },
         { "os":"ubu1604",          "name":"rbb-ubu1604-1"                                },
         { "os":"ubu1604",          "name":"rbb-ubu1604-2"                                },
         { "os":"ubu1604",          "name":"rbb-ubu1604-3"                                },
@@ -1750,7 +1751,9 @@
                 { "os":"ubu1604",          "branch":"master", "suffix":"-4.6",  "params":"--g-speak 4.6"               },
                 { "os":"ubu1604",          "branch":"master", "suffix":"-4.6",  "params":"--g-speak 4.6",  "try":"yes" },
                 { "os":"ubu1604",          "branch":"master", "suffix":"-4.7",  "params":"--g-speak 4.7"               },
-                { "os":"ubu1604",          "branch":"master", "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" }
+                { "os":"ubu1604",          "branch":"master", "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" },
+                { "os":"ubu1804",          "branch":"master", "suffix":"-4.7",  "params":"--g-speak 4.7"               },
+                { "os":"ubu1804",          "branch":"master", "suffix":"-4.7",  "params":"--g-speak 4.7",  "try":"yes" }
             ]
         },
         {
