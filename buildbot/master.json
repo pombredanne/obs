@@ -2155,6 +2155,7 @@
                 { "os":"ubu1804",       "branch":"iz"                                               ,"try":"yes" },
                 { "os":"ubu1804",       "branch":"rel-4.6",                        "params":"--headless"               },
                 { "os":"ubu1804",       "branch":"rel-4.6",                                                "try":"yes" },
+                { "os":"ubu1804",       "branch":"rel-4.6",  "suffix":"-asan",     "params":"--asan --debug"                           },
                 { "os":"win10",         "branch":"iz"                                                            },
                 { "os":"win10",         "branch":"iz",       "suffix":"-tdt",      "params":"--g-speak 4.7 --no-tests --lprojects libeukaryote", "try":"yes" },
                 { "os":"win10",         "branch":"iz",                                               "try":"yes" },
