@@ -298,7 +298,7 @@ bs_install_xcode() {
     osx1011)  bs_install_xcode_version 7.1 ;;
     osx1012)  bs_install_xcode_version 8.1 ;;
     osx1013)  bs_install_xcode_version 9.0 ;;
-    osx1014)  bs_install_xcode_version 10.0 ;;
+    osx1014)  bs_install_xcode_version 10.1 ;;
     osx*)     bs_abort "unsupported os $_os";;
     esac
 }
