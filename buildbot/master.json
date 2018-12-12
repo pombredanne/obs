@@ -2710,19 +2710,6 @@
         },
         {
             "category" : "mezzanine",
-            "name"     : "mezzanine-android",
-            "homepage" : "https://wiki.oblong.com/pub/tag/android%20mezzanine",
-            "email"    : "valeria@oblong.com zai@oblong.com",
-            "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-android.git",
-            "builders" : [
-                { "os":"ubu1604", "branch":"master", "params":"--debug",                        "email":"mez.dev.android.review@oblong.com dank@oblong.com", "emailmode":"all"              },
-                { "os":"ubu1604", "branch":"master", "params":"--debug",                        "email":"mez.dev.android.review@oblong.com dank@oblong.com", "emailmode":"all", "try":"yes" },
-                { "os":"ubu1604", "branch":"master", "params":"--release", "suffix":"-release", "email":"mez.dev.android.review@oblong.com dank@oblong.com", "emailmode":"all"              },
-                { "os":"ubu1604", "branch":"master", "params":"--release", "suffix":"-release", "email":"mez.dev.android.review@oblong.com dank@oblong.com", "emailmode":"all", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "mezzanine",
             "name"      : "rubygem-mezzanine-samltools",
             "repourl"   : "git@gitlab.oblong.com:mezzanine/rubygem-mezzanine-samltools.git",
             "builders"  : [
