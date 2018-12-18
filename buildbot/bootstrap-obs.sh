@@ -1,6 +1,7 @@
 #!/bin/sh
 # Make sure obs is installed and up to date
-# Don't explode if called by multiple jobs at same time
+# Doesn't check for multiple simultaneous runs, since we no longer run
+# multiple containers sharing same home directory on build workers.
 set -ex
 
 if ! test -d ~/.obs
@@ -10,36 +11,6 @@ then
    git clone git@gitlab.oblong.com:platform/obs.git
 else
    cd ~/.obs
-
-   # If timestamp exists but is too old, ignore
-   if test -f timestamp
-   then
-       if test -d /Library
-       then
-          # BSD stat uses -f for format, %m for modification unix time
-          birthday=$(stat -f %m timestamp)
-       else
-          # linux stat uses -c for format, %Y for modification unix time
-          birthday=$(stat -c %Y timestamp)
-       fi
-       now=$(date +%s)
-       age=$(expr $now - $birthday)
-       if test $age -gt 40
-       then
-           echo "bootstrap-obs.sh: timestamp stale, ignoring"
-           rm -f timestamp
-       fi
-   fi
-
-   # Wait a while for other container to finish
-   tries=30
-   while test -f timestamp && test $tries -gt 0
-   do
-       echo "bootstrap-obs.sh: busy, waiting"
-       sleep 5
-       tries=$(expr $tries - 1) || true
-   done
-   # just do it... chances are there is no other container.
 fi
 
 SUDO=
@@ -54,24 +25,28 @@ then
    PREFIX=/usr/local
 fi
 
-touch timestamp
 cd obs
 (
-   git fetch
+   # Disable a2x so we don't waste 30 seconds formatting the man page
+   rm -rf /tmp/obsfakebin
+   mkdir /tmp/obsfakebin
+   ln -s /bin/false /tmp/obsfakebin/a2x
+   PATH=/tmp/obsfakebin:$PATH
 
    # Always update, 'cause the git repo may have been updated without a following install
    # Retry once, in case the network was temporarily down.
    git pull --ff-only || (sleep 10; git pull --ff-only)
-   make clean
-   make obs bau
+   sudo make clean
+   make obs bau bau.1 baugen.sh
 
    # On some systems, we installed it as root, tsk
    make PREFIX=$PREFIX uninstall-obs uninstall-bau 2>/dev/null || \
    sudo make PREFIX=$PREFIX PREFIX=$PREFIX uninstall-obs uninstall-bau || true
 
    $sudo make PREFIX=$PREFIX install-obs install-bau
+
+   rm -rf /tmp/obsfakebin
 )
 cd ..
-rm timestamp
 
 exit 0

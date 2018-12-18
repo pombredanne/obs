@@ -23,12 +23,12 @@ endif
 
 #VERSION := $(shell obs get-version)
 # Integer version
-#VERSIONOID := $(shell echo $$(( $$(sh ./obs.in get-major-version-git) * 1000 + $$(sh ./obs.in get-minor-version-git) )) )
+VERSIONOID_GIT := $(shell echo $$(( $$(sh ./obs.in get-major-version-git) * 1000 + $$(sh ./obs.in get-minor-version-git) )) )
 # Alas, until we script brew updates differently, must hardcode version here.
-VERSIONOID := 1024
+VERSIONOID := 1026
 
 # gnu make double-colon means only applies if dependency exists
-%:: %.in
+%:: %.in Makefile
 	echo VERSIONOID is $(VERSIONOID)
 	sed 's/@VERSIONOID@/$(VERSIONOID)/' < $< > $@
 	chmod +x $@
@@ -49,7 +49,21 @@ gitlab-ci-linter:
          touch gitlab-ci-linter; \
 	fi
 
-check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau
+check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau check-version
+
+check-version: obs
+	# Assert they are equal
+	# Skip if try or homebrew build 
+	if test "$(VERSIONOID)" != "$(VERSIONOID_GIT)"; then \
+	   if ./obs is-try || env | grep HOMEBREW; then \
+		echo "Note: VERSIONOID $(VERSIONOID) != VERSIONOID_GIT $(VERSIONOID_GIT)"; \
+		echo "Don't forget to update VERSIONOID in Makefile when you tag a release."; \
+	   else \
+		echo "Error: VERSIONOID $(VERSIONOID) != VERSIONOID_GIT $(VERSIONOID_GIT)"; \
+		echo "Probably need to update VERSIONOID in Makefile."; \
+		exit 1; \
+	   fi; \
+	fi
 
 check-apt: obs
 	egrep -v '@test|^}$$' < apt.bats > apt-test.sh

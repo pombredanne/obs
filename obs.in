@@ -40,6 +40,7 @@ obs get-yobuild-home [GSH]  - show path to yobuild this project [or given G_SPEA
 obs get-yoversion [GSH]     - show major version of yobuild this project [or given G_SPEAK_HOME] builds against
 obs get-prefix              - show where this project will be installed
 obs intuit-buildtype        - get whether this project artifacts will be dev or rel
+obs is-try                  - exit status 0 if this is a try build
 obs yovo2cefversion VERSION - look up which version of cef the given version of g-speak (well, webthing) depends on
 obs yovo2yoversion VERSION  - look up which version of yobuild the given version of g-speak depends on
 
@@ -84,9 +85,10 @@ case "$1" in
 "")    usage; exit 1;;
 esac
 
+# obs may have trouble with non-english locales
 case "$LANG" in
 ""|C|C.*|en*) ;;
-*) bs_warn "FIXME: obs has problems on non-english systems yet; setting C locale." >&2; export LANG=C ;;
+*) export LANG=C ;;
 esac
 
 # Handle options
@@ -146,5 +148,6 @@ deps_append)           bs_deps_append;;
 deps_list)             bs_deps_list;;
 deps_clear)            bs_deps_clear;;
 intuit_buildtype)      bs_intuit_buildtype;;
+is_try)                bs_is_try_build ;;
 *)                     echo "Unknown cmd $cmd"; usage; exit 1;;
 esac
