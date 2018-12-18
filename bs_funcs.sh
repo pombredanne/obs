@@ -156,7 +156,7 @@ bs_platform_workarounds() {
         export TMP=c:\\windows\\temp
         export TEMP=c:\\windows\\temp
 
-        PATH=/bin:$PATH  # find Cygwin's find.exe rather than Windows'
+        #PATH=/bin:$PATH  # find Cygwin's find.exe rather than Windows'
         SUDO=
         ;;
     osx*)
@@ -405,6 +405,56 @@ bs_msvc2015_64_defaults() {
     export WindowsSDK_ExecutablePath_x86='C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.6.1 Tools\'
 }
 
+bs_msvc2017_defaults() {
+    echo "Warning: No Visual C++ environment variables found, so making some up."
+    echo "Please start cygwin from a Visual Studio Command Prompt instead."
+    # Extracted by diffing environment between a cygwin shell started from
+    # visual studio 2017 community command prompt and a normal cygwin shell.
+    export __DOTNET_ADD_32BIT='1'
+    export __DOTNET_ADD_64BIT='1'
+    export __DOTNET_PREFERRED_BITNESS='64'
+    export __VSCMD_PREINIT_PATH='C:\Perl64\site\bin;C:\Perl64\bin;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\iCLS\;C:\Program Files\Intel\Intel(R) Management Engine Components\iCLS\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL;C:\Program Files\Intel\Intel(R) Management Engine Components\DAL;C:\Users\buildbot\AppData\Local\Microsoft\WindowsApps;'
+    export CommandPromptType='Cross'
+    export DevEnvDir='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\'
+    export ExtensionSdkDir='C:\Program Files (x86)\Microsoft SDKs\Windows Kits\10\ExtensionSDKs'
+    export Framework40Version='v4.0'
+    export FrameworkDir='C:\Windows\Microsoft.NET\Framework64\'
+    export FrameworkDir32='C:\Windows\Microsoft.NET\Framework\'
+    export FrameworkDir64='C:\Windows\Microsoft.NET\Framework64\'
+    export FrameworkVersion='v4.0.30319'
+    export FrameworkVersion32='v4.0.30319'
+    export FrameworkVersion64='v4.0.30319'
+    export INCLUDE='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\ATLMFC\include;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\include;C:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\ucrt;C:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\shared;C:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\um;C:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\winrt;C:\Program Files (x86)\Windows Kits\10\include\10.0.17763.0\cppwinrt'
+    export LIB='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\ATLMFC\lib\x86;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\lib\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.17763.0\ucrt\x86;C:\Program Files (x86)\Windows Kits\10\lib\10.0.17763.0\um\x86;'
+    export LIBPATH='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\ATLMFC\lib\x86;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\lib\x86;C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\lib\x86\store\references;C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.17763.0;C:\Program Files (x86)\Windows Kits\10\References\10.0.17763.0;C:\Windows\Microsoft.NET\Framework64\v4.0.30319;'
+    export ORIGINAL_PATH='/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/HostX64/x86:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/HostX64/x64:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/VC/VCPackages:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/TestWindow:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/TeamFoundation/Team Explorer:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/bin/Roslyn:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Team Tools/Performance Tools:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/Shared/Common/VSPerfCollectionTools:/cygdrive/c/Program Files (x86)/Windows Kits/10/bin/10.0.17763.0/x64:/cygdrive/c/Program Files (x86)/Windows Kits/10/bin/x64:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/MSBuild/15.0/bin:/cygdrive/c/Windows/Microsoft.NET/Framework64/v4.0.30319:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/Tools:/cygdrive/c/Perl64/site/bin:/cygdrive/c/Perl64/bin:/cygdrive/c/Program Files (x86)/Intel/Intel(R) Management Engine Components/iCLS:/cygdrive/c/Program Files/Intel/Intel(R) Management Engine Components/iCLS:/cygdrive/c/Windows/system32:/cygdrive/c/Windows:/cygdrive/c/Windows/System32/Wbem:/cygdrive/c/Windows/System32/WindowsPowerShell/v1.0:/cygdrive/c/Windows/System32/OpenSSH:/cygdrive/c/Program Files (x86)/Intel/Intel(R) Management Engine Components/DAL:/cygdrive/c/Program Files/Intel/Intel(R) Management Engine Components/DAL:/cygdrive/c/Users/buildbot/AppData/Local/Microsoft/WindowsApps:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin:/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja'
+    # Careful, if user put a special directory on path ahead of /bin, preserve that
+    export PATH="${ORIGINAL_PATH}:$PATH"
+    export Platform='x86'
+    export PreferredToolArchitecture='x64'
+    export PROMPT='$P$G'
+    export UCRTVersion='10.0.17763.0'
+    export UniversalCRTSdkDir='C:\Program Files (x86)\Windows Kits\10\'
+    export VCIDEInstallDir='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\'
+    export VCINSTALLDIR='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\'
+    export VCToolsInstallDir='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\'
+    export VCToolsRedistDir='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Redist\MSVC\14.16.27012\'
+    export VCToolsVersion='14.16.27023'
+    export VisualStudioVersion='15.0'
+    export VS150COMNTOOLS='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\'
+    export VSCMD_ARG_app_plat='Desktop'
+    export VSCMD_ARG_HOST_ARCH='x64'
+    export VSCMD_ARG_TGT_ARCH='x86'
+    export VSCMD_VER='15.9.3'
+    export VSINSTALLDIR='C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\'
+    export WindowsLibPath='C:\Program Files (x86)\Windows Kits\10\UnionMetadata\10.0.17763.0;C:\Program Files (x86)\Windows Kits\10\References\10.0.17763.0'
+    export WindowsSdkBinPath='C:\Program Files (x86)\Windows Kits\10\bin\'
+    export WindowsSdkDir='C:\Program Files (x86)\Windows Kits\10\'
+    export WindowsSDKLibVersion='10.0.17763.0\'
+    export WindowsSdkVerBinPath='C:\Program Files (x86)\Windows Kits\10\bin\10.0.17763.0\'
+    export WindowsSDKVersion='10.0.17763.0\'
+}
+
 # Make sure environment variables are already set for Visual C++,
 # or failing that, make a good guess.
 bs_vcvars32() {
@@ -415,6 +465,8 @@ bs_vcvars32() {
         export YB_COMPILERNAME=msvc2013;;
     *"Visual Studio 14"*)
         export YB_COMPILERNAME=msvc2015;;
+    *"Microsoft Visual Studio/2017"*)
+        export YB_COMPILERNAME=msvc2017;;
     *Visual*)
         bs_abort "Unknown version of visual C++ on path";;
     *)
@@ -422,6 +474,7 @@ bs_vcvars32() {
         msvc2010) bs_msvc2010_defaults;;
         msvc2013) bs_msvc2013_defaults;;
         msvc2015) bs_msvc2015_defaults;;
+        msvc2017) bs_msvc2017_defaults;;
         *) bs_abort "unknown opt_toolchain $opt_toolchain";;
         esac
         ;;
@@ -436,11 +489,14 @@ bs_vcvars64() {
     case $PATH in
     *"Visual Studio 14"*)
         export YB_COMPILERNAME=msvc2015;;
+    *"Microsoft Visual Studio/2017"*)
+        export YB_COMPILERNAME=msvc2017;;
     *Visual*)
         bs_abort "Unknown version of visual C++ on path";;
     *)
         case "$opt_toolchain" in
-        msvc2015) bs_msvc2015_64_defaults;;
+        msvc2015) bs_msvc2015_defaults;;
+        msvc2017) bs_msvc2017_defaults;;
         *) bs_abort "unknown opt_toolchain $opt_toolchain";;
         esac
         ;;

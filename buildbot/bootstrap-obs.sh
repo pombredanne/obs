@@ -13,7 +13,7 @@ else
    cd ~/.obs
 fi
 
-SUDO=
+sudo=
 PREFIX=/usr
 if test -f /etc/issue
 then
@@ -36,12 +36,12 @@ cd obs
    # Always update, 'cause the git repo may have been updated without a following install
    # Retry once, in case the network was temporarily down.
    git pull --ff-only || (sleep 10; git pull --ff-only)
-   sudo make clean
+   $sudo make clean
    make obs bau bau.1 baugen.sh
 
    # On some systems, we installed it as root, tsk
    make PREFIX=$PREFIX uninstall-obs uninstall-bau 2>/dev/null || \
-   sudo make PREFIX=$PREFIX PREFIX=$PREFIX uninstall-obs uninstall-bau || true
+   $sudo make PREFIX=$PREFIX PREFIX=$PREFIX uninstall-obs uninstall-bau || true
 
    $sudo make PREFIX=$PREFIX install-obs install-bau
 

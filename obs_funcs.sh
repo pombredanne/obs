@@ -142,7 +142,10 @@ bs_detect_ncores() {
 # Only used on Windows
 bs_detect_toolchain()
 {
-    if test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0"
+    if test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio/2017/Community"
+    then
+        echo msvc2017
+    elif test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 14.0"
     then
         echo msvc2015
     elif test -d "/cygdrive/c/Program Files (x86)/Microsoft Visual Studio 12.0"
@@ -152,7 +155,7 @@ bs_detect_toolchain()
     then
         echo msvc2010
     else
-        bs_abort "None of Visual Studio 2015, 2013, nor 2010 detected" >&2
+        bs_abort "None of Visual Studio 2017 Community, 2015, 2013, nor 2010 detected" >&2
     fi
 }
 
