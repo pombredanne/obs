@@ -255,12 +255,23 @@ do_install_deps_base() {
     mv ninja.exe /bin/ninja.exe
   fi
 
+  # FIXME: hoist this out into projects!  Causes obs's 'make check' to fail.
+  case "$(pwd)" in
+  *obs*) echo "kludge; fixme";;
+  *)
   bs_install yobuild${yoversion}-${opt_toolchain}
   # Windows 10 requires dlls to be executable, but icu's aren't for some
   # reason.  FIXME: do this in bs_install in obs_funcs.sh
   ls -l $yobuild/bin/*.dll
   chmod +x $yobuild/bin/*.dll
+  esac
 }
+
+# Expect recipe to override this, and probably call do_install_deps_base
+do_install_deps() {
+  do_install_deps_base
+}
+
 
 #-- end really windows specific cruft --
 
