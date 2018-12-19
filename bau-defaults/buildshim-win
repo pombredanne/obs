@@ -245,7 +245,7 @@ do_install_deps_base() {
   install_pkg_config
   install_ruby
   zip --version > /dev/null || apt-cyg install zip
-  unzip --version > /dev/null || apt-cyg install unzip
+  unzip -v > /dev/null || apt-cyg install unzip
 
   if ! ninja --version
   then

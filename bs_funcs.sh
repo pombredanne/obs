@@ -495,7 +495,7 @@ bs_vcvars64() {
         bs_abort "Unknown version of visual C++ on path";;
     *)
         case "$opt_toolchain" in
-        msvc2015) bs_msvc2015_defaults;;
+        msvc2015) bs_msvc2015_64_defaults;;
         msvc2017) bs_msvc2017_defaults;;
         *) bs_abort "unknown opt_toolchain $opt_toolchain";;
         esac
