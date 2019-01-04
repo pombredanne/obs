@@ -1511,7 +1511,8 @@
             "name"     : "ob-x11-dm",
             "repourl"  : "git@gitlab.oblong.com:solutions/ob-x11-dm.git",
             "builders" : [
-                { "os":"ubu1604", "branch":"master" }
+                { "os":"ubu1604", "branch":"master" },
+                { "os":"ubu1804", "branch":"master" }
             ]
         },
         {
