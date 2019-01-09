@@ -455,7 +455,7 @@ bs_msvc2017_defaults() {
     export WindowsSDKVersion='10.0.17763.0\'
 }
 
-yb_msvc2017_64_defaults() {
+bs_msvc2017_64_defaults() {
     echo "Warning: No Visual C++ environment variables found, so making some up."
     echo "Please start cygwin from a Visual Studio Command Prompt instead."
     # Extracted by diffing environment between a cygwin shell started from
