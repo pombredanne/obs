@@ -345,18 +345,6 @@
         },
         {
             "category" : "backports",
-            "name"      : "third-party",
-            "repourl"   : "git@gitlab.oblong.com:mezzanine/third-party",
-            "comment"   : "pulls in mezzanine's favorite nodejs6, virtualbox, vagrant, docker-ce, fence-agents, and saltstack",
-            "builders"  : [
-                { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" },
-                { "os":"ubu1804", "branch":"master"              },
-                { "os":"ubu1804", "branch":"master", "try":"yes" }
-            ]
-        },
-        {
-            "category" : "backports",
             "name"      : "nodejs10",
             "repourl"   : "git@gitlab.oblong.com:dank/nodejs10.git",
             "builders"  : [
@@ -2353,6 +2341,8 @@
                 { "os":"ubu1604pi3",    "branch":"master",       "try":"yes" },
                 { "os":"ubu1804",       "branch":"master"                    },
                 { "os":"ubu1804",       "branch":"master",       "try":"yes" },
+                { "os":"win10_msvc2017","branch":"master"                    },
+                { "os":"win10_msvc2017","branch":"master",       "try":"yes" },
                 { "os":"win10",         "branch":"master"                    },
                 { "os":"win10",         "branch":"master",       "try":"yes" }
             ]
