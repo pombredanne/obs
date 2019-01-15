@@ -244,6 +244,8 @@ do_package() {
   # e.g. --preserve-envvar=GTEST_FILTER --preserve-envvar=PATH
   # but really the only indispensible one is DISPLAY for opengl tests.
   # Well, and MASTER, so bs_use_package_repo doesn't reference wrong apt repo by accident.
+  # bs_repotop is only exported by uberbau; without that, oblong-cef
+  # tries to download cef from wrong directory during local uberbau builds.
   debuild \
     --preserve-envvar=ASAN_OPTIONS \
     --preserve-envvar=ASAN_PRELOAD \
@@ -253,6 +255,7 @@ do_package() {
     --preserve-envvar=LSAN_OPTIONS \
     --preserve-envvar=MASTER \
     --preserve-envvar=TSAN_OPTIONS \
+    --preserve-envvar=bs_repotop \
     -b -uc -us -kbuildtools@oblong.com $parallel
   # We could do
   #   dpkg-buildpackage -b -uc -us -kbuildtools@oblong.com $parallel
