@@ -49,7 +49,7 @@ find_packages_ldd() {
 # Format: one per line, quoted, with indentation.
 copyright2spdx()
 {
-    scancode --quiet --json-pp - --license $f | jq --sort-keys "{spdx: .files[].licenses[].spdx_license_key}" | grep 'spdx' | sed 's/.*:/ /'
+    scancode --quiet --json-pp - --license $f | jq --sort-keys "{spdx: .files[].licenses[].spdx_license_key}" | grep 'spdx' | sed 's/.*:/ /' | sort -u
 }
 
 # Like copyright2spdx, but takes a package name, and handles special cases
