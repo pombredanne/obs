@@ -11,24 +11,41 @@
 # libc6  
 #   "glibc-special"
 
+long=false
+spdx=false
+while test "$1" != ""
+do
+  case "$1" in
+  --long) long=true; shift;;
+  --spdx) spdx=true; shift;;
+  *) break;;
+  esac
+done
+
 progname=`basename "$0"`
 binary="$1"
 
 case "$binary" in
 ""|-h|--help)
-  echo "Usage: ob-list-licenses /usr/bin/foobar"
-  echo "Given path to a dynamically linked binary, output dependencies it needs at runtime, along with spdx id of their licenses."
+  echo "Usage: ob-list-licenses [options] /usr/bin/foobar"
+  echo "Given path to a dynamically linked binary, output dependencies it needs at runtime, along with their licenses."
+  echo "Options:"
+  echo "--long: longer output format, for debugging"
+  echo "--spdx: convert pep-5 license name to spdx id"
   exit 0
 esac
 
-if ! scancode --version > /dev/null
+if $spdx
 then
-    echo "Please install scancode with 'pip install scancode-toolkit'"
-    exit 1
-fi
-if ! jq --version > /dev/null
-then
-    echo "Please install jq with 'sudo apt install jq'"
+    if ! scancode --version > /dev/null
+    then
+        echo "Please install scancode with 'pip install scancode-toolkit'"
+        exit 1
+    fi
+    if ! jq --version > /dev/null
+    then
+        echo "Please install jq with 'sudo apt install jq'"
+    fi
 fi
 
 find_packages_ldd() {
@@ -49,17 +66,34 @@ find_packages_ldd() {
 # Format: one per line, quoted, with indentation.
 copyright2spdx()
 {
-    scancode --quiet --json-pp - --license $f | jq --sort-keys "{spdx: .files[].licenses[].spdx_license_key}" | grep 'spdx' | sed 's/.*:/ /' | sort -u
+    if $spdx
+    then
+        # scancode is not really built for this.
+        local filter
+        case $long in
+        true)  filter="{info: .files[].licenses[]}";;
+        false) filter="{kind: .files[].licenses[].category, spdx: .files[].licenses[].spdx_license_key, name: .files[].licenses[].short_name}";;
+        esac
+
+        scancode --quiet --json-pp - --license /usr/share/doc/gcc/copyright | 
+          jq --compact-output "$filter" |
+          sort -u
+    else
+        # License: field isn't really spdx.
+        grep < $1 'License:' |
+          sed 's/License: /  /' |
+          sort -u
+    fi
 }
 
 # Like copyright2spdx, but takes a package name, and handles special cases
 pkg2spdx()
 {
-    # Special cases not handled by scancode yet
-    case $pkg in 
-    libc6)      echo '  "glibc-special"';;
-    libgcc1)    echo '  "libgcc1-special"';;
-    libstdc++6) echo '  "libstdc++6-special"';;
+    # If not long format, show shorter output for special cases not handled by scancode yet
+    case $long-$pkg in 
+    false-libc6)      echo '  "glibc-special"';;
+    false-libgcc1)    echo '  "libgcc1-special"';;
+    false-libstdc++6) echo '  "libstdc++6-special"';;
     *)
         if f=$(dpkg-query -L $pkg | grep copyright)
         then
@@ -72,6 +106,9 @@ pkg2spdx()
 # Output the licenses used by each package the binary uses
 for pkg in $(find_packages_ldd "$binary")
 do
-    echo "$pkg  "
+    echo -n "$pkg  "
+    dpkg-query -W -f='${Homepage}\n' $pkg | sort -u | tr '\012' ',' | sed 's/,$//'
+    echo ""
     pkg2spdx $pkg
+    echo ""
 done
