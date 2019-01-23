@@ -1,0 +1,77 @@
+#!/bin/sh
+# Script to output licenses used by runtime dependencies of a linux binary
+# Not yet well-defined; output format subject to change.
+#
+# Example:
+# $ ./ob-list-licenses /usr/bin/zip
+# libbz2-1.0  
+#   "GPL-2.0-or-later"
+#   "GPL-1.0-or-later"
+#   "bzip2-1.0.6"
+# libc6  
+#   "glibc-special"
+
+progname=`basename "$0"`
+binary="$1"
+
+case "$binary" in
+""|-h|--help)
+  echo "Usage: ob-list-licenses /usr/bin/foobar"
+  echo "Given path to a dynamically linked binary, output dependencies it needs at runtime, along with spdx id of their licenses."
+  exit 0
+esac
+
+if ! scancode --version > /dev/null
+then
+    echo "Please install scancode with 'pip install scancode-toolkit'"
+    exit 1
+fi
+if ! jq --version > /dev/null
+then
+    echo "Please install jq with 'sudo apt install jq'"
+fi
+
+find_packages_ldd() {
+    # ldd: List dynamic dependencies
+    #   sed: extract path to shared library
+    #   dpkg-query: find containing package
+    #   sed: extract name of package
+    ldd "$1" |
+      sed 's/ (.*//;s/.* //' |
+      sort -u |
+      xargs dpkg-query -S 2> /dev/null |
+      sed 's/:.*//' |
+      sort -u
+}
+
+# Take a path to a pep-5 copyright file
+# Outputs SPDX ids for all the licenses in that file
+# Format: one per line, quoted, with indentation.
+copyright2spdx()
+{
+    scancode --quiet --json-pp - --license $f | jq --sort-keys "{spdx: .files[].licenses[].spdx_license_key}" | grep 'spdx' | sed 's/.*:/ /'
+}
+
+# Like copyright2spdx, but takes a package name, and handles special cases
+pkg2spdx()
+{
+    # Special cases not handled by scancode yet
+    case $pkg in 
+    libc6)      echo '  "glibc-special"';;
+    libgcc1)    echo '  "libgcc1-special"';;
+    libstdc++6) echo '  "libstdc++6-special"';;
+    *)
+        if f=$(dpkg-query -L $pkg | grep copyright)
+        then
+            copyright2spdx $f
+        fi
+        ;;
+    esac
+}
+
+# Output the licenses used by each package the binary uses
+for pkg in $(find_packages_ldd "$binary")
+do
+    echo "$pkg  "
+    pkg2spdx $pkg
+done
