@@ -31,21 +31,23 @@ case "$binary" in
   echo "Given path to a dynamically linked binary, output dependencies it needs at runtime, along with their licenses."
   echo "Options:"
   echo "--long: longer output format, for debugging"
-  echo "--spdx: convert pep-5 license name to spdx id"
+  echo "--spdx: convert dep-5 license name to spdx id"
   exit 0
 esac
 
-if $spdx
+if ! scancode --version > /dev/null
 then
-    if ! scancode --version > /dev/null
-    then
-        echo "Please install scancode with 'pip install scancode-toolkit'"
-        exit 1
-    fi
-    if ! jq --version > /dev/null
-    then
-        echo "Please install jq with 'sudo apt install jq'"
-    fi
+    echo "Please install scancode with 'pip install scancode-toolkit'"
+    case "$PATH" in
+    */.local/bin*) ;;
+    *) echo 'and possibly add $HOME/.local/bin to PATH';;
+    esac
+    exit 1
+fi
+if ! jq --version > /dev/null
+then
+    echo "Please install jq with 'sudo apt install jq'"
+    exit 1
 fi
 
 find_packages_ldd() {
@@ -61,28 +63,38 @@ find_packages_ldd() {
       sort -u
 }
 
-# Take a path to a pep-5 copyright file
+# Take a path to a dep-5 copyright file
 # Outputs SPDX ids for all the licenses in that file
 # Format: one per line, quoted, with indentation.
 copyright2spdx()
 {
-    if $spdx
+    if egrep -q -i "^Format.*dep5|^Format.*copyright-format/1.0" < $1
     then
-        # scancode is not really built for this.
-        local filter
-        case $long in
-        true)  filter="{info: .files[].licenses[]}";;
-        false) filter="{kind: .files[].licenses[].category, spdx: .files[].licenses[].spdx_license_key, name: .files[].licenses[].short_name}";;
-        esac
-
-        scancode --quiet --json-pp - --license /usr/share/doc/gcc/copyright | 
-          jq --compact-output "$filter" |
-          sort -u
-    else
-        # License: field isn't really spdx.
+        # Definitely DEP-5 format.
+        # License: field isn't really an spdx id, but it's close...
         grep < $1 'License:' |
           sed 's/License: /  /' |
           sort -u
+    else
+        # Not really dep-5 format! 
+        local filter
+        case $long in
+        true)
+          # Let it all hang out
+          filter="{info: .files[].licenses[]}"
+          scancode --quiet --json-pp - --license $1 | 
+            jq --compact-output "$filter" |
+            sort -u
+          ;;
+        false)
+          # Show just SPDX id
+          filter="{spdx: .files[].licenses[].spdx_license_key}"
+          scancode --quiet --json-pp - --license $1 | 
+            jq --compact-output "$filter" |
+            sed 's/.*:"/  /;s/"}//' |
+            sort -u
+          ;;
+        esac
     fi
 }
 
@@ -91,9 +103,9 @@ pkg2spdx()
 {
     # If not long format, show shorter output for special cases not handled by scancode yet
     case $long-$pkg in 
-    false-libc6)      echo '  "glibc-special"';;
-    false-libgcc1)    echo '  "libgcc1-special"';;
-    false-libstdc++6) echo '  "libstdc++6-special"';;
+    false-libc6)      echo '  glibc-special';;
+    false-libgcc1)    echo '  libgcc1-special';;
+    false-libstdc++6) echo '  libstdc++6-special';;
     *)
         if f=$(dpkg-query -L $pkg | grep copyright)
         then
