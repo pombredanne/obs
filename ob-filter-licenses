@@ -1,16 +1,28 @@
 #!/usr/bin/perl
 # Copy a copyright file from stdin to stdout,
 # omitting sections that do not meet certain criteria.
+# Intended to help vet licenses for dynamically linked binaries.
 #
 # Currently for DEP-5 format files only.
-#
-# Criteria:
-# 1. License: stanzas must specify Files:
-#    (License: stanzas without Files: are simply footnotes of those that
-#     do, and don't mean same thing.)
 
 sub filter {
-    return grep(/Files:|Format:/, @buf);
+    # License: stanzas must specify Files:
+    # (License: stanzas without Files: are simply footnotes of those that
+    # do, and don't mean same thing.)
+    # testcase: libcap2
+    return if ! grep(/Files:|Format:/, @buf);
+
+    # Files: stanzas must specify some non-autoconf file
+    # (shared libs built using autoconf are not derivatives of autoconf)
+    # testcase: libgl1
+    return if grep(/Files:.*\.m4$/, @buf);
+
+    # Files: stanzas must specify some non-debian file
+    # (shared libs built using dpkg are not derivatives of debian/*)
+    # testcase: libann0
+    return if grep(/Files: debian\/\*$/, @buf);
+
+    return 1;
 }
 
 @buf = ();
