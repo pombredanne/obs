@@ -1,0 +1,25 @@
+#!/usr/bin/perl
+# Copy a copyright file from stdin to stdout,
+# omitting sections that do not meet certain criteria.
+#
+# Currently for DEP-5 format files only.
+#
+# Criteria:
+# 1. License: stanzas must specify Files:
+#    (License: stanzas without Files: are simply footnotes of those that
+#     do, and don't mean same thing.)
+
+sub filter {
+    return grep(/Files:|Format:/, @buf);
+}
+
+@buf = ();
+while (<>) {
+    if (/^$/) {
+        if (filter()) {print @buf; }
+        @buf = ();
+    }
+    push(@buf, $_);
+}
+   
+if (filter()) {print @buf; }

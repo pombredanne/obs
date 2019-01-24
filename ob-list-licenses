@@ -72,7 +72,8 @@ copyright2spdx()
     then
         # Definitely DEP-5 format.
         # License: field isn't really an spdx id, but it's close...
-        grep < $1 'License:' |
+        ob-filter-licenses < $1 |
+          grep 'License:' |
           sed 's/License: /  /' |
           sort -u
     else

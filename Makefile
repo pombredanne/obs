@@ -123,6 +123,7 @@ install-obs: obs
 	install -m 755 obs ob-remove.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-list-dbg-pkgs $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-list-licenses $(DESTDIR)$(PREFIX)/bin
+	install -m 755 ob-filter-licenses $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-build-deps $(DESTDIR)$(PREFIX)/bin
 
 uninstall: uninstall-bau uninstall-obs
