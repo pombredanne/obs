@@ -49,7 +49,7 @@ gitlab-ci-linter:
          touch gitlab-ci-linter; \
 	fi
 
-check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau check-version
+check: check-apt check-bau check-filter check-obs check-ob-set-defaults check-uberbau check-version
 
 check-version: obs
 	# Assert they are equal
@@ -65,6 +65,12 @@ check-version: obs
 	   fi; \
 	fi
 
+# We should use 'bats foo.bats', but bats is just too stingy with
+# output.  So instead write tests so they can run either as bats
+# tests or normal shell scripts, and just run them as the latter.
+# Feel free to run them with bats when testing by hand.
+# FIXME: flip the default and just use bats someday.
+
 check-apt: obs
 	egrep -v '@test|^}$$' < apt.bats > apt-test.sh
 	sh -xe apt-test.sh
@@ -79,6 +85,11 @@ check-obs: obs
 	egrep -v '@test|^}$$' < obs.bats > obs-test.sh
 	sh -xe obs-test.sh
 	rm obs-test.sh
+
+check-filter:
+	egrep -v '@test|^}$$' < ob-filter-licenses.bats > ob-filter-licenses-test.sh
+	sh -xe ob-filter-licenses-test.sh
+	rm ob-filter-licenses-test.sh
 
 check-uberbau: obs bau
 	egrep -v '@test|^}$$' < uberbau.bats > uberbau-test.sh

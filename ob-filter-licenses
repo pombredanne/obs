@@ -4,34 +4,80 @@
 # Intended to help vet licenses for dynamically linked binaries.
 #
 # Currently for DEP-5 format files only.
+#
+# Text munging like this is the classic use case for Perl,
+# and is one reason the language persists even though
+# Python is so much better in many ways...
+#
+# Copyright (C) 2019 Oblong Industries
+# License: https://opensource.org/licenses/0BSD
 
+use strict;
+use warnings;
+
+my @buf;
+my @files;
+my $in_files;
+
+# Return true if this stanza applies to
+# binaries linked dynamically against this package.
 sub filter {
+    # Trim leading and trailing whitespace
+    # It's not pure but at least it's idempotent...
+    grep(s/^\s+|\s+$//g, @files);
+
     # License: stanzas must specify Files:
     # (License: stanzas without Files: are simply footnotes of those that
     # do, and don't mean same thing.)
-    # testcase: libcap2
+    # e.g.: libcap2
+    # testcase: footnotes
     return if ! grep(/Files:|Format:/, @buf);
 
     # Files: stanzas must specify some non-autoconf file
     # (shared libs built using autoconf are not derivatives of autoconf)
-    # testcase: libgl1
-    return if grep(/Files:.*\.m4$/, @buf);
+    # e.g. libgl1
+    # testcase: autoconfy
+    # Return false if all files look like autoconf files
+    my $n = scalar(grep(/m4$/, @files));
+    return if ($n > 0 && $n == scalar(@files));
 
     # Files: stanzas must specify some non-debian file
     # (shared libs built using dpkg are not derivatives of debian/*)
-    # testcase: libann0
-    return if grep(/Files: debian\/\*$/, @buf);
+    # e.g.: libann0
+    # testcase: debian-star
+    return if grep(/^debian\/\*$/, @files);
 
     return 1;
 }
 
+# Bargain-basement DEP-5 parser
+# Parse incoming stanzas into @buf (full text) and @files (Files: portion).
+# As each one ends, print it if it passes the filter.
 @buf = ();
+@files = ();
+$in_files = 0;
 while (<>) {
     if (/^$/) {
         if (filter()) {print @buf; }
         @buf = ();
+        @files = ();
+        $in_files = 0;
     }
     push(@buf, $_);
+
+    # Files are listed after Files: and until next nonindented line,
+    # separated by commas and/or newlines.
+    if (/Files:/) {
+        # Remove leading literal Files: so $_ is left with just filenames (if any)
+	s/Files:\s*//;
+        $in_files = 1;
+    } elsif ($in_files && /^[a-zA-Z]/) {
+        # Non-indented line ends the Files: block
+        $in_files = 0;
+    }
+    if ($in_files) {
+      # If we're inside the Files: block, add this line's filenames to @files
+      push(@files, split(/,/, $_));
+    }
 }
-   
-if (filter()) {print @buf; }
+if (@buf && filter()) {print @buf; }

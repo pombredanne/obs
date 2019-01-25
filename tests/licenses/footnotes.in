@@ -1,0 +1,10 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: footnotes
+
+Files: *
+Copyright: Alfred E. Neuman
+License: MIT or Blarg
+
+License: Blarg
+ Blarg denies you the right to use anything, ever.
+ So there.
