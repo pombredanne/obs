@@ -1,0 +1,10 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ignore-mr
+
+Files: *
+Copyright: Numerius Negidius
+License: BSD-3-clause or GPL-2
+
+Files: debian/*
+Copyright: Numerius Negidius
+License: GPL-2+
