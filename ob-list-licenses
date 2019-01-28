@@ -11,16 +11,7 @@
 # libc6  
 #   "glibc-special"
 
-long=false
-spdx=false
-while test "$1" != ""
-do
-  case "$1" in
-  --long) long=true; shift;;
-  --spdx) spdx=true; shift;;
-  *) break;;
-  esac
-done
+set -e
 
 progname=`basename "$0"`
 binary="$1"
@@ -30,25 +21,9 @@ case "$binary" in
   echo "Usage: ob-list-licenses [options] /usr/bin/foobar"
   echo "Given path to a dynamically linked binary, output dependencies it needs at runtime, along with their licenses."
   echo "Options:"
-  echo "--long: longer output format, for debugging"
-  echo "--spdx: convert dep-5 license name to spdx id"
+  echo "--help: print this message"
   exit 0
 esac
-
-if ! scancode --version > /dev/null
-then
-    echo "Please install scancode with 'pip install scancode-toolkit'"
-    case "$PATH" in
-    */.local/bin*) ;;
-    *) echo 'and possibly add $HOME/.local/bin to PATH';;
-    esac
-    exit 1
-fi
-if ! jq --version > /dev/null
-then
-    echo "Please install jq with 'sudo apt install jq'"
-    exit 1
-fi
 
 find_packages_ldd() {
     # ldd: List dynamic dependencies
@@ -63,65 +38,31 @@ find_packages_ldd() {
       sort -u
 }
 
-# Take a path to a dep-5 copyright file
-# Outputs SPDX ids for all the licenses in that file
-# Format: one per line, quoted, with indentation.
-copyright2spdx()
-{
-    if egrep -q -i "^Format.*dep5|^Format.*copyright-format/1.0" < $1
-    then
-        # Definitely DEP-5 format.
-        # License: field isn't really an spdx id, but it's close...
-        ob-filter-licenses < $1 |
-          grep 'License:' |
-          sed 's/License: /  /' |
-          sort -u
-    else
-        # Not really dep-5 format! 
-        local filter
-        case $long in
-        true)
-          # Let it all hang out
-          filter="{info: .files[].licenses[]}"
-          scancode --quiet --json-pp - --license $1 | 
-            jq --compact-output "$filter" |
-            sort -u
-          ;;
-        false)
-          # Show just SPDX id
-          filter="{spdx: .files[].licenses[].spdx_license_key}"
-          scancode --quiet --json-pp - --license $1 | 
-            jq --compact-output "$filter" |
-            sed 's/.*:"/  /;s/"}//' |
-            sort -u
-          ;;
-        esac
-    fi
-}
-
-# Like copyright2spdx, but takes a package name, and handles special cases
-pkg2spdx()
-{
-    # If not long format, show shorter output for special cases not handled by scancode yet
-    case $long-$pkg in 
-    false-libc6)      echo '  glibc-special';;
-    false-libgcc1)    echo '  libgcc1-special';;
-    false-libstdc++6) echo '  libstdc++6-special';;
-    *)
-        if f=$(dpkg-query -L $pkg | grep copyright)
-        then
-            copyright2spdx $f
-        fi
-        ;;
-    esac
-}
-
 # Output the licenses used by each package the binary uses
 for pkg in $(find_packages_ldd "$binary")
 do
     echo -n "$pkg  "
     dpkg-query -W -f='${Homepage}\n' $pkg | sort -u | tr '\012' ',' | sed 's/,$//'
     echo ""
-    pkg2spdx $pkg
+    f=$(dpkg-query -L $pkg | grep copyright || echo /usr/share/doc/$pkg/copyright)
+    if ! test -f "$f"
+    then
+        echo "?"
+        continue
+    fi
+    # Paper over some corner cases here.
+    # C/C++ core system libraries are complex, best treated specially.
+    # libbz2-1.0 is funky, debian build but not upstream source claims to be GPL; probably they meant Files: debian/* was GPL.
+    case $pkg in
+    libc6|libgcc1|libstdc++6|libbz2-1.0)
+        echo "  $pkg-special";;
+    libjpeg-turbo8)  # copyright file is bit complicated...
+        echo "  JPEG"
+        echo "  RSA-MD";;
+    liblzma5)  # Reading copyright file carefully shows liblzma5 itself is PD
+        echo "  PD";;
+    *)
+        ob-parse-licenses $f;;
+    esac
     echo ""
 done

@@ -3,6 +3,7 @@ PREFIX = /usr
 UNAMEA := $(shell uname -a)
 COND_DARWIN := $(if $(findstring Darwin,$(UNAMEA)),1)
 COND_CYGWIN := $(if $(findstring CYGWIN,$(UNAMEA)),1)
+COND_LINUX  := $(if $(findstring Linux,$(UNAMEA)),1)
 ifeq ($(COND_DARWIN),1)
   $(message This is homebrew)
   XML_CATALOG_FILES=/usr/local/etc/xml/catalog
@@ -49,7 +50,7 @@ gitlab-ci-linter:
          touch gitlab-ci-linter; \
 	fi
 
-check: check-apt check-bau check-filter check-obs check-ob-set-defaults check-uberbau check-version
+check: check-apt check-bau check-filter check-parse check-obs check-ob-set-defaults check-uberbau check-version
 
 check-version: obs
 	# Assert they are equal
@@ -87,9 +88,22 @@ check-obs: obs
 	rm obs-test.sh
 
 check-filter:
+ifeq ($(COND_LINUX),1)
 	egrep -v '@test|^}$$' < ob-filter-licenses.bats > ob-filter-licenses-test.sh
 	sh -xe ob-filter-licenses-test.sh
 	rm ob-filter-licenses-test.sh
+else
+	echo "ob-list-licenses not supported on mac/windows, sorry"
+endif
+
+check-parse:
+ifeq ($(COND_LINUX),1)
+	egrep -v '@test|^}$$' < ob-parse-licenses.bats > ob-parse-licenses-test.sh
+	sh -xe ob-parse-licenses-test.sh
+	rm ob-parse-licenses-test.sh
+else
+	echo "ob-list-licenses not supported on mac/windows, sorry"
+endif
 
 check-uberbau: obs bau
 	egrep -v '@test|^}$$' < uberbau.bats > uberbau-test.sh
@@ -135,6 +149,7 @@ install-obs: obs
 	install -m 755 ob-list-dbg-pkgs $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-list-licenses $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-filter-licenses $(DESTDIR)$(PREFIX)/bin
+	install -m 755 ob-parse-licenses $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-build-deps $(DESTDIR)$(PREFIX)/bin
 
 uninstall: uninstall-bau uninstall-obs
