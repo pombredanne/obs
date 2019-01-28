@@ -1,0 +1,82 @@
+#!/bin/sh
+# Script to parse copyright files for shared libraries,
+# filter out sections not applicable to binaries dynamically linked
+# against them, and output spdx license identifiers in the order in
+# which they originally occurred.
+#
+# Example:
+# $ ob-parse-licenses /usr/share/doc/time/copyright
+
+set -e
+
+case "$1" in
+""|-h|--help)
+  echo "Usage: ob-parse-licenses [options] /usr/share/doc/foobar/copyright"
+  echo "Given path to a copyright file of a shared library,"
+  echo "output license ids that binaries linked to it should observe."
+  echo "Options:"
+  echo "--help: print this message"
+  exit 0
+esac
+
+if ! scancode --version > /dev/null
+then
+    echo "Please install scancode with 'pip install scancode-toolkit'"
+    case "$PATH" in
+    */.local/bin*) ;;
+    *) echo 'and possibly add $HOME/.local/bin to PATH';;
+    esac
+    exit 1
+fi
+if ! jq --version > /dev/null
+then
+    echo "Please install jq with 'sudo apt install jq'"
+    exit 1
+fi
+
+# Takes a local path to a copyright file
+# Outputs IDs of all licenses shared library users must obey.
+# Output format: one license ID per line, indented two spaces.
+#
+# If license ID is preceded by '@', it's a scancode license.
+# The license text for "@foo" can be found at the URL
+#  https://enterprise.dejacode.com/urn/urn:dje:license:foo
+# Otherwise if license ID is either a SPDX id or a nonstandardized id.
+# (FIXME: map common nonstandard ids to SPDX ids)
+# The license text for SPDX id "foo" can be found at the URL
+#  https://spdx.org/licenses/foo.html
+
+copyright2spdx()
+{
+    # zlib1g has Format: but not License:, so check both
+    if egrep -q -i "^Format.*dep5|^Format.*copyright-format/1.0" < $1 && egrep -q -i "^License:" < $1
+    then
+        # Definitely DEP-5 format.
+        # License: field isn't really an spdx id, but it's close...
+        # FIXME: map to real SPDX ids where we can
+        # Use ob-filter-licenses to skip licenses that don't apply to
+        # dynamically linked binaries.
+        ob-filter-licenses < $1 |
+          grep 'License:' |
+          sed 's/License: /  /'
+    else
+        # Not really dep-5 format! 
+        local filter
+        # jq's output is e.g. {"key":"x11-keith-packard","spdx":""}
+        # If spdx is empty, show key instead, with a marker indicating scancode key... say, @"
+        filter="{key: .files[].licenses[].key, spdx: .files[].licenses[].spdx_license_key}"
+        # FIXME: skip licenses that don't apply to dynamically linked binaries
+        scancode --quiet --json-pp - --license $1 | 
+          jq --compact-output "$filter" |
+          sed -E \
+            -e 's/\{"key":"(.*)","spdx":""\}/@\1/' \
+            -e 's/\{"key":".*","spdx":"(.*)"\}/\1/' \
+            -e 's/^/  /'
+    fi
+}
+
+for file
+do
+    # Perl does uniq with history, i.e. doesn't repeat lines it's seen before.
+    copyright2spdx $file | perl -e 'while (<STDIN>) { print if !$uniq{$_}++; }'
+done

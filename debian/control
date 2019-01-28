@@ -14,7 +14,12 @@ Build-Depends: build-essential,
    golang (>> 2:1.9) | golang-1.10,
 # possibly controversial - entropy magnifier to avoid build hangs due to lack of entropy
    haveged,
+   jq,
+   libicu-dev,
    libxml2-utils,
+   python-dev,
+   python-pip,
+   python-setuptools,
    reprepro,
    util-linux,
    xsltproc,
@@ -29,6 +34,7 @@ Depends: ${misc:Depends},
    dpkg-dev,
    debhelper (>= 8.0.0),
    devscripts,
+   jq,
 Description: Oblong-specific build tools
  Oblong bootstrap scripts.
  Simple, low level build/install/uninstall plumbing which works
