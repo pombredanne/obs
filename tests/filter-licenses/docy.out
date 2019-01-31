@@ -1,0 +1,6 @@
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=202
+Upstream-Name: docy
+
+Files: src/*.c
+Copyright: John Q. Public
+License: GPL

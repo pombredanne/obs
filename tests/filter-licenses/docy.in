@@ -1,0 +1,23 @@
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=202
+Upstream-Name: docy
+
+Files: src/*.c
+Copyright: John Q. Public
+License: GPL
+
+Files: doc/*
+Copyright: John Q. Public
+License: MIT or Blarg
+
+Files: poetry/rfc1121.txt
+Copyright: 1989 The Internet Society
+License: poetic
+
+Files: src/yogurt.cmake
+ CMakeLists.txt
+Copyright: 2010-2011, John Q. Public
+ 2011-2013, Johnny B. Good
+License: BSD-3-clause
+
+License: poetic
+ Words mean exactly what I say they do - nothing more, nothing less.

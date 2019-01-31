@@ -33,12 +33,19 @@ sub filter {
     # testcase: footnotes
     return if ! grep(/Files:|Format:/, @buf);
 
-    # Files: stanzas must specify some non-autoconf file
-    # (shared libs built using autoconf are not derivatives of autoconf)
-    # e.g. libgl1
+    # Files: stanzas must specify some non-autotools file
+    # (shared libs built using autoconf are not derivatives of autotools)
+    # e.g. libgl1, libgeotiff2
     # testcase: autoconfy
-    # Return false if all files look like autoconf files
-    my $n = scalar(grep(/m4$/, @files));
+    # Return false if all files look like autotools files
+    my $n = scalar(grep(/[^a-zA-Z]m4$|[^a-zA-Z]am$|build-aux|config.guess|config.sub|depcomp|missing|ltmain.sh/, @files));
+    return if ($n > 0 && $n == scalar(@files));
+
+    # Files: stanzas must specify some non-documentation, non-cmake file
+    # e.g. libunistring0 (doc), libheimntlm0-heimdal (txt), libxfreerdp-client1.1 (cmake)
+    # testcase: docy
+    # Return false if all files look like documentation or cmake
+    $n = scalar(grep(/doc\/|\.txt|\.cmake/, @files));
     return if ($n > 0 && $n == scalar(@files));
 
     # Files: stanzas must specify some non-debian file
