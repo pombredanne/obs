@@ -15,6 +15,10 @@ Files: m4/ax_gcc_func_attribute.m4
 Copyright: Max Mustermann
 License: GPL
 
+Files: build-aux/*
+Copyright: Max Mustermann
+License: GPL-2+
+
 Files:
  m4/fred.m4
  src/fred.c

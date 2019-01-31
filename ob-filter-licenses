@@ -38,7 +38,7 @@ sub filter {
     # e.g. libgl1
     # testcase: autoconfy
     # Return false if all files look like autoconf files
-    my $n = scalar(grep(/m4$/, @files));
+    my $n = scalar(grep(/m4$|build-aux/, @files));
     return if ($n > 0 && $n == scalar(@files));
 
     # Files: stanzas must specify some non-debian file
