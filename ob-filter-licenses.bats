@@ -16,3 +16,9 @@
   diff -u tests/filter-licenses/autoconfy.out autoconfy.tmp
   rm autoconfy.tmp
 }
+
+@test "docy" {
+  ./ob-filter-licenses tests/filter-licenses/docy.in > docy.tmp
+  diff -u tests/filter-licenses/docy.out docy.tmp
+  rm docy.tmp
+}
