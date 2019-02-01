@@ -75,8 +75,8 @@ are on the lines 'adding 1883 new builders' and 'adding 3766 new schedulers'.
 ## Gitlab configuration
 
 When configuring a gitlab project to do try builds against this buildbot:
-- add a webhook http://buildhost5.oblong.com:8010/change\_hook/gitlab for both push and merge\_request events, with the secret from secrets.dir/my-webhook-token
-- add the usual buildhost4 deploy key
+- add a webhook http://buildhost5.oblong.com:8010/change\_hook/gitlab for push, tag, and merge\_request events, with the secret from secrets.dir/my-webhook-token
+- add the usual buildhost5 deploy key
 - add user buildbot (or group share) with Developer or higher access to the project (and, when doing merge requests, to your fork of it)
 
 ## Worker configuration
