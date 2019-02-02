@@ -5,10 +5,10 @@ do_install_deps() {
   # Clearly, we should move to venv or something if we're going to keep using python...
   if ! scancode --version > /dev/null
   then
-    # If this fails, you could try https://github.com/simplejson/simplejson/issues/114
-    # but it's safer to just mv ~/.local ~/.local.old, since other strange
-    # problems lurk in a shared ~/.local (like scancode fails due to wrong
-    # version of future).
+    echo "If pip crashes, try (carefully) 'rm -rf ~/.local' and 'sudo apt remove python-configparser'"
+    echo "See https://github.com/simplejson/simplejson/issues/114"
+    echo "and https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1812589"
+    echo "Then reconsider the wisdom of using python at all.  Sheesh."
     pip install scancode-toolkit
   fi
 }
