@@ -4,7 +4,7 @@
 # installs bld/pre-commit (if present) as .git/hooks/pre-commit,
 # and installs oblong-spruce (if the git hooks refer to it).
 
-MASTER=${MASTER:-buildhost4.oblong.com}
+MASTER=${MASTER:-buildhost5.oblong.com}
 export MASTER
 
 usage() {

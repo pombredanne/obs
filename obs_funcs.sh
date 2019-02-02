@@ -119,8 +119,7 @@ bs_detect_os() {
 bs_default_master() {
     case $_os in
     "")              bs_abort "bs_default_master: _os not set" >&2;;
-    ubu1804|osx1014) echo buildhost5.oblong.com;;
-    *)               echo buildhost4.oblong.com;;
+    *)               echo buildhost5.oblong.com;;
     esac
 }
 
@@ -656,8 +655,8 @@ bs_apt_key_rm() {
 #   bs_apt_server_add localhost dummy.key /var/apt/repo
 #   bs_apt_server_add foo.com none /ubuntu
 # As called by bs_use_package_repo:
-#   bs_apt_server_add buildhost4.oblong.com /tmp/repo.key.3335 repobot/dev-xenial/apt repobot/rel-xenial/apt
-# where /tmp/repo.key.nnnn was downloaded from http://buildhost4.oblong.com/oblong.key.
+#   bs_apt_server_add buildhost5.oblong.com /tmp/repo.key.3335 repobot/dev-xenial/apt repobot/rel-xenial/apt
+# where /tmp/repo.key.nnnn was downloaded from http://buildhost5.oblong.com/oblong.key.
 # To sneakly download a different OS's packages, set bs_apt_codename first (e.g. to xenial)
 bs_apt_server_add() {
     bs_gpg_init
@@ -1008,8 +1007,8 @@ bs_apt_pkg_get_transitive() {
     esac
 
     # It is risky to parse verbose tool output, but I dunno where else to get the info.
-    # Ubuntu 14.04: Get:1 http://buildhost4.oblong.com/repobot/rel-trusty/apt/ trusty/non-free oblong-loam3.30 amd64 3.30.12-0 [74.0 kB]
-    # Ubuntu 16.04: Get:2 http://buildhost4.oblong.com/repobot/rel-xenial/apt/ xenial/non-free amd64 oblong-loam3.30 3.30.12-0 [74.0 kB]
+    # Ubuntu 14.04: Get:1 http://buildhost5.oblong.com/repobot/rel-trusty/apt/ trusty/non-free oblong-loam3.30 amd64 3.30.12-0 [74.0 kB]
+    # Ubuntu 16.04: Get:2 http://buildhost5.oblong.com/repobot/rel-xenial/apt/ xenial/non-free amd64 oblong-loam3.30 3.30.12-0 [74.0 kB]
     local field
     case $_os in
     ubu1404)

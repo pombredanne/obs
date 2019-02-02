@@ -12,7 +12,7 @@ It does not support transitive dependencies -- it just finds the tarball and unp
 First, arrange for passwordless login to the package server using your LDAP credentials, e.g.:
 
 ```
-$ ssh-copy-id buildhost4.oblong.com
+$ ssh-copy-id buildhost5.oblong.com
 ```
 
 Then:
@@ -134,7 +134,7 @@ $ bs_install_user=joe obs list
 Alternately, add something like this to ~/.ssh/config:
 
 ```
-Host buildhost4.oblong.com
+Host buildhost5.oblong.com
   User joe
 ```
 
