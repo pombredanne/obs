@@ -1,3 +1,13 @@
+oblong-obs (1.29) bionic; urgency=low
+
+  * obs, bau: default to buildhost5
+  * ob-list-licenses: new tool
+  * master.json: webthing-cef: removed 3396, added 3497, 3578
+  * uberbau: bugfixes
+  * better support for msvc2017
+
+ -- Dan Kegel <dank@oblong.com>  Fri, 08 Feb 2019 15:05:20 -0800
+
 oblong-obs (1.23) bionic; urgency=low
 
   * ob-set-defaults: when setting g-speak, get default yobuild from
