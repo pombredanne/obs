@@ -771,7 +771,6 @@ mirror_nobuild() {
         #mirror_one westar-$_os-master        apt rel
         mirror_one ceres-backport-$_os-master apt rel                             # needed by ir-inertial-tracking; called libceres-solver in ubu1804
         #mirror_one nodejs6-$_os-master                                apt rel   # replaced by mezzanine/third-party
-        mirror_one third-party-$_os-master                             apt rel   # provides nodejs6 and loads of other stuff, like node
         ;;
     esac
 
@@ -783,6 +782,7 @@ mirror_nobuild() {
         mirror_one oblong-v8-$_os-master-yobuild$YOVERSION            apt rel
         mirror_one obmcp-$_os-master                                  apt   rel
         mirror_one rubygems-deps-$_os-master apt rel
+        mirror_one third-party-$_os-master                            apt rel   # provides nodejs6 and loads of other stuff, like node
         ;;
     osx*)
         echo "Guessing about these versions..."
