@@ -27,7 +27,7 @@ do_install() {
         sudo apt install -y python3-pip && pip3 install buildbot-worker
     fi
   else
-    pip3 install buildbot-worker
+    pip3 install --user buildbot-worker || pip install --user buildbot-worker
   fi
 }
 
