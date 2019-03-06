@@ -9,6 +9,12 @@ do_install_deps() {
     echo "See https://github.com/simplejson/simplejson/issues/114"
     echo "and https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1812589"
     echo "Then reconsider the wisdom of using python at all.  Sheesh."
+    if python --version | grep 'Python 2\.7'
+    then
+      # Work around https://github.com/pytest-dev/pytest/issues/4772
+      yes | head | pip uninstall more-itertools
+      pip install more-itertools==5.0.0
+    fi
     pip install scancode-toolkit
   fi
 }
