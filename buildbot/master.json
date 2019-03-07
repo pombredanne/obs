@@ -2306,6 +2306,7 @@
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-gh",       "params":"--greenhouse"             },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-tdt",      "params":"--g-speak 4.9 --cef 3497 --no-tests --lmirror oblong-obmcp,oblong-yobuild12-gst-rtsp-server,libgles2-mesa-dev,libegl1-mesa-dev,oblong-yobuild12-cef3497 --lprojects libeukaryote,rtsp-viddle-server,staging,webthing-cef,hantenna,greenhouse,samples,growroom,git@gitlab-ibm.oblong.com:seabed/libseabed,libtrackingrenderer,ir_inertial,motion,mezzanine-kipple,mezzanine", "try":"yes" },
                 { "os":"ubu1604", "branch":"iz",       "suffix":"-tsan",     "params":"--tsan"                   },
+                { "os":"ubu1604", "branch":"iz",       "suffix":"-tsan",     "params":"--tsan",      "try":"yes" },
                 { "os":"ubu1604", "branch":"rel-4.2"                                                             },
                 { "os":"ubu1604", "branch":"rel-4.2",                                                "try":"yes" },
                 { "os":"ubu1604", "branch":"rel-4.4"                                                             },
