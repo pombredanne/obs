@@ -35,7 +35,7 @@ disk() {
    then
       diskutil info disk0 | grep 'Media Name' | sed 's/.*://;s/^ *//'
    else
-      device=$(df / | grep dev | sed 's, .*,,;s,/dev/,,;s/p[0-9]*$//')
+      device=$(df / | grep dev | sed 's, .*,,;s,/dev/,,;s/p[0-9]*$//;s/sda1/sda/')
       cat /sys/block/$device/device/model
    fi
 }
@@ -45,7 +45,7 @@ gpu() {
    then
       system_profiler SPDisplaysDataType | grep 'Chipset Model' | sed 's/.*: //'
    else
-      lspci | grep VGA | sed 's/.*: //;s/Corporation //;s/ (rev.*)//'
+      lspci | grep VGA | sed 's/.*: //;s/Corporation //;s/ (rev.*)//;s/NVIDIA GP107 .GeForce GTX 1050 Ti./Nvidia gtx1050ti/'
    fi
 }
 
