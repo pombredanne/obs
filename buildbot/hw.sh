@@ -7,7 +7,7 @@ model() {
    then
       sysctl -n hw.model
    else
-      sudo dmidecode -s system-manufacturer | sed 's/ Inc\.//' | tr '\012' ' '
+      sudo dmidecode -s system-manufacturer | sed 's/ Inc\.//;s/ Corporation//' | tr '\012' ' '
       sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //'
    fi
 }
@@ -24,7 +24,7 @@ cpu() {
 ram() {
    if test -d /Library
    then
-      sysctl -n hw.memsize | awk '{printf "%sG\n", $1 / (1024*1024*1024)'}
+      sysctl -n hw.memsize | awk '{printf "%sG\n", $1 / (1024*1024*1024)}'
    else
       free -h | awk '/Mem:/ {print $2}'
    fi
@@ -45,7 +45,12 @@ gpu() {
    then
       system_profiler SPDisplaysDataType | grep 'Chipset Model' | sed 's/.*: //'
    else
-      lspci | grep VGA | sed 's/.*: //;s/Corporation //;s/ (rev.*)//;s/NVIDIA GP107 .GeForce GTX 1050 Ti./Nvidia gtx1050ti/;s/NVIDIA GP104 .GeForce GTX 1080./Nvidia gtx1080/;s,Advanced Micro Devices. Inc. .AMD/ATI. Cape Verde PRO .FirePro W600.,ATI w600,'
+      lspci | grep VGA |
+	 sed 's/.*: //;s/Corporation //;s/ (rev.*)//' |
+	 sed 's/NVIDIA GP107 .GeForce GTX 1050 Ti./Nvidia gtx1050ti/;s/NVIDIA GP104 .GeForce GTX 1080./Nvidia gtx1080/' |
+	 sed 's,Advanced Micro Devices. Inc. .AMD/ATI. Cape Verde PRO .FirePro W600.,ATI w600,' |
+	 sed 's,Advanced Micro Devices. Inc. .AMD/ATI. Vega .Radeon RX Vega M.,ATI Radeon RX Vega M,' |
+	 cat
    fi
 }
 
