@@ -8,7 +8,7 @@ model() {
       sysctl -n hw.model
    else
       sudo dmidecode -s system-manufacturer | sed 's/ Inc\.//' | tr '\012' ' '
-      sudo dmidecode -s system-product-name | sed 's/Precision Tower //'
+      sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //'
    fi
 }
 
@@ -45,7 +45,7 @@ gpu() {
    then
       system_profiler SPDisplaysDataType | grep 'Chipset Model' | sed 's/.*: //'
    else
-      lspci | grep VGA | sed 's/.*: //;s/Corporation //;s/ (rev.*)//;s/NVIDIA GP107 .GeForce GTX 1050 Ti./Nvidia gtx1050ti/'
+      lspci | grep VGA | sed 's/.*: //;s/Corporation //;s/ (rev.*)//;s/NVIDIA GP107 .GeForce GTX 1050 Ti./Nvidia gtx1050ti/;s/NVIDIA GP104 .GeForce GTX 1080./Nvidia gtx1080/;s,Advanced Micro Devices. Inc. .AMD/ATI. Cape Verde PRO .FirePro W600.,ATI w600,'
    fi
 }
 
