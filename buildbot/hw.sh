@@ -8,7 +8,12 @@ model() {
       sysctl -n hw.model
    else
       sudo dmidecode -s system-manufacturer | sed 's/ Inc\.//;s/ Corporation//' | tr '\012' ' '
-      sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //'
+      pn=$(sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //')
+      if test "$pn" = ""
+      then
+        pn=$(sudo dmidecode -s baseboard-product-name)
+      fi
+      echo "$pn"
    fi
 }
 
@@ -17,7 +22,7 @@ cpu() {
    then
       sysctl -n machdep.cpu.brand_string | sed 's/.*) //;s/ CPU.*//'
    else
-      cat /proc/cpuinfo | grep 'model name' | sed 's/.*: //;s/(R)//;s/(TM)//;s/ CPU//;s/Core //' | sort -u
+      cat /proc/cpuinfo | grep 'model name' | sed 's/.*: //;s/(R)//;s/(TM)//;s/ CPU//;s/Core //;s/   */ /;s/  / /' | sort -u
    fi
 }
 
@@ -35,7 +40,13 @@ disk() {
    then
       diskutil info disk0 | grep 'Media Name' | sed 's/.*://;s/^ *//'
    else
-      device=$(df / | grep dev | sed 's, .*,,;s,/dev/,,;s/p[0-9]*$//;s/sda1/sda/')
+      volume=$(df / | grep dev | sed 's, .*,,')
+      case $volume in
+      *mapper*)
+         volume=$(sudo lvs -o +devices $volume | grep dev | sed 's/.* //;s/([0-9]*)$//')
+         ;;
+      esac
+      device=$(echo $volume | sed 's,/dev/,,;s/p[0-9]*$//;s/sda1/sda/')
       cat /sys/block/$device/device/model
    fi
 }
