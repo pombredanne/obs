@@ -7,8 +7,13 @@ model() {
    then
       sysctl -n hw.model
    else
-      sudo dmidecode -s system-manufacturer | sed 's/ Inc\.//;s/ Corporation//' | tr '\012' ' '
-      pn=$(sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //')
+      md=$(sudo dmidecode -s system-manufacturer)
+      if test "$mn" = ""
+      then
+        pn=$(sudo dmidecode -s baseboard-manufacturer)
+      fi
+      echo "$pn" | sed 's/ Inc\.//;s/ Corporation//' | tr '\012' ' '
+      pn=$(sudo dmidecode -s system-product-name | sed 's/Precision Tower //;s/Precision WorkStation //;s/   *$//')
       if test "$pn" = ""
       then
         pn=$(sudo dmidecode -s baseboard-product-name)
