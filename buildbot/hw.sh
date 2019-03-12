@@ -73,7 +73,8 @@ gpu() {
 ether() {
    if test -d /Library
    then
-      :
+      eth=$(route -n get default | awk '/interface:/ {print $2}')
+      ifconfig $eth | awk '/ether/ {print $2}'
    else
       eth=$(route -n | grep '^0.0.0.0' | awk '{print $8}')
       ip addr show dev $eth | grep ether | awk '{print $2}'
@@ -87,4 +88,4 @@ ether() {
    disk
    gpu
    ether
-) | sed 's/  *$//' | tr '\012' ';' | sed 's/;$/|/;s/;/; /g' | tr '|' '\012'
+) | sed 's/  *$//' | tr '\012' ';' | sed 's/;$/|/;s/;/; /g' | tr '|' '\012' | grep .
