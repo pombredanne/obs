@@ -77,7 +77,7 @@ ether() {
       ifconfig $eth | awk '/inet / {print $2}'
       ifconfig $eth | awk '/ether/ {print $2}'
    else
-      eth=$(route -n | grep '^0.0.0.0' | awk '{print $8}')
+      eth=$(route -n | awk '$1 == "0.0.0.0" && $2 != "0.0.0.0" {print $8}')
       ip addr show dev $eth | awk '/inet / {print $2}' | sed 's,/.*,,'
       ip addr show dev $eth | grep ether | awk '{print $2}'
    fi
