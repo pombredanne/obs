@@ -70,10 +70,21 @@ gpu() {
    fi
 }
 
+ether() {
+   if test -d /Library
+   then
+      :
+   else
+      eth=$(route -n | grep '^0.0.0.0' | awk '{print $8}')
+      ifconfig $eth | grep ether | awk '{print $2}'
+   fi
+}
+
 (
    model
    cpu
    ram
    disk
    gpu
+   ether
 ) | sed 's/  *$//' | tr '\012' ';' | sed 's/;$/|/;s/;/; /g' | tr '|' '\012'
