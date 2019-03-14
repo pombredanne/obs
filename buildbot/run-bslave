@@ -31,6 +31,9 @@ exec > bslave.log 2>&1
 # Make sure installed obs is up to date with git
 sh bootstrap-obs.sh
 
+# Update buildbot description
+sh ${SRC}/hw.sh > ~/slave-state/info/host
+
 if test -d /Library
 then
     # mac
