@@ -21,6 +21,7 @@
         { "os":"ubu1604",          "name":"rbb-ubu1604-3"                                },
         { "os":"ubu1604",          "name":"rbb-ubu1604-5"                                },
         { "os":"ubu1604",          "name":"rbb-ubu1604-6"                                },
+        { "os":"ubu1604",          "name":"rbb-ubu1604-7"                                },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-1"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-2"                             },
         { "os":"ubu1604pi3",       "name":"rbb-ubu1604pi3-3"                             },
@@ -2254,9 +2255,6 @@
                 { "os":"ubu1804",       "branch":"master"                    },
                 { "os":"ubu1804",       "branch":"master",       "try":"yes" },
                 { "os":"ubu1804",       "branch":"yobuild-next", "try":"yes" },
-                { "os":"win10",         "branch":"master"                    },
-                { "os":"win10",         "branch":"master",       "try":"yes" },
-                { "os":"win10",         "branch":"yobuild-next", "try":"yes" },
                 { "os":"win10_msvc2017","branch":"master"                    },
                 { "os":"win10_msvc2017","branch":"master",       "try":"yes" },
                 { "os":"win10_msvc2017","branch":"yobuild-next", "try":"yes" }
