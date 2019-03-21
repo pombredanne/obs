@@ -1,6 +1,9 @@
 do_install_deps() {
   bs_apt_install_deps
 
+  pip list
+  dpkg-query -l 'python-*'
+
   # Annoyingly, this will always fire if user doesn't have $HOME/.local/bin on PATH
   # Clearly, we should move to venv or something if we're going to keep using python...
   if ! scancode --version > /dev/null
@@ -16,5 +19,12 @@ do_install_deps() {
       pip install more-itertools==5.0.0
     fi
     pip install scancode-toolkit
+
+    pip list
+    dpkg-query -l 'python-*'
+
+    scancode --help
+    scancode --version
+    scancode --about
   fi
 }
