@@ -1,29 +1,35 @@
 do_install_deps() {
   bs_apt_install_deps
 
-  pip list
   dpkg-query -l 'python-*'
-
-  # python-configparser version 3.5.0 and earlier breaks the backports namespace,
-  # see https://github.com/PiDelport/backports.os/issues/11
-  if ! pip list --format=columns | grep 'configparser *3\.[^5]'
-  then
-    pip install --user 'configparser>3.5'
-  fi
+  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
 
   echo "If pip crashes, try (carefully) 'rm -rf ~/.local' and 'sudo apt remove python-configparser'"
   echo "See https://github.com/simplejson/simplejson/issues/114"
   echo "and https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1812589"
   echo "Then reconsider the wisdom of using python at all.  Sheesh."
-  if python --version | grep 'Python 2\.7' && pip --version | grep 'pip 8\.'
+  if python --version 2>&1 | grep 'Python 2\.7' && pip --version | grep 'pip 8\.'
   then
     # Work around https://github.com/pytest-dev/pytest/issues/4772
     # and https://github.com/nexB/scancode-toolkit/issues/1463
     # and https://github.com/jaraco/jaraco.functools/issues/10
     # by installing an older more-itertools
-    yes | head | pip uninstall more-itertools
+    yes | head | pip uninstall -y more-itertools
     pip install 'more-itertools<6.0.0'
   fi
+  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
+
+  # python-configparser version 3.5.0 and earlier breaks the backports namespace,
+  # see https://github.com/PiDelport/backports.os/issues/11
+  if dpkg-query -l python-configparser | grep 'configparser *3\.[^5]'
+  then
+    sudo apt remove -y python-configparser
+  fi
+  if ! (pip list --format=legacy || pip list ) | grep 'configparser[^0-9]*3\.[^5]'
+  then
+    pip install --user 'configparser>3.5'
+  fi
+  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
 
   # Can't just see if it's fully installed by running its --version option,
   # that might miss some dynamic path.
@@ -37,14 +43,12 @@ do_install_deps() {
     # see https://github.com/nexB/scancode-toolkit/issues/1464
     # https://github.com/simplejson/simplejson/issues/114
     # https://github.com/simplejson/simplejson/issues/245
-    pip uninstall simplejson || true
+    pip uninstall -y simplejson || true
     pip install scancode-toolkit
   fi
   rm -rf blarg.tmp
-
-  pip list
+  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
   dpkg-query -l 'python-*'
-
   scancode --help
   scancode --version
   scancode --about
