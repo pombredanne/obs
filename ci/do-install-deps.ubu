@@ -4,27 +4,48 @@ do_install_deps() {
   pip list
   dpkg-query -l 'python-*'
 
-  # Annoyingly, this will always fire if user doesn't have $HOME/.local/bin on PATH
-  # Clearly, we should move to venv or something if we're going to keep using python...
-  if ! scancode --version > /dev/null
+  # python-configparser version 3.5.0 and earlier breaks the backports namespace,
+  # see https://github.com/PiDelport/backports.os/issues/11
+  if ! pip list --format=columns | grep 'configparser *3\.[^5]'
   then
-    echo "If pip crashes, try (carefully) 'rm -rf ~/.local' and 'sudo apt remove python-configparser'"
-    echo "See https://github.com/simplejson/simplejson/issues/114"
-    echo "and https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1812589"
-    echo "Then reconsider the wisdom of using python at all.  Sheesh."
-    if python --version | grep 'Python 2\.7'
-    then
-      # Work around https://github.com/pytest-dev/pytest/issues/4772
-      yes | head | pip uninstall more-itertools
-      pip install more-itertools==5.0.0
-    fi
-    pip install scancode-toolkit
-
-    pip list
-    dpkg-query -l 'python-*'
-
-    scancode --help
-    scancode --version
-    scancode --about
+    pip install --user 'configparser>3.5'
   fi
+
+  echo "If pip crashes, try (carefully) 'rm -rf ~/.local' and 'sudo apt remove python-configparser'"
+  echo "See https://github.com/simplejson/simplejson/issues/114"
+  echo "and https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1812589"
+  echo "Then reconsider the wisdom of using python at all.  Sheesh."
+  if python --version | grep 'Python 2\.7' && pip --version | grep 'pip 8\.'
+  then
+    # Work around https://github.com/pytest-dev/pytest/issues/4772
+    # and https://github.com/nexB/scancode-toolkit/issues/1463
+    # and https://github.com/jaraco/jaraco.functools/issues/10
+    # by installing an older more-itertools
+    yes | head | pip uninstall more-itertools
+    pip install 'more-itertools<6.0.0'
+  fi
+
+  # Can't just see if it's fully installed by running its --version option,
+  # that might miss some dynamic path.
+  # Clearly, we should move to venv or something if we're going to keep using python...
+  rm -rf blarg.tmp
+  mkdir blarg.tmp
+  echo Hi > blarg.tmp/file.dat
+  if ! ~/.local/bin/scancode --json-pp - --license --package blarg.tmp
+  then
+    # Installing simplejson twice crashes on ubuntu 18.04 and earlier,
+    # see https://github.com/nexB/scancode-toolkit/issues/1464
+    # https://github.com/simplejson/simplejson/issues/114
+    # https://github.com/simplejson/simplejson/issues/245
+    pip uninstall simplejson || true
+    pip install scancode-toolkit
+  fi
+  rm -rf blarg.tmp
+
+  pip list
+  dpkg-query -l 'python-*'
+
+  scancode --help
+  scancode --version
+  scancode --about
 }
