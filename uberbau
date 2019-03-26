@@ -771,6 +771,7 @@ mirror_nobuild() {
         #mirror_one westar-$_os-master        apt rel
         mirror_one ceres-backport-$_os-master apt rel                             # needed by ir-inertial-tracking; called libceres-solver in ubu1804
         #mirror_one nodejs6-$_os-master                                apt rel   # replaced by mezzanine/third-party
+        mirror_one guile-2.2-$_os-master      apt rel                            # needed by mosaic (and thus staging tdt)
         ;;
     esac
 
