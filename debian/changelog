@@ -1,3 +1,11 @@
+oblong-obs (1.30) bionic; urgency=low
+
+  * uberbau: on ubu1604, mirror guile, too
+  * uberbau: on ubu1804, mirror nodejs6, too
+  * debian: depend on python-wheel so scancode can install
+
+ -- Dan Kegel <dank@oblong.com>  Sat, 30 Mar 2019 11:48:35 -0700
+
 oblong-obs (1.29) bionic; urgency=low
 
   * obs, bau: default to buildhost5
