@@ -1,8 +1,12 @@
+show_info() {
+  dpkg-query -l 'python-*' || true
+  pip list | egrep 'future|more-itertools|configparser|simplejson|scancode-toolkit' || true
+}
+
 do_install_deps() {
   bs_apt_install_deps
 
-  dpkg-query -l 'python-*'
-  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
+  show_info
 
   echo "If pip crashes, try (carefully) 'rm -rf ~/.local' and 'sudo apt remove python-configparser'"
   echo "See https://github.com/simplejson/simplejson/issues/114"
@@ -17,7 +21,7 @@ do_install_deps() {
     yes | head | pip uninstall -y more-itertools
     pip install 'more-itertools<6.0.0'
   fi
-  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
+  show_info
 
   # python-configparser version 3.5.0 and earlier breaks the backports namespace,
   # see https://github.com/PiDelport/backports.os/issues/11
@@ -29,7 +33,7 @@ do_install_deps() {
   then
     pip install --user 'configparser>3.5'
   fi
-  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
+  show_info
 
   # Can't just see if it's fully installed by running its --version option,
   # that might miss some dynamic path.
@@ -47,8 +51,7 @@ do_install_deps() {
     pip install scancode-toolkit
   fi
   rm -rf blarg.tmp
-  pip list | egrep 'more-itertools|configparser|simplejson|scancode-toolkit'
-  dpkg-query -l 'python-*'
+  show_info
   scancode --help
   scancode --version
   scancode --about
