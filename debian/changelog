@@ -1,3 +1,9 @@
+oblong-obs (1.31) bionic; urgency=low
+
+  * Makefile: don't test scancode until it can be installed reliably via pip
+
+ -- Dan Kegel <dank@oblong.com>  Sat, 30 Mar 2019 22:02:17 -0700
+
 oblong-obs (1.30) bionic; urgency=low
 
   * uberbau: on ubu1604, mirror guile, too
