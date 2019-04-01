@@ -2542,6 +2542,25 @@
         },
         {
             "category" : "solutions",
+            "name"     : "mosaic2",
+            "repourl"  : "git@gitlab.oblong.com:solutions/mosaic2.git",
+            "builders" : [
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9"               },
+                { "os":"osx1012", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9",  "try":"yes" },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9"               },
+                { "os":"osx1013", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9",  "try":"yes" },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9"               },
+                { "os":"osx1014", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9",  "try":"yes" },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9"               },
+                { "os":"ubu1604", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9"               },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.9",  "params":"--g-speak 4.9",  "try":"yes" },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.9-as",  "params":"--g-speak 4.9 --asan --debug"               },
+                { "os":"ubu1804", "branch" : "master",   "suffix":"-4.9-as",  "params":"--g-speak 4.9 --asan --debug",  "try":"yes" }
+            ]
+        },
+        {
+            "category" : "solutions",
             "name"     : "busby-player",
             "repourl"  : "git@gitlab.oblong.com:solutions/busby/busby-player.git",
             "builders" : [
