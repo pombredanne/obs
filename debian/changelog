@@ -1,3 +1,9 @@
+oblong-obs (1.32) bionic; urgency=low
+
+  * No user visible changes, tagging a release to test the pipeline.
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 02 Apr 2019 13:01:36 -0700
+
 oblong-obs (1.31) bionic; urgency=low
 
   * Makefile: don't test scancode until it can be installed reliably via pip
