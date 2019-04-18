@@ -29,7 +29,7 @@ blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-o
 
 # Regular expression for packages to not remove, even though they are may be from oblong
 # The mesa/libgbm1/libxatracker2 entries are to avoid removing build products of oblong-mesa
-whitelist_re="oblong-obs|oblong-bau|-mesa|mesa-|libgbm1|libxatracker2"
+whitelist_re="oblong-obs|oblong-bau|-mesa|mesa-|libgbm1|libxatracker2|udev|systemd|ubuntu-keyring"
 
 OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -v "$whitelist_re" || true)
 if test "$opt_rubytoo"
