@@ -37,6 +37,18 @@ sh ${SRC}/hw.sh > ~/slave-state/info/host
 if test -d /Library
 then
     # mac
+
+    # Make sure system python pip2 is on the path.
+    # On mac os 10.11 and up, this has to be installed with
+    #  wget https://bootstrap.pypa.io/get-pip.py; python get-pip.py --user; echo 'PATH=${PATH}:$HOME/Library/Python/2.7/bin' >> ~/.profile
+    # since SIP disallows writing to /usr.
+    #
+    # FIXME: finish transition to python 3, using brew.
+    # The only argument for not using brew python is it would prevent
+    # shipping system python2 bindings for our native libraries.
+    PATH="$PATH:$HOME/Library/Python/2.7/bin"
+    which pip
+
     # caffeinate's assertions only last 15 seconds regardless of -t,
     # so reissue constantly.
     ./bslave-watchdog &
