@@ -1239,7 +1239,12 @@ bs_deps_list() {
 # Uninstall all dependencies we know about, including any build-deps,
 # and anything they pulled in, then clear dependency list.
 bs_apt_uninstall_deps() {
-    $SUDO apt-get -q autoremove --purge -y $(bs_deps_list) 'build-deps*' || true
+    # Regular expression for packages to not remove, even though they are may be from oblong
+    # The mesa/libgbm1/libxatracker2 entries are to avoid removing build products of oblong-mesa
+    # Keep this list in sync with the one in ob-remove.sh.
+    local whitelist_re="oblong-obs|-mesa|mesa-|libgbm1|libxatracker2|udev|systemd|ubuntu-keyring"
+
+    $SUDO apt-get -q autoremove --purge -y $(bs_deps_list | egrep -v "$whitelist_re") 'build-deps*' || true
     bs_deps_clear
 }
 
