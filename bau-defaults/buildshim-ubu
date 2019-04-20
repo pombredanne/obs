@@ -705,4 +705,7 @@ origdir="$(pwd)"
 # FIXME: this'll be wrong if yoversion changes during 'bau all', e.g. from 'ob-set-defaults --g-speak 4.2'
 # NOTE: and it's also ignored during do_package; debuild clears the environment, so
 # the project's debian/rules has to set PATH itself.
-PATH="/opt/oblong/deps-$(getconf LONG_BIT)-$(bs_yovo2yoversion $(bs_get_gspeak_version))/bin:$PATH"
+if YOBUILDHOME="$(bs_get_yobuild_home)"
+then
+    PATH="$YOBUILDHOME/bin:$PATH"
+fi

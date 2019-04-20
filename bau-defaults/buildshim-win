@@ -643,4 +643,7 @@ bits=$(getconf LONG_BIT)
 
 # Pick up any tools we need from yobuild
 # FIXME: this'll be wrong if yoversion changes during 'bau all'
-PATH="/cygdrive/c/$(bs_get_yobuild_home)/bin:$PATH"
+if YOBUILDHOME="/cygdrive/c/$(bs_get_yobuild_home)"
+then
+    PATH="$YOBUILDHOME/bin:$PATH"
+fi

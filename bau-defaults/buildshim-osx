@@ -625,4 +625,7 @@ origdir="$(pwd)"
 
 # Pick up a newer cmake (say, from oblong-yobuild11-cmake)
 # FIXME: this'll be wrong if yoversion changes during 'bau all', e.g. from 'ob-set-defaults --g-speak 4.2'
-PATH="$(bs_get_yobuild_home)/bin:$PATH"
+if YOBUILDHOME="$(bs_get_yobuild_home)"
+then
+    PATH="$YOBUILDHOME/bin:$PATH"
+fi
