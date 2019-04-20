@@ -252,6 +252,8 @@
   ./obs get_changenum_git
   ./obs yovo2cefversion 4.0
   ./obs yovo2yoversion 4.0
+  ./obs yovo2cefversion 5.0
+  ./obs yovo2yoversion 5.0
   vers=$(./obs yovo2yoversion 4.0.5)
   if test "$vers" != 11
   then
