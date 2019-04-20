@@ -34,8 +34,15 @@ bs_yovo2yoversion() {
     3.*|4.0|4.0.*)
         echo 11
         ;;
-    4.*)
+    4.[0-8])
         echo 12
+        ;;
+    4.9|5.*)
+        echo 13
+        ;;
+    *)
+        # Errors to stderr since callers always redirect stdout to a variable
+        bs_abort "unsupported yovo version $1" >&2
         ;;
     esac
 }
