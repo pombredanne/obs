@@ -490,6 +490,7 @@ bs_untar_restricted() {
     /opt/*) dest="/opt"; depth=1;;
     /./opt/*) dest="/opt"; depth=2;;
     /cygdrive/c/opt/*) dest="/cygdrive/c/opt"; depth=3;;
+    /cygdrive/c//opt/*) dest="/cygdrive/c/opt"; depth=3;;  # --strip-components ignores doubled slashes
     *) bs_abort "bs_untar_restricted: illegal destination $dest for tarball $1, only /usr/local and /opt allowed";;
     esac
 
