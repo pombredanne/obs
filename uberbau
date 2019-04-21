@@ -819,7 +819,8 @@ mirror_yobuild() {
     case $YOVERSION in
     10) p=yobuild-$_os-rel-$YOVERSION;;
     11) p=yobuild-$_os-rel-$YOVERSION;;
-    12) p=yobuild-$_os-master;;
+    1*) p=yobuild-$_os-master;;
+    *) bs_abort "Unknown YOVERSION $YOVERSION; either set that or do 'uberbau set-gspeak X.Y'";;
     esac
 
     case $_os in
