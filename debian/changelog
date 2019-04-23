@@ -1,3 +1,9 @@
+oblong-obs (1.33) bionic; urgency=low
+
+  * Support yobuild13.
+
+ -- Dan Kegel <dank@oblong.com>  Tue, 23 Apr 2019 13:59:24 -0700
+
 oblong-obs (1.32) bionic; urgency=low
 
   * No user visible changes, tagging a release to test the pipeline.
