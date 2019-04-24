@@ -1252,7 +1252,7 @@ bs_apt_uninstall_deps() {
     # Keep this list in sync with the one in ob-remove.sh.
     local whitelist_re="oblong-obs|-mesa|mesa-|libgbm1|libxatracker2|udev|systemd|ubuntu-keyring"
 
-    $SUDO apt-get -q autoremove --purge -y $(bs_deps_list | egrep -v "$whitelist_re") 'build-deps*' || true
+    $SUDO apt-get -q autoremove --purge -y $(bs_deps_list | egrep -wv "$whitelist_re") 'build-deps*' || true
     bs_deps_clear
 }
 
