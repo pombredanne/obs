@@ -342,7 +342,9 @@ do_package() {
   )
   rm -f "$pkgname-$buildtype-$version-$version_patchnum".tar.gz
   cd pkgtmp
-  tar -C . -czvf "../$pkgname-$buildtype-$version-$version_patchnum".tar.gz *
+  # Must specify location of tar to avoid getting broken one from windows/system32
+  # That tar strips the executable bit from dll's, which causes them to not load.
+  /usr/bin/tar -C . -czvf "../$pkgname-$buildtype-$version-$version_patchnum".tar.gz *
   cd ..
   rm -rf pkgtmp
 }
