@@ -117,6 +117,13 @@ check-ob-set-defaults:
 	sh -xe ob-set-defaults-test.sh
 	rm ob-set-defaults-test.sh
 
+ifeq ($(COND_CYGWIN),1)
+check-win:
+	egrep -v '@test|^}$$' < win.bats > win.sh
+	sh -xe win.sh
+	rm win.sh
+endif
+
 install: install-bau install-obs install-go
 
 install-go: renderizer gitlab-ci-linter

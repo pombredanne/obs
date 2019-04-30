@@ -54,7 +54,7 @@ done
 BAU_CMD=$(printf %s "$1" | tr '-' '_'); shift
 
 # Locate and source shell library
-if test "`which greadlink`" != ""
+if test "`which greadlink 2>/dev/null`" != ""
 then
    BAU_SELF="$(greadlink -f "$0")"
 else
