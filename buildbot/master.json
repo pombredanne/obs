@@ -2946,8 +2946,7 @@
                 { "os" : "ubu1604",           "branch"  : "mz"                                                                 },
                 { "os" : "ubu1604",           "branch"  : "mz",                                                    "try":"yes" },
                 { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.8"                       },
-                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.8",          "try":"yes" },
-                { "os" : "ubu1804",           "branch"  : "mz", "suffix":"-as", "params":"--g-speak 4.8 --asan --no-publish"   }
+                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.8",          "try":"yes" }
             ]
         },
         {
