@@ -43,7 +43,11 @@ BAU_VERBOSE=0
 while true
 do
     case "$1" in
-    -v)        set -x; BAU_VERBOSE=1; export BAU_VERBOSE;;
+    -v)
+        echo -n "bau: Current directory is "
+        pwd
+        set -x; BAU_VERBOSE=1; export BAU_VERBOSE
+        ;;
     --version) echo "bau versionoid $BAU_VERSIONOID"; exit 0;;
     -h|--help) usage; shift; set -- help "$@"; break;;
     ""|-*)     usage; exit 1;;
