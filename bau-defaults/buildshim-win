@@ -600,13 +600,11 @@ _EOF_
 
 # Initialize test environment
 bs_test_env_setup() {
-  # FIXME: this is yovo-specifc, move it to yovo/ci,
-  # e.g. append there to GTEST_FILTER and BS_CTEST_EXTRA
-  bs_warn "FIXME: Work around bug 12337, which causes tests to fail randomly every time"
-  export GTEST_FILTER="-EaseSoftTest.*"
+  echo "bau-defaults/buildshim-win: to set GTEST_FILTER, BS_CTEST_EXTRA, or PATH for do_check, define bs_test_env_setup() in ci/do-check.win."
 
-  bs_warn "FIXME: work around bug 12597 (pingpong test fails randomly, stress_test fails repeatably)."
-  EXCLUDE="--exclude-regex pingpong_test|stress_tests|await_test"
+  # Make sure this g-speak is on PATH at all, and is found before any others,
+  # else cmake won't find our OblongConfig.cmake.
+  PATH="/cygdrive/c/$(bs_get_gspeak_home)/bin:$PATH"
 }
 
 bs_test_env_teardown() {
