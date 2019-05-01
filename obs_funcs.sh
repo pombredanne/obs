@@ -261,7 +261,8 @@ bs_get_yobuild_home() {
     if test -f "${bs_origdirslash}debian/rules" && egrep -q '^YOBUILD=' "${bs_origdirslash}debian/rules"
     then
         # First try: get from debian/rules
-        awk -F= '/^YOBUILD=/ {print $2}' "${bs_origdirslash}debian/rules"
+        # FIXME: on Windows, debian/rules in samples is a Windows-style path, kind of, with C: tacked on.  Convert to cygwin.
+        awk -F= '/^YOBUILD=/ {print $2}' "${bs_origdirslash}debian/rules" | sed 's,^C:,/cygdrive/c,;s,//,/,g'
     elif ob-version | awk 'BEGIN { err=1 } /ob_yobuild_dir/ { print $3; err=0 } END { exit err }'
     then
         # Second try: ask ob-version
