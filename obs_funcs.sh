@@ -308,10 +308,10 @@ bs_get_version_git() {
     # tag-COUNT-CHECKSUM
     # or, if at a tag,
     # tag
-    if ! d1=$(git describe --long)
+    if ! d1=$(git describe --long 2> /dev/null)
     then
         # let bau work in samples
-        bs_warn "bs_get_version_git: not in a git repo.  Returning version 0.1." >&2
+        echo "bs_get_version_git: not in a git repo.  Returning version 0.1." >&2
         echo "0.1"
         return
     fi
@@ -346,7 +346,7 @@ bs_get_major_version_git() {
 # Assumes tags are like rel-3.x or dev-4.5.1, or maybe just 3.x, and returns the numeric part after the first dot
 # Ignores lightweight tags, i.e. assumes versions are tagged with git -a -m
 bs_get_minor_version_git() {
-    git describe --long | sed 's/.*\.\([0-9]*\).*/\1/'
+    git describe --long 2> /dev/null | sed 's/.*\.\([0-9]*\).*/\1/'
 }
 
 # Echo the change number since the start of this branch as given by git
@@ -357,7 +357,7 @@ bs_get_changenum_git() {
     if ! d1=$(git describe --long 2> /dev/null)
     then
         # No releases!  Just count changes since epoch.
-        git log --oneline | wc -l | sed 's/^[[:space:]]*//'
+        git log --oneline 2> /dev/null | wc -l | sed 's/^[[:space:]]*//'
         return 0
     fi
     d2=$(echo "$d1" | sed 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]*$//')
