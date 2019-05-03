@@ -613,6 +613,7 @@ bs_kludge_init_git_lfs() {
             # We have added git-lfs 2.0.2 to our local ubuntu 16.04 repository,
             # see https://gitlab.oblong.com/platform/git-lfs   Longer term,
             # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=792075
+            sudo apt-get $apt_quiet update
             sudo apt-get install $apt_quiet -y git-lfs
             ;;
         osx*)
