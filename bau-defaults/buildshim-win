@@ -631,8 +631,9 @@ case $(basename "$origdir") in
 build) dir=$(dirname "$origdir");;
 *) dir="$origdir";;
 esac
-dir=$(basename "$dir")
-btmp=/cygdrive/c/builds/"$dir"
+# We used to put this in /cygdrive/c/builds, but that was hard to get right,
+# and with long path support, probably no longer needed.
+btmp=btmp
 
 # FIXME: parse this from args?
 opt_toolchain=$(bs_detect_toolchain)
