@@ -62,25 +62,6 @@ bs_os_pkg_suffix() {
     esac
 }
 
-# Echo the change number since the start of this branch as given by git
-bs_get_changenum_git() {
-    # git describe --long's output looks like
-    # name-COUNT-CHECKSUM
-    # First strip off the checksum field, then the name.
-    if ! d1=$(git describe --long 2> /dev/null)
-    then
-        # No releases!  Just count changes since epoch.
-        git log --oneline | wc -l | sed 's/^[[:space:]]*//'
-        return 0
-    fi
-    d2=$(echo $d1 | sed 's/-g[a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9][a-z0-9]*$//')
-    d3=$(echo $d2 | sed 's/^.*-//')
-    case "$d3" in
-    "") bs_abort "can't parse change number from git describe --long's output $d1";;
-    esac
-    echo $d3
-}
-
 # Echo the package name suffix as given by git
 # Used by admin-web-* repos
 bs_get_custom_name_git() {
