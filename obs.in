@@ -72,6 +72,16 @@ _EOF_
 # Must be integer
 OBS_VERSIONOID=@VERSIONOID@
 
+# On Windows, this may be invoked without /bin or /usr/bin on PATH, causing
+# obs to fail when it runs e.g. uname.
+# Not sure of best way to test for this, so just see if those dirs are in PATH,
+# and append /bin to PATH if they aren't.
+case "$PATH" in
+/bin:*|*:/bin:*|*:/bin) ;;
+/usr/bin:*|*:/usr/bin:*|*:/usr/bin) ;;
+*) PATH="${PATH}:/bin";;
+esac
+
 # If obs is properly installed, obs_funcs.sh will be on PATH
 # but during development, we want to read obs_funcs.sh from same directory as obs, overriding installed one
 SRCFILE="$(readlink "$0" 2>/dev/null || echo "$0")"
