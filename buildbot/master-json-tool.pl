@@ -18,15 +18,15 @@
 # Set variables to describe the current latest versions.
 # (Skipping this section means the script just sorts builders sections.)
 if (1) {
-    $oldrel="4.6";   # most recent release version
-    $olddev="4.7";   # most recent dev version
+    $oldrel="4.8";   # most recent release version
+    $olddev="4.9";   # most recent dev version
     # and the new latest versions we're creating
-    $newrel="4.8";
-    $newdev="4.9";
+    $newrel="5.0";
+    $newdev="5.1";
     $oldrelre = $oldrel; $oldrelre =~ s/\./\\./;
     $olddevre = $olddev; $olddevre =~ s/\./\\./;
 
-    if (1) {
+    if (0) {
         # Describe the current latest operating system (leave blank to avoid adding new OS)
         $old_os="osx1013";
         # and the new latest one we're adding
