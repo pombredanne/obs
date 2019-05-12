@@ -41,9 +41,8 @@ bs_os_codename() {
     ubu1204) echo precise;;
     ubu1404) echo trusty;;
     ubu1604*) echo xenial;;
-    ubu1704) echo zesty;;
-    ubu1710) echo artful;;
     ubu1804) echo bionic;;
+    ubu1904) echo disco;;
     osx*)    echo $1;;       # happens if doing bs_stamp_debian_changelog on osx
     *) bs_abort "bs_os_codename: don't know codename for $1 yet";;
     esac
