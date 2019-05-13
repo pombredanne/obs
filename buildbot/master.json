@@ -1962,8 +1962,8 @@
                 { "os":"win10",           "branch":"rel-4.4", "suffix":"4.4",  "params":"--g-speak 4.4",  "try":"yes" },
                 { "os":"win10",           "branch":"rel-4.8", "suffix":"4.8",  "params":"--g-speak 4.8"               },
                 { "os":"win10",           "branch":"rel-4.8", "suffix":"4.8",  "params":"--g-speak 4.8",  "try":"yes" },
-                { "os":"win10",           "branch":"rel-5.0", "suffix":"5.0",  "params":"--g-speak 5.0"               },
-                { "os":"win10",           "branch":"rel-5.0", "suffix":"5.0",  "params":"--g-speak 5.0",  "try":"yes" },
+                { "os":"win10_msvc2017",  "branch":"rel-5.0", "suffix":"5.0",  "params":"--g-speak 5.0"               },
+                { "os":"win10_msvc2017",  "branch":"rel-5.0", "suffix":"5.0",  "params":"--g-speak 5.0",  "try":"yes" },
                 { "os":"win10_msvc2017",  "branch":"master",  "suffix":"5.1",  "params":"--g-speak 5.1"               },
                 { "os":"win10_msvc2017",  "branch":"master",  "suffix":"5.1",  "params":"--g-speak 5.1",  "try":"yes" }
             ]
@@ -2634,8 +2634,10 @@
                 { "os":"ubu1604pi3",    "branch":"rel-4.6"                                                       },
                 { "os":"ubu1604pi3",    "branch":"rel-4.8"                                                       },
                 { "os":"ubu1604pi3",    "branch":"rel-5.0"                                                       },
-                { "os":"ubu1804",       "branch":"iz"                                                            },
-                { "os":"ubu1804",       "branch":"iz"                                               ,"try":"yes" },
+                { "os":"ubu1804",       "branch":"iz"                                                                 },
+                { "os":"ubu1804",       "branch":"iz",       "suffix":"-headless", "params":"--headless --no-publish" },
+                { "os":"ubu1804",       "branch":"iz",       "suffix":"-headless", "params":"--headless", "try":"yes" },
+                { "os":"ubu1804",       "branch":"iz"                                                   , "try":"yes" },
                 { "os":"ubu1804",       "branch":"iz",       "suffix":"-asan",     "params":"--asan --debug"                           },
                 { "os":"ubu1804",       "branch":"iz",       "suffix":"-astdt",    "params":"--asan --debug --g-speak 5.1 --cef 3497 --lmirror oblong-obmcp,oblong-yobuild13-gst-rtsp-server,libgles2-mesa-dev,libegl1-mesa-dev,oblong-yobuild13-cef3497 --lprojects staging,webthing-cef", "try":"yes" },
                 { "os":"ubu1804",       "branch":"iz",       "suffix":"-coverage", "params":"--coverage --debug --no-publish" },
@@ -2643,13 +2645,13 @@
                 { "os":"ubu1804",       "branch":"iz",       "suffix":"-gh",       "params":"--greenhouse","try":"yes" },
                 { "os":"ubu1804",       "branch":"iz",       "suffix":"-tdt",      "params":"--g-speak 5.1 --cef 3497 --no-tests --lmirror oblong-obmcp,oblong-yobuild13-gst-rtsp-server,libgles2-mesa-dev,libegl1-mesa-dev,oblong-yobuild13-cef3497 --lprojects rtsp-viddle-server,staging,webthing-cef,hantenna,greenhouse,samples,growroom,mosaic,libtrackingrenderer,ir_inertial,motion,mezzanine-kipple,mezzanine", "try":"yes" },
                 { "os":"ubu1804",       "branch":"rel-4.6",                                                "try":"yes" },
-                { "os":"ubu1804",       "branch":"rel-4.6",                        "params":"--headless"               },
+                { "os":"ubu1804",       "branch":"rel-4.6"                                                             },
                 { "os":"ubu1804",       "branch":"rel-4.6",  "suffix":"-asan",     "params":"--asan --debug"                           },
                 { "os":"ubu1804",       "branch":"rel-4.8",                                                "try":"yes" },
-                { "os":"ubu1804",       "branch":"rel-4.8",                        "params":"--headless"               },
+                { "os":"ubu1804",       "branch":"rel-4.8"                                                             },
                 { "os":"ubu1804",       "branch":"rel-4.8",  "suffix":"-asan",     "params":"--asan --debug"                           },
                 { "os":"ubu1804",       "branch":"rel-5.0",                                                "try":"yes" },
-                { "os":"ubu1804",       "branch":"rel-5.0",                        "params":"--headless"               },
+                { "os":"ubu1804",       "branch":"rel-5.0"                                                             },
                 { "os":"ubu1804",       "branch":"rel-5.0",  "suffix":"-asan",     "params":"--asan --debug"                           },
                 { "os":"win10",         "branch":"rel-4.2"                                                       },
                 { "os":"win10",         "branch":"rel-4.2",                                          "try":"yes" },
@@ -2659,8 +2661,8 @@
                 { "os":"win10",         "branch":"rel-4.6",                                          "try":"yes" },
                 { "os":"win10",         "branch":"rel-4.8"                                                       },
                 { "os":"win10",         "branch":"rel-4.8",                                          "try":"yes" },
-                { "os":"win10",         "branch":"rel-5.0"                                                       },
-                { "os":"win10",         "branch":"rel-5.0",                                          "try":"yes" },
+                { "os":"win10_msvc2017","branch":"rel-5.0"                                                       },
+                { "os":"win10_msvc2017","branch":"rel-5.0",                                          "try":"yes" },
                 { "os":"win10_msvc2017","branch":"iz"                                                            },
                 { "os":"win10_msvc2017","branch":"iz",                                               "try":"yes" }
             ]
@@ -3206,9 +3208,9 @@
                 { "os":"win10",      "branch" : "master",  "suffix":"4.4",  "params":"--g-speak 4.4"               },
                 { "os":"win10",      "branch" : "master",  "suffix":"4.6",  "params":"--g-speak 4.6"               },
                 { "os":"win10",      "branch" : "master",  "suffix":"4.8",  "params":"--g-speak 4.8"               },
-                { "os":"win10",      "branch" : "master",  "suffix":"5.0",  "params":"--g-speak 5.0"               },
-                { "os":"win10",      "branch" : "master",  "suffix":"5.1",  "params":"--g-speak 5.1"               },
-                { "os":"win10",      "branch" : "master",  "suffix":"5.1",  "params":"--g-speak 5.1",  "try":"yes" }
+                { "os":"win10_msvc2017","branch":"master", "suffix":"5.0",  "params":"--g-speak 5.0"               },
+                { "os":"win10_msvc2017","branch":"master", "suffix":"5.1",  "params":"--g-speak 5.1"               },
+                { "os":"win10_msvc2017","branch":"master", "suffix":"5.1",  "params":"--g-speak 5.1",  "try":"yes" }
             ]
         },
         {
@@ -3258,9 +3260,9 @@
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine-kipple.git",
             "comment"  : "--g-speak must match that used by mezzanine for this OS as it installs to $G_SPEAK_HOME but lacks g-speak version in pkg name",
             "builders" : [
-                { "os" : "ubu1604",           "branch"  : "master"                                             },
-                { "os" : "ubu1604",           "branch"  : "master",                              "try" : "yes" },
-                { "os" : "ubu1804",           "branch"  : "master", "params":"--g-speak 4.8"                   }
+                { "os" : "ubu1604",           "branch"  : "master"                },
+                { "os" : "ubu1604",           "branch"  : "master", "try" : "yes" },
+                { "os" : "ubu1804",           "branch"  : "master"                }
             ]
         },
         {
@@ -3269,10 +3271,10 @@
             "homepage" : "https://wiki.oblong.com/post/main/0BGpE8Wap53Mja5n",
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mezzanine.git",
             "builders" : [
-                { "os" : "ubu1604",           "branch"  : "mz"                                                                 },
-                { "os" : "ubu1604",           "branch"  : "mz",                                                    "try":"yes" },
-                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.8"                       },
-                { "os" : "ubu1804",           "branch"  : "mz",                 "params":"--g-speak 4.8",          "try":"yes" }
+                { "os" : "ubu1604",           "branch"  : "mz"                    },
+                { "os" : "ubu1604",           "branch"  : "mz",       "try":"yes" },
+                { "os" : "ubu1804",           "branch"  : "mz"                    },
+                { "os" : "ubu1804",           "branch"  : "mz",       "try":"yes" }
             ]
         },
         {
@@ -3286,10 +3288,14 @@
                 { "os" : "ubu1604", "branch" : "master", "suffix":"gs4.6",  "params":"--g-speak 4.6",  "try" : "yes" },
                 { "os" : "ubu1604", "branch" : "master", "suffix":"gs4.8",  "params":"--g-speak 4.8"                 },
                 { "os" : "ubu1604", "branch" : "master", "suffix":"gs4.8",  "params":"--g-speak 4.8",  "try" : "yes" },
+                { "os" : "ubu1604", "branch" : "master", "suffix":"gs5.0",  "params":"--g-speak 5.0"                 },
+                { "os" : "ubu1604", "branch" : "master", "suffix":"gs5.0",  "params":"--g-speak 5.0",  "try" : "yes" },
                 { "os" : "ubu1804", "branch" : "master", "suffix":"gs4.6",  "params":"--g-speak 4.6"                 },
                 { "os" : "ubu1804", "branch" : "master", "suffix":"gs4.6",  "params":"--g-speak 4.6",  "try" : "yes" },
                 { "os" : "ubu1804", "branch" : "master", "suffix":"gs4.8",  "params":"--g-speak 4.8"                 },
-                { "os" : "ubu1804", "branch" : "master", "suffix":"gs4.8",  "params":"--g-speak 4.8",  "try" : "yes" }
+                { "os" : "ubu1804", "branch" : "master", "suffix":"gs4.8",  "params":"--g-speak 4.8",  "try" : "yes" },
+                { "os" : "ubu1804", "branch" : "master", "suffix":"gs5.0",  "params":"--g-speak 5.0"                 },
+                { "os" : "ubu1804", "branch" : "master", "suffix":"gs5.0",  "params":"--g-speak 5.0",  "try" : "yes" }
             ]
         },
         {
@@ -3299,8 +3305,8 @@
             "builders" : [
                 {"os" : "ubu1604", "branch"  : "master"                       },
                 {"os" : "ubu1604", "branch"  : "master", "try" : "yes"        },
-                {"os" : "ubu1804", "branch"  : "master", "params":"--g-speak 4.8"                       },
-                {"os" : "ubu1804", "branch"  : "master", "params":"--g-speak 4.8", "try" : "yes"        }
+                {"os" : "ubu1804", "branch"  : "master"                       },
+                {"os" : "ubu1804", "branch"  : "master", "try" : "yes"        }
             ]
         },
         {
@@ -3308,10 +3314,10 @@
             "name"     : "mip",
             "repourl"  : "git@gitlab.oblong.com:mezzanine/mip.git",
             "builders" : [
-                {"os" : "ubu1604", "branch"  : "master"                                                   },
-                {"os" : "ubu1604", "branch"  : "master", "try" : "yes"                                    },
-                {"os" : "ubu1804", "branch"  : "master", "params":"--g-speak 4.8"                         },
-                {"os" : "ubu1804", "branch"  : "master", "params":"--g-speak 4.8", "try" : "yes"          }
+                {"os" : "ubu1604", "branch"  : "master"                       },
+                {"os" : "ubu1604", "branch"  : "master", "try" : "yes"        },
+                {"os" : "ubu1804", "branch"  : "master"                       },
+                {"os" : "ubu1804", "branch"  : "master", "try" : "yes"        }
             ]
         },
         {
