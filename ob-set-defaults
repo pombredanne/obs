@@ -618,6 +618,9 @@ fi
 
 # Tell shellcheck to not complain about possible spaces in output of $(ls debian...)
 # shellcheck disable=2046
+#
+# On Ubuntu 19.04, dh specifies -G when running cmake,
+# and that overrides -DCMAKE_GENERATOR... so use -G instead.
 
 sanitycheck
 $sed -i \
@@ -662,6 +665,7 @@ $sed -i \
     -e "s/-mz[1-9][0-9]*/-mz${mezz_version}/g" \
     -e "s!^EXTRA_CMAKE_OPTIONS=.*!EXTRA_CMAKE_OPTIONS=$extra_cmake_options!" \
     -e "s,^CMAKE_GENERATOR=.*,CMAKE_GENERATOR=$opt_generator," \
+    -e "/dh_auto_configure/s,-DCMAKE_GENERATOR=,-G ," \
     debian/rules \
     debian/control \
     $(ls \
