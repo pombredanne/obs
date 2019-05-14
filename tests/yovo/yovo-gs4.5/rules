@@ -72,7 +72,7 @@ override_dh_installinit:
 endif
 
 override_dh_auto_configure:
-	dh_auto_configure -- -DCMAKE_INSTALL_PREFIX=$(PREFIX) -DCMAKE_GENERATOR="$(CMAKE_GENERATOR)" $(EXTRA_CMAKE_OPTIONS)
+	dh_auto_configure -- -DCMAKE_INSTALL_PREFIX=$(PREFIX) -G "$(CMAKE_GENERATOR)" $(EXTRA_CMAKE_OPTIONS)
 
 # dh doesn't quite support other cmake generators than the default,
 # so use cmake --build.  Have to jump through a hoop or two to
