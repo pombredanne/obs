@@ -34,7 +34,7 @@
         { "os":"ubu1804",          "name":"rbb-ubu1804-6"                                },
         { "os":"ubu1804",          "name":"rbb-ubu1804-7"                                },
         { "os":"ubu1804",          "name":"rbb-ubu1804-8"                                },
-        { "os":"ubu1804",          "name":"rbb-ubu1804-9"                                },
+        { "os":"ubu1904",          "name":"rbb-ubu1904-1"                                },
         { "os":"win10",            "name":"rbb-win10-1"                                  },
         { "os":"win10",            "name":"rbb-win10-2"                                  },
         { "os":"win10_msvc2017",   "name":"rbb-win10-3"                                  },
@@ -327,7 +327,11 @@
             "repourl"   : "git@gitlab.oblong.com:platform/oblong-mesa.git",
             "builders"  : [
                 { "os":"ubu1604", "branch":"master"              },
-                { "os":"ubu1604", "branch":"master", "try":"yes" }
+                { "os":"ubu1604", "branch":"master", "try":"yes" },
+                { "os":"ubu1804", "branch":"master"              },
+                { "os":"ubu1804", "branch":"master", "try":"yes" },
+                { "os":"ubu1904", "branch":"master"              },
+                { "os":"ubu1904", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -415,7 +419,9 @@
                 { "os":"ubu1604", "branch":"master"              },
                 { "os":"ubu1604", "branch":"master", "try":"yes" },
                 { "os":"ubu1804", "branch":"master"              },
-                { "os":"ubu1804", "branch":"master", "try":"yes" }
+                { "os":"ubu1804", "branch":"master", "try":"yes" },
+                { "os":"ubu1904", "branch":"master"              },
+                { "os":"ubu1904", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -1805,6 +1811,8 @@
                 { "os":"ubu1604pi3",    "branch":"master"              },
                 { "os":"ubu1804",       "branch":"master"              },
                 { "os":"ubu1804",       "branch":"master", "try":"yes" },
+                { "os":"ubu1904",       "branch":"master"              },
+                { "os":"ubu1904",       "branch":"master", "try":"yes" },
                 { "os":"win10",         "branch":"master"              },
                 { "os":"win10",         "branch":"master", "try":"yes" }
             ]
@@ -2046,7 +2054,9 @@
                 { "os":"ubu1604", "branch":"master"              },
                 { "os":"ubu1604", "branch":"master", "try":"yes" },
                 { "os":"ubu1804", "branch":"master"              },
-                { "os":"ubu1804", "branch":"master", "try":"yes" }
+                { "os":"ubu1804", "branch":"master", "try":"yes" },
+                { "os":"ubu1904", "branch":"master"              },
+                { "os":"ubu1904", "branch":"master", "try":"yes" }
             ]
         },
         {
@@ -2218,7 +2228,9 @@
                 { "os":"ubu1804",         "branch":"rel-4.8",  "params":"--g-speak 4.8"                                            },
                 { "os":"ubu1804",         "branch":"rel-4.8",  "params":"--g-speak 4.8",                               "try":"yes" },
                 { "os":"ubu1804",         "branch":"rel-5.0",  "params":"--g-speak 5.0"                                            },
-                { "os":"ubu1804",         "branch":"rel-5.0",  "params":"--g-speak 5.0",                               "try":"yes" }
+                { "os":"ubu1804",         "branch":"rel-5.0",  "params":"--g-speak 5.0",                               "try":"yes" },
+                { "os":"ubu1904",         "branch":"master",   "params":"--g-speak 5.1"                                            },
+                { "os":"ubu1904",         "branch":"master",   "params":"--g-speak 5.1",                               "try":"yes" }
             ]
         },
         {
@@ -2554,8 +2566,8 @@
                 { "os":"ubu1604pi3",    "branch":"master",       "try":"yes" },
                 { "os":"ubu1804",       "branch":"master"                    },
                 { "os":"ubu1804",       "branch":"master",       "try":"yes" },
-                { "os":"ubu1804",       "branch":"yobuild-next"              },
-                { "os":"ubu1804",       "branch":"yobuild-next", "try":"yes" },
+                { "os":"ubu1904",       "branch":"master"                    },
+                { "os":"ubu1904",       "branch":"master",       "try":"yes" },
                 { "os":"win10_msvc2017","branch":"master"                    },
                 { "os":"win10_msvc2017","branch":"master",       "try":"yes" },
                 { "os":"win10_msvc2017","branch":"yobuild-next", "try":"yes" }
@@ -2653,6 +2665,8 @@
                 { "os":"ubu1804",       "branch":"rel-5.0",                                                "try":"yes" },
                 { "os":"ubu1804",       "branch":"rel-5.0"                                                             },
                 { "os":"ubu1804",       "branch":"rel-5.0",  "suffix":"-asan",     "params":"--asan --debug"                           },
+                { "os":"ubu1904",       "branch":"iz"                                                                 },
+                { "os":"ubu1904",       "branch":"iz"                                                   , "try":"yes" },
                 { "os":"win10",         "branch":"rel-4.2"                                                       },
                 { "os":"win10",         "branch":"rel-4.2",                                          "try":"yes" },
                 { "os":"win10",         "branch":"rel-4.4"                                                       },
