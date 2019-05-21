@@ -212,6 +212,16 @@
         },
         {
             "category" : "astor",
+            "name"     : "macroscope-assets",
+            "comment"  : "Uses lfs; buildshim uses bs_kludge_init_git_lfs in case git-lfs wasn't installed",
+            "repourl"  : "git@gitlab-ibm.oblong.com:astor/macroscope-assets.git",
+            "builders" : [
+                { "os":"ubu1604", "branch" : "master"              },
+                { "os":"ubu1604", "branch" : "master", "try":"yes" }
+            ]
+        },
+        {
+            "category" : "astor",
             "name"     : "newsdisco",
             "repourl"  : "git@gitlab-ibm.oblong.com:astor/newsdisco.git",
             "builders" : [
