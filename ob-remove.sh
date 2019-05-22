@@ -32,7 +32,8 @@ blacklist_re="g-speak|oblong|mezzanine|whiteboard|corkboard|ob-http-ctl|libpdl-o
 # Keep this list in sync with the one in bs_apt_uninstall_deps
 whitelist_re="oblong-obs|-mesa|mesa-|libgbm1|libxatracker2|udev|systemd|ubuntu-keyring"
 
-OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -wv "$whitelist_re" || true)
+OLDPKGS=$(dpkg-query -l | egrep -i "$blacklist_re" | awk '{print $2}' | egrep -v "$whitelist_re" || true)
+
 if test "$opt_rubytoo"
 then
     OLDGEMS=`dpkg-query -l | egrep rubygem- | grep -v integration | awk '{print $2}' || true`
