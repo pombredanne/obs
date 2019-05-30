@@ -69,6 +69,8 @@ then
     else
 	# No X, so start one
         > ~/.xinitrc.new
+        # FIXME: lxc opengl demo is lame, disable access control so it can run
+        echo '/usr/bin/xhost + &' >> ~/.xinitrc.new
         echo '/usr/bin/xterm  -geometry 80x25+0+0 -e sh -c "while sleep 1; do top; done" &' >> ~/.xinitrc.new
         echo '/usr/bin/xterm  -geometry 80x25+0-0   &' >> ~/.xinitrc.new
         echo '/usr/bin/xclock -geometry 250x250-1+1 &' >> ~/.xinitrc.new
