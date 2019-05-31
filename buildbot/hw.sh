@@ -51,7 +51,7 @@ disk() {
          volume=$(sudo lvs -o +devices $volume | grep dev | sed 's/.* //;s/([0-9]*)$//')
          ;;
       esac
-      device=$(echo $volume | sed 's,/dev/,,;s/p[0-9]*$//;s/sda1/sda/')
+      device=$(echo $volume | sed 's,/dev/,,;s/p[0-9]*$//;s/sda[0-9]/sda/')
       cat /sys/block/$device/device/model
    fi
 }
