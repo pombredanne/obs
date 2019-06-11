@@ -1372,18 +1372,24 @@
                 { "os":"osx1011",         "branch":"oblong-1-7-x", "try":"yes" },
                 { "os":"osx1012",         "branch":"oblong-4-0-x"              },
                 { "os":"osx1012",         "branch":"oblong-4-0-x", "try":"yes" },
+                { "os":"osx1012",         "branch":"oblong-4-2-x"              },
+                { "os":"osx1012",         "branch":"oblong-4-2-x", "try":"yes" },
                 { "os":"ubu1804b",        "branch":"oblong-1-7-x"              },
                 { "os":"ubu1804b",        "branch":"oblong-1-7-x", "try":"yes" },
                 { "os":"ubu1804b",        "branch":"oblong-3-0-x"              },
                 { "os":"ubu1804b",        "branch":"oblong-3-0-x", "try":"yes" },
                 { "os":"ubu1804b",        "branch":"oblong-4-0-x"              },
                 { "os":"ubu1804b",        "branch":"oblong-4-0-x", "try":"yes" },
+                { "os":"ubu1804b",        "branch":"oblong-4-2-x"              },
+                { "os":"ubu1804b",        "branch":"oblong-4-2-x", "try":"yes" },
                 { "os":"win10",           "branch":"oblong-1-7-x"              },
                 { "os":"win10",           "branch":"oblong-1-7-x", "try":"yes" },
                 { "os":"win10_msvc2017",  "branch":"oblong-3-0-x"              },
                 { "os":"win10_msvc2017",  "branch":"oblong-3-0-x", "try":"yes" },
                 { "os":"win10_msvc2017",  "branch":"oblong-4-0-x"              },
-                { "os":"win10_msvc2017",  "branch":"oblong-4-0-x", "try":"yes" }
+                { "os":"win10_msvc2017",  "branch":"oblong-4-0-x", "try":"yes" },
+                { "os":"win10_msvc2017",  "branch":"oblong-4-2-x"              },
+                { "os":"win10_msvc2017",  "branch":"oblong-4-2-x", "try":"yes" }
             ]
         },
         {
