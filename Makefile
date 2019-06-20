@@ -52,8 +52,8 @@ gitlab-ci-linter:
 
 check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau check-version
 
-# Note: check-filter and check-parse have been disabled and moved to a subdirectory
-# because scancode is undeployable, and can't reliably pass tests.
+# Note: check-filter and check-parse have been disabled and moved to a licensing
+# subdirectory because scancode is undeployable, and can't reliably pass tests.
 # It's still very useful interactively when doing source code licensing work,
 # as long as you enable
 # https://launchpad.net/~dank/+archive/ubuntu/python-fixes

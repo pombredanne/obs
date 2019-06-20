@@ -5,7 +5,7 @@ Let's say you (foocorp) are the author of a debian package 'XYZ'.
 Users of your package may ask, "If I use to build an application using 'XYZ' that otherwise consists of
 a single source file, what software licenses am I bound by when I ship the resulting application?"
 
-This page collects what we know about how to answer that question and how we generated the above report.  For deep background, see the Theory and References sections below.
+This page collects what we know about how to answer that question and how we generate licensing reports.  For deep background, see the Theory and References sections below.
 
 ### The Central Dogma
 
@@ -42,8 +42,6 @@ output using their [SPDX id](https://spdx.org/licenses), but not all packages us
 
 Its output should be taken with a grain of salt; just because it lists GPL as a license, doesn't necessarily mean that the binary you're analyzing actually includes any GPL bits.
 
-ob-list-licenses is installed along with obs, but is not yet really polished, and is subject to change.
-
 Example:
 ```
 $ cp -a /opt/foocorp/XYZ/samples .
@@ -78,7 +76,10 @@ harder to convert them to SPDX, but it's only half-baked.
 
 ### scancode: searches source tree for copyright and license info
 
-This is a great tool.  Mattie had very good things to say about it when she last updated yovo's copyright file. We also rely on it heavily in `ob-list-licenses` to parse non dep-5 files to determine possible licenses.
+This is a great tool for scanning source trees.  We also use it in `ob-list-licenses` to parse non dep-5 debian copyright files to determine possible licenses.
+
+On Ubuntu 16.04 and 18.04, problems with python packaging cause scancode to fail when installed via pip;
+consider enabling https://launchpad.net/~dank/+archive/ubuntu/python-fixes to work around these problems.
 
 See https://github.com/nexB/scancode-toolkit
 
