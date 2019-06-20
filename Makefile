@@ -50,7 +50,13 @@ gitlab-ci-linter:
          touch gitlab-ci-linter; \
 	fi
 
-check: check-apt check-bau check-filter check-parse check-obs check-ob-set-defaults check-uberbau check-version
+check: check-apt check-bau check-obs check-ob-set-defaults check-uberbau check-version
+
+# Note: check-filter and check-parse have been disabled and moved to a subdirectory
+# because scancode is undeployable, and can't reliably pass tests.
+# It's still very useful interactively when doing source code licensing work,
+# as long as you enable
+# https://launchpad.net/~dank/+archive/ubuntu/python-fixes
 
 check-version: obs
 	# Assert they are equal
@@ -87,25 +93,6 @@ check-obs: obs
 	sh -xe obs-test.sh
 	rm obs-test.sh
 
-check-filter:
-ifeq ($(COND_LINUX),1)
-	egrep -v '@test|^}$$' < ob-filter-licenses.bats > ob-filter-licenses-test.sh
-	echo "Sorry, scancode is undeployable."
-	#sh -xe ob-filter-licenses-test.sh
-	rm ob-filter-licenses-test.sh
-else
-	echo "ob-list-licenses not supported on mac/windows, sorry"
-endif
-
-check-parse:
-ifeq ($(COND_LINUX),1)
-	egrep -v '@test|^}$$' < ob-parse-licenses.bats > ob-parse-licenses-test.sh
-	echo "Sorry, scancode is undeployable."
-	#sh -xe ob-parse-licenses-test.sh
-	rm ob-parse-licenses-test.sh
-else
-	echo "ob-list-licenses not supported on mac/windows, sorry"
-endif
 
 check-uberbau: obs bau
 	egrep -v '@test|^}$$' < uberbau.bats > uberbau-test.sh
@@ -156,9 +143,9 @@ install-obs: obs
 	install -m 755 ob-set-targets $(DESTDIR)$(PREFIX)/bin
 	install -m 755 obs ob-remove.sh $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-list-dbg-pkgs $(DESTDIR)$(PREFIX)/bin
-	install -m 755 ob-list-licenses $(DESTDIR)$(PREFIX)/bin
-	install -m 755 ob-filter-licenses $(DESTDIR)$(PREFIX)/bin
-	install -m 755 ob-parse-licenses $(DESTDIR)$(PREFIX)/bin
+	install -m 755 licensing/ob-list-licenses $(DESTDIR)$(PREFIX)/bin
+	install -m 755 licensing/ob-filter-licenses $(DESTDIR)$(PREFIX)/bin
+	install -m 755 licensing/ob-parse-licenses $(DESTDIR)$(PREFIX)/bin
 	install -m 755 ob-build-deps $(DESTDIR)$(PREFIX)/bin
 
 uninstall: uninstall-bau uninstall-obs
